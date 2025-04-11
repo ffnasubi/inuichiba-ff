@@ -1,0 +1,15 @@
+# OSやエディタによるゴミファイル
+.DS_Store
+Thumbs.db
+
+# node_modules は不要
+node_modules/
+
+# 環境変数ファイル（絶対Gitに入れない！）
+.env.dev
+.env.production
+
+# ✅ .vercel/ は除外しない！（←これ重要）
+# ❌ .vercel/ を .gitignore に書いてると webhook.js が function として認識されない
+
+
