@@ -19,8 +19,8 @@ const menus = await client.getRichMenuList();
 ]
 */
 
-import { Client } from '@line/bot-sdk';
-import { channelAccessToken } from "../lib/env.js";
+const { Client } = require('@line/bot-sdk');
+const { channelAccessToken } = require('../lib/env.js');
 
 const client = new Client({
   channelAccessToken

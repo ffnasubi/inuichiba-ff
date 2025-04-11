@@ -3,13 +3,11 @@
 Thumbs.db
 
 # node_modules は不要
-node_modules/
+functions/node_modules/
+
+# RFU(又は以前の資産)として保存してるから今は不要
+public/save/
 
 # 環境変数ファイル（絶対Gitに入れない！）
-.env.dev
-.env.production
-
-# ✅ .vercel/ は除外しない！（←これ重要）
-# ❌ .vercel/ を .gitignore に書いてると webhook.js が function として認識されない
-
-
+.env.ffdev
+.env.ffprod

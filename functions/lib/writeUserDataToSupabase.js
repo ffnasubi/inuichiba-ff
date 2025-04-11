@@ -1,6 +1,6 @@
 // ✅ 外部公開：ユーザーデータをSupabaseに書き込む
-import { supabase } from "./supabaseClient.js";
-import { usersTable, isProd } from "./env.js";
+const { supabase } = require('./supabaseClient.js');
+const { usersTable, isProd } = require('./env.js');
 
 // ✅ 日本時間のタイムスタンプ（先頭0なしのH形式）
 function getFormattedJST() {

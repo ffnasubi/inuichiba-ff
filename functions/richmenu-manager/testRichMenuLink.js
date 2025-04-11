@@ -6,9 +6,8 @@
 
 // richmenu-manager/testRichMenuLink.js
 
-import 'dotenv/config';
-import line from '@line/bot-sdk';
-import { channelAccessToken, channelSecret, myLineUserId, targetMenuName } from "../lib/env.js";
+const line = require('@line/bot-sdk');
+const { channelAccessToken, channelSecret, myLineUserId, targetMenuName } = require('../lib/env.js');
 
 const client = new line.Client({
   channelAccessToken,

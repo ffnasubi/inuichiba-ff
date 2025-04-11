@@ -1,10 +1,10 @@
-// api/handlers/events.js
+// functions/handlers/events.js
 // ✅ 最新版：events.js（.then → await / catch に統一、ログ抑制付き）
 
-import { saveUserProfileAndWrite } from "../../lib/saveUserInfo.js";
-import { sendReplyMessage, getUserProfile } from '../../lib/lineApiHelpers.js';
-import { textMessages, mediaMessages, lineQRMessages, textTemplates, emojiMap } from '../../richmenu-manager/data/messages.js';
-import * as messages from '../../richmenu-manager/data/messages.js';
+const { saveUserProfileAndWrite } = require(../lib/saveUserInfo.js);
+const { sendReplyMessage, getUserProfile } = require(../lib/lineApiHelpers.js);
+const { textMessages, mediaMessages, lineQRMessages, textTemplates, emojiMap } = require(../richmenu-manager/data/messages.js);
+const messages = require(../richmenu-manager/data/messages.js);
 
 
 // ///////////////////////////////////////////

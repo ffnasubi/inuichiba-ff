@@ -2,12 +2,12 @@
 // 最初に以下のコマンドをターミナルのプロジェクトのルートディレクトリで実行
 // npm install @line/bot-sdk
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import { Client } from '@line/bot-sdk'; 
-import { channelAccessToken } from "../lib/env.js";
+const fs = require('fs');
+const path = require('path');
+const { fileURLToPath } = require('url');
+const { dirname } = require('path');
+const { Client } = require('@line/bot-sdk'); 
+const { channelAccessToken } = require('../lib/env.js');
 
 // __dirname の再現（ESM用）
 const __filename = fileURLToPath(import.meta.url);

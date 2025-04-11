@@ -3,7 +3,7 @@
 // 変数定義 → 条件分岐 → ログ出力の順に記述することで、未初期化エラーを防ぎます(厳守)！
 
 // Node.jsに.env.*を開発環境に応じて読み込ませる
-import { config as loadEnv } from 'dotenv';
+const { config as loadEnv } = require('dotenv');
 
 // 1. 環境ファイルの読み込み（ローカル用）
 // Firebase Functions では自動的に環境変数が読み込まれるため、

@@ -1,8 +1,8 @@
 // api/webhook.js
-import { middleware } from '@line/bot-sdk';
-import { channelAccessToken, channelSecret, envName, vercelBypassSecret } from '../lib/env.js';
-import { handleEvent } from './handlers/events.js';
-
+const { middleware } = require('@line/bot-sdk');
+const { channelAccessToken, channelSecret, envName, vercelBypassSecret } = require('../lib/env.js');
+const { handleEvent } = require('../functions/handlers/events.js');
+ 
 const lineMiddleware = middleware({
   channelAccessToken,
   channelSecret,
@@ -13,7 +13,7 @@ export const config = {
     bodyParser: false,
   },
 };
-
+ 
 export default async function handler(req, res) {
   console.log("✅ Webhook関数に到達！");
   console.log("🔍 環境:", envName);

@@ -1,7 +1,7 @@
 // lib/saveUserInfo.js
-import { getUserProfile } from "./lineApiHelpers.js";
-import { writeUserDataToSupabase } from "./writeUserDataToSupabase.js";
-import { isProd } from "./env.js";
+const { getUserProfile } = require('./lineApiHelpers.js');
+const { writeUserDataToSupabase } = require('./writeUserDataToSupabase.js');
+const { isProd } = require('./env.js');
 
 export async function saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN, inputData = null) {
   const safeGroupId = groupId || "default";

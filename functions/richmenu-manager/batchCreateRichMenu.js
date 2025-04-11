@@ -1,9 +1,11 @@
-// 実行コマンド→ node richmenu-manager/resetRichMenu.js
+// batchCreateRichMenu.js（CLIで実行用）
+// 実行方法
+//  cd functions
+//  node richmenu-manager/batchCreateRichMenu.js
 
-import 'dotenv/config';
-import { deleteRichMenusAndAliases } from './deleteAllRichMenus.js';
-import { handleRichMenu } from './richMenuHandler.js';
-import { channelAccessToken } from "../lib/env.js";
+const { deleteRichMenusAndAliases } = require('./deleteAllRichMenus.js');
+const { handleRichMenu } = require('./richMenuHandler.js');
+const { channelAccessToken } = require('../lib/env.js');
 
 // メイン処理
 async function main() {
