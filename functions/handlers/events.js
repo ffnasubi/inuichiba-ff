@@ -1,15 +1,15 @@
 // functions/handlers/events.js
 // ✅ 最新版：events.js（.then → await / catch に統一、ログ抑制付き）
 
-const { saveUserProfileAndWrite } = require(../lib/saveUserInfo.js);
-const { sendReplyMessage, getUserProfile } = require(../lib/lineApiHelpers.js);
-const { textMessages, mediaMessages, lineQRMessages, textTemplates, emojiMap } = require(../richmenu-manager/data/messages.js);
-const messages = require(../richmenu-manager/data/messages.js);
+const { saveUserProfileAndWrite } = require("../lib/saveUserInfo.js");
+const { sendReplyMessage, getUserProfile } = require("../lib/lineApiHelpers.js");
+const { textMessages, mediaMessages, lineQRMessages, textTemplates, emojiMap } = require("../richmenu-manager/data/messages.js");
+const messages = require("../richmenu-manager/data/messages.js");
 
 
 // ///////////////////////////////////////////
 // eventタイプで処理を振り分ける
-export async function handleEvent(event, ACCESS_TOKEN) {
+async function handleEvent(event, ACCESS_TOKEN) {
   switch (event.type) {
     case 'message':
       await handleMessageEvent(event, ACCESS_TOKEN);
@@ -391,3 +391,4 @@ async function handleJoinEvent(event, ACCESS_TOKEN) {
   await sendReplyMessage(event.replyToken, [welcomeMessage], ACCESS_TOKEN);
 }
 
+module.exports = handleEvent;

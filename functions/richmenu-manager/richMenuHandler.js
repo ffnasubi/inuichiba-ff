@@ -1,6 +1,4 @@
-
-// 最初に以下のコマンドをターミナルのプロジェクトのルートディレクトリで実行
-// npm install @line/bot-sdk
+// functions/richmenu-manager/richMenuHandler.js
 
 const fs = require('fs');
 const path = require('path');
@@ -8,10 +6,7 @@ const { fileURLToPath } = require('url');
 const { dirname } = require('path');
 const { Client } = require('@line/bot-sdk'); 
 const { channelAccessToken } = require('../lib/env.js');
-
-// __dirname の再現（ESM用）
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const path = require("path");
 
 // LINE Bot SDKの初期設定
 const client = new Client({
@@ -38,7 +33,7 @@ const hTab  =  200;
 // 古いリッチメニューを削除し新しいリッチメニューを作成する
 // ここはメッセージを出さない
 // ファイルやリッチメニュー系のプログラムを修正したらここを実行すること
-export async function handleRichMenu() {
+async function handleRichMenu() {
   try {
   	// 今迄あったリッチメニューを削除
 // 	await deleteRichMenusAndAliases();
@@ -244,3 +239,4 @@ async function createRichMenus(aRichMenuId, bRichMenuId) {
   }
 } 
 
+module.exports = handleRichMenu;

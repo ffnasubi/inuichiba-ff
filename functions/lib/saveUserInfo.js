@@ -3,7 +3,7 @@ const { getUserProfile } = require('./lineApiHelpers.js');
 const { writeUserDataToSupabase } = require('./writeUserDataToSupabase.js');
 const { isProd } = require('./env.js');
 
-export async function saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN, inputData = null) {
+async function saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN, inputData = null) {
   const safeGroupId = groupId || "default";
   if (!isProd) {
     console.log("📥 ユーザーデータ保存開始:", { userId, safeGroupId });
@@ -49,3 +49,5 @@ export async function saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN, inp
     console.error("❌ プロフィールの取得または書き込みに失敗:", error);
   }
 }
+
+module.exports = saveUserProfileAndWrite;

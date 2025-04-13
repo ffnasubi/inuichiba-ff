@@ -8,13 +8,13 @@ const lineMiddleware = middleware({
   channelSecret,
 });
 
-export const config = {
+const config = {
   api: {
     bodyParser: false,
   },
 };
  
-export default async function handler(req, res) {
+async function handler(req, res) {
   console.log("✅ Webhook関数に到達！");
   console.log("🔍 環境:", envName);
   console.log("🔍 リクエスト URL:", req.url);
@@ -66,3 +66,8 @@ for (const [i, event] of events.entries()) {
     res.status(500).send("Internal Server Error");
   }
 }
+
+module.exports = {
+  config,
+  handler
+};

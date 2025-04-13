@@ -16,7 +16,7 @@ function getFormattedJST() {
 }
 
 // ✅ オブジェクト形式で引数を受け取り、データベースに書き込む
-export async function writeUserDataToSupabase({
+async function writeUserDataToSupabase({
   groupId,
   userId,
   displayName,
@@ -66,3 +66,5 @@ export async function writeUserDataToSupabase({
   }
 	
 }
+
+module.exports = writeUserDataToSupabase;

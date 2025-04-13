@@ -26,7 +26,7 @@ const client = new Client({
   channelAccessToken
 });
 
-export async function deleteRichMenusAndAliases() {
+async function deleteRichMenusAndAliases() {
   try {
     const menus = await client.getRichMenuList();
 
@@ -79,3 +79,5 @@ export async function deleteRichMenusAndAliases() {
     console.error('❌ リッチメニュー削除全体エラー:', error.message);
   }
 }
+
+module.exports = deleteRichMenusAndAliases;

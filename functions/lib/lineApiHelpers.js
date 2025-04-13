@@ -2,7 +2,7 @@ const axios = require('axios');
 
 // ///////////////////////////////////////////////
 // Replyメッセージ送信
-export async function sendReplyMessage(replyToken, messages, ACCESS_TOKEN) {
+async function sendReplyMessage(replyToken, messages, ACCESS_TOKEN) {
   const url = 'https://api.line.me/v2/bot/message/reply';
 
   try {
@@ -28,7 +28,7 @@ export async function sendReplyMessage(replyToken, messages, ACCESS_TOKEN) {
 
 // ///////////////////////////////////////////////
 // プッシュメッセージ送信
-export async function sendPushMessage(userId, messages, ACCESS_TOKEN) {
+async function sendPushMessage(userId, messages, ACCESS_TOKEN) {
   const url = 'https://api.line.me/v2/bot/message/push';
 
   try {
@@ -53,7 +53,7 @@ export async function sendPushMessage(userId, messages, ACCESS_TOKEN) {
 
 // //////////////////////////////////////////////////
 // LINEのユーザプロフィールをまとめて取得する
-export async function getUserProfile(userId, ACCESS_TOKEN) {
+async function getUserProfile(userId, ACCESS_TOKEN) {
   const url = `https://api.line.me/v2/bot/profile/${userId}`;
 
   try {
@@ -69,3 +69,9 @@ export async function getUserProfile(userId, ACCESS_TOKEN) {
     return null;
   }
 }
+
+module.exports = {
+  sendReplyMessage,
+  sendPushMessage,
+  getUserProfile
+};
