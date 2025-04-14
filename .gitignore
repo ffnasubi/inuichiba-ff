@@ -9,5 +9,7 @@ functions/node_modules/
 public/save/
 
 # 環境変数ファイル（絶対Gitに入れない！）
-.env.ffdev
-.env.ffprod
+functions/.env.ffdev
+functions/.env.ffprod
+functions/.env.notes.txt
+functions/secrets_ffprod.txt

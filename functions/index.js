@@ -7,6 +7,8 @@ const { channelAccessToken, channelSecret, isProd, envName } = require("./lib/en
 const { handleEvent } = require("./handlers/events.js");
 const region = "asia-northeast1"; // ✅ 東京リージョン（Gen2には必要）
 
+console.log("🔥 Force redeploy");
+
 // Expressアプリを作成
 const app = express();
 
@@ -37,11 +39,8 @@ app.post("/api/webhook", lineMiddleware, async (req, res) => {
       console.warn("⚠️ イベント配列が不正です:", req.body);
       return res.status(200).send("No events");
     }
-
-    for (const [i, event] of events.entries()) {
-      if (i === 0) {
-        console.log("🔐 channelAccessToken の長さ:", channelAccessToken?.length);
-      }
+    
+    for (const event of events) {
       await handleEvent(event, channelAccessToken);
     }
 
@@ -53,14 +52,27 @@ app.post("/api/webhook", lineMiddleware, async (req, res) => {
 });
 
 // ✅ Firebase Functions v2 としてエクスポート（Gen 2 明示）
-exports.webhook = functions
-  .https.onRequest({
-    region,
-    secrets: ["NODE_ENV"],
-  }, app);
+exports.webhook = functions.https.onRequest({
+  region,
+  secrets: [
+    "NODE_ENV",
+    "CHANNEL_ACCESS_TOKEN_PROD",
+    "CHANNEL_SECRET_PROD",
+    "SUPABASE_SERVICE_ROLE_KEY_PROD",
+    "SUPABASE_TABLE_NAME_PROD",
+    "MY_LINE_USER_ID"
+  ]
+}, app);
 
-exports.api = functions
-  .https.onRequest({
-    region,
-    secrets: ["NODE_ENV"],
-  }, app);
+exports.api = functions.https.onRequest({
+  region,
+  secrets: [
+    "NODE_ENV",
+    "CHANNEL_ACCESS_TOKEN_PROD",
+    "CHANNEL_SECRET_PROD",
+    "SUPABASE_SERVICE_ROLE_KEY_PROD",
+    "SUPABASE_TABLE_NAME_PROD",
+    "MY_LINE_USER_ID"
+  ]
+}, app);
+

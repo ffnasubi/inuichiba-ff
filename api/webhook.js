@@ -52,14 +52,10 @@ async function handler(req, res) {
       return res.status(200).send("No events");
     }
 
-for (const [i, event] of events.entries()) {
-  // 最初の一度のeventだけコンソールログを出す
-	if (i === 0) {
-    console.log("🔐 channelAccessToken の長さ:", channelAccessToken?.length);
-  }
-  await handleEvent(event, channelAccessToken);
-}
-
+    for (const event of events) {
+      await handleEvent(event, channelAccessToken);
+    }
+    
     res.status(200).send("OK from webhook");
   } catch (err) {
     console.error("💥 Error in webhook handler:", err);
