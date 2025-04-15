@@ -1,40 +1,34 @@
-// api/webhook.js
+// api/webhook.js（Firebase Functions 用・遅延読み込み対応）
+
 const { middleware } = require('@line/bot-sdk');
-const { channelAccessToken, channelSecret, envName, vercelBypassSecret } = require('../lib/env.js');
 const { handleEvent } = require('../functions/handlers/events.js');
- 
-const lineMiddleware = middleware({
-  channelAccessToken,
-  channelSecret,
-});
 
 const config = {
   api: {
     bodyParser: false,
   },
 };
- 
+
 async function handler(req, res) {
-  console.log("✅ Webhook関数に到達！");
-  console.log("🔍 環境:", envName);
-  console.log("🔍 リクエスト URL:", req.url);
-  console.log("🔍 メソッド:", req.method);
-  console.log("🔍 x-line-signature:", req.headers['x-line-signature']);
-  console.log("🔑 channelSecret used in middleware:", channelSecret);
-	
-	// POSTのみ対象
-	if (process.env.VERCEL_ENV === 'preview' &&
-			req.headers['x-vercel-protection-bypass'] !== vercelBypassSecret ) {
-				console.warn("🚫 Protection Bypass ヘッダー不一致！");
-				return res.status(401).send("Unauthorized (Vercel Protection)");
-	}
+  // ✅ 遅延 require：Secrets を確実に初期化後に読み込む
+  const { channelAccessToken, channelSecret, envName, isProd } = require('../lib/env.js');
+  if (!isProd) {
+    console.log("✅ Webhook関数に到達！");
+    console.log("🔍 環境:", envName);
+    console.log("🔍 リクエスト URL:", req.url);
+    console.log("🔍 メソッド:", req.method);
+    console.log("🔍 x-line-signature:", req.headers['x-line-signature']);
+    console.log("🔑 channelSecret used in middleware:", channelSecret);
+  }
 
   if (req.method !== 'POST') {
-    console.log("🚫 Not a POST request, skipping...");
+    if (!isProd) console.log("🚫 Not a POST request, skipping...");
     return res.status(200).send('OK (not POST)');
   }
 
   try {
+    const lineMiddleware = middleware({ channelAccessToken, channelSecret });
+
     await new Promise((resolve, reject) => {
       lineMiddleware(req, res, (err) => {
         if (err) {
@@ -48,14 +42,14 @@ async function handler(req, res) {
 
     const events = req.body?.events;
     if (!events || !Array.isArray(events)) {
-      console.warn("⚠️ イベント配列が不正です:", req.body);
+      if (!isProd) console.warn("⚠️ イベント配列が不正です:", req.body);
       return res.status(200).send("No events");
     }
 
     for (const event of events) {
       await handleEvent(event, channelAccessToken);
     }
-    
+
     res.status(200).send("OK from webhook");
   } catch (err) {
     console.error("💥 Error in webhook handler:", err);
@@ -67,3 +61,4 @@ module.exports = {
   config,
   handler
 };
+

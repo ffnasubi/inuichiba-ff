@@ -2,11 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const { fileURLToPath } = require('url');
-const { dirname } = require('path');
 const { Client } = require('@line/bot-sdk'); 
 const { channelAccessToken } = require('../lib/env.js');
-const path = require("path");
 
 // LINE Bot SDKの初期設定
 const client = new Client({

@@ -1,15 +1,41 @@
-# OSやエディタによるゴミファイル
-.DS_Store
-Thumbs.db
-
-# node_modules は不要
+# Firebase Functions
 functions/node_modules/
 
-# RFU(又は以前の資産)として保存してるから今は不要
-public/save/
+# ❌ 削除すべき！重要なコードが除外されてしまう
+# functions/lib/
+# ✅ Richmenu定義やメッセージ定義もGit対象（除外しない）
 
-# 環境変数ファイル（絶対Gitに入れない！）
-functions/.env.ffdev
-functions/.env.ffprod
-functions/.env.notes.txt
-functions/secrets_ffprod.txt
+# .env.devなど定義ファイルのみ除外(.env*は絶対gitに含めちゃ駄目)
+functions/.env*
+
+# Secrets 管理用ファイル（ルート直下）
+# .env.set_secrets.ffprod.ps1(.ps1や.bat)はgit対象
+# .env.secrets.ffprod.txt は絶対gitに含めちゃ駄目
+.env.secrets.*.txt
+
+# Firebase Emulators
+firebase-debug.log
+.firebaserc
+
+# OS・エディタ系
+.DS_Store
+*.log
+
+# Visual Studio Code
+.vscode/
+
+# macOS
+*.DS_Store
+
+# Windows
+Thumbs.db
+
+# IDE
+.idea/
+
+# npm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+

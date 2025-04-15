@@ -1,10 +1,11 @@
 // lib/saveUserInfo.js
 const { getUserProfile } = require('./lineApiHelpers.js');
 const { writeUserDataToSupabase } = require('./writeUserDataToSupabase.js');
-const { isProd } = require('./env.js');
 
 async function saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN, inputData = null) {
   const safeGroupId = groupId || "default";
+  
+  const { isProd } = require('./env.js'); // env.jsのrequireは関数内で呼び出す直前
   if (!isProd) {
     console.log("📥 ユーザーデータ保存開始:", { userId, safeGroupId });
   }

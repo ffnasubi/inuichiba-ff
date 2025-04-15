@@ -1,78 +1,108 @@
 // functions/index.js（Firebase Functions 移植版）
+// 順番注意。初期化エラー防止のため。require → 設定チェック → ミドルウェア初期化 の流れに統一
+// 非同期処理の繰り返しは processNextEvent(index) による再帰で管理
+// Secrets などの安全な読み込み順序確保。functions.https.onRequest() より後に初期化する
 
-const functions = require("firebase-functions/v2"); // ✅ v2 API を明示的に使用！
+// ✅ 最初に必要なモジュールを読み込む
+const functions = require("firebase-functions/v2");
 const express = require("express");
 const { middleware } = require("@line/bot-sdk");
-const { channelAccessToken, channelSecret, isProd, envName } = require("./lib/env.js");
 const { handleEvent } = require("./handlers/events.js");
-const region = "asia-northeast1"; // ✅ 東京リージョン（Gen2には必要）
+const region = "asia-northeast1";
 
 console.log("🔥 Force redeploy");
 
-// Expressアプリを作成
+// ✅ Expressアプリを作成
 const app = express();
 
-// LINEミドルウェア（署名検証）
-const lineMiddleware = middleware({ channelAccessToken, channelSecret });
-
-// リクエストbodyを生で扱うための設定（LINE署名検証に必要）
+// ✅ リクエストbodyを生で扱うための設定（LINE署名検証に必要）
 app.use(express.json({
-  verify: (req, res, buf) => {
+  verify: function(req, res, buf) {
     req.rawBody = buf;
   }
 }));
 
-// Webhookエンドポイント（/api/webhook で待ち受け）
-app.post("/api/webhook", lineMiddleware, async (req, res) => {
-  if (!isProd) {
-    console.log("✅ Webhook関数に到達！");
-    console.log("🔍 環境:", envName);
-    console.log("🔍 リクエスト URL:", req.originalUrl);
-    console.log("🔍 メソッド:", req.method);
-    console.log("🔍 x-line-signature:", req.headers['x-line-signature']);
-    console.log("🔑 channelSecret used in middleware:", channelSecret);
+// ✅ Secretsからの読み込みは関数の中で行う（未定義エラー防止のため）
+let lineMiddleware;
+
+try {
+  const env = require("./lib/env.js");
+  const channelAccessToken = env.channelAccessToken;
+  const channelSecret = env.channelSecret;
+//  const isProd = env.isProd;
+//  const envName = env.envName;
+
+  if (!channelAccessToken || !channelSecret) {
+    throw new Error("🔐 LINE設定が未定義です（Secretsの設定不足または読み込みタイミングの問題）");
   }
 
+  lineMiddleware = middleware({ channelAccessToken: channelAccessToken, channelSecret: channelSecret });
+  console.log("✅ LINEミドルウェア初期化完了");
+} catch (err) {
+  console.error("💥 LINE設定の初期化エラー:", err);
+}
+
+// ✅ Webhookエンドポイント（/api/webhook で待ち受け）
+app.post("/api/webhook", function(req, res) {
   try {
-    const events = req.body?.events;
-    if (!events || !Array.isArray(events)) {
-      console.warn("⚠️ イベント配列が不正です:", req.body);
-      return res.status(200).send("No events");
-    }
-    
-    for (const event of events) {
-      await handleEvent(event, channelAccessToken);
+    if (!lineMiddleware) {
+      throw new Error("🔐 LINEミドルウェアが初期化されていません。");
     }
 
-    res.status(200).send("OK from webhook");
+    lineMiddleware(req, res, function() {
+      const env = require("./lib/env.js");
+      const isProd = env.isProd;
+      const envName = env.envName;
+
+      if (!isProd) {
+        console.log("✅ Webhook関数に到達！");
+        console.log("🔍 環境:", envName);
+        console.log("🔍 リクエスト URL:", req.originalUrl);
+        console.log("🔍 メソッド:", req.method);
+        console.log("🔍 x-line-signature:", req.headers['x-line-signature']);
+      }
+
+      const events = req.body && req.body.events;
+      if (!events || !(events instanceof Array)) {
+        console.warn("⚠️ イベント配列が不正です:", req.body);
+        return res.status(200).send("No events");
+      }
+
+      let i = 0;
+      function processNextEvent(index) {
+        if (index >= events.length) {
+          return res.status(200).send("OK from webhook");
+        }
+
+        handleEvent(events[index], req.body.destination)
+          .then(function() {
+            processNextEvent(index + 1);
+          })
+          .catch(function(err) {
+            console.error("💥 handleEvent エラー:", err);
+            res.status(500).send("Internal Server Error");
+          });
+      }
+
+      processNextEvent(i);
+    });
   } catch (err) {
-    console.error("💥 Error in webhook handler:", err);
+    console.error("💥 Webhookハンドラーエラー:", err);
     res.status(500).send("Internal Server Error");
   }
 });
 
-// ✅ Firebase Functions v2 としてエクスポート（Gen 2 明示）
-exports.webhook = functions.https.onRequest({
-  region,
-  secrets: [
-    "NODE_ENV",
-    "CHANNEL_ACCESS_TOKEN_PROD",
-    "CHANNEL_SECRET_PROD",
-    "SUPABASE_SERVICE_ROLE_KEY_PROD",
-    "SUPABASE_TABLE_NAME_PROD",
-    "MY_LINE_USER_ID"
-  ]
-}, app);
+// ✅ Firebase Functions v2 としてエクスポート（Secretsを列挙）
+const secrets = [
+  "NODE_ENV",
+  "CHANNEL_ACCESS_TOKEN_PROD",
+  "CHANNEL_SECRET_PROD",
+  "SUPABASE_SERVICE_ROLE_KEY_PROD",
+  "SUPABASE_TABLE_NAME_PROD",
+  "SUPABASE_URL",
+  "MY_LINE_USER_ID"
+];
 
-exports.api = functions.https.onRequest({
-  region,
-  secrets: [
-    "NODE_ENV",
-    "CHANNEL_ACCESS_TOKEN_PROD",
-    "CHANNEL_SECRET_PROD",
-    "SUPABASE_SERVICE_ROLE_KEY_PROD",
-    "SUPABASE_TABLE_NAME_PROD",
-    "MY_LINE_USER_ID"
-  ]
-}, app);
+exports.webhook = functions.https.onRequest({ region: region, secrets: secrets }, app);
+exports.api = functions.https.onRequest({ region: region, secrets: secrets }, app);
 

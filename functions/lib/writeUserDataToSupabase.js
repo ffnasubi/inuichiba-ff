@@ -1,6 +1,6 @@
 // ✅ 外部公開：ユーザーデータをSupabaseに書き込む
-const { supabase } = require('./supabaseClient.js');
-const { usersTable, isProd } = require('./env.js');
+const { initSupabaseClient } = require('./supabaseClient.js');
+
 
 // ✅ 日本時間のタイムスタンプ（先頭0なしのH形式）
 function getFormattedJST() {
@@ -28,6 +28,14 @@ async function writeUserDataToSupabase({
   try {
     const timestamp = getFormattedJST();
     const safeGroupId = groupId || "default";
+
+    let supabaseHolder = {};              // ← client を格納するオブジェクトを定義
+    initSupabaseClient(supabaseHolder);   // ← client を初期化(lient を格納（参照渡し）)
+    const supabase = supabaseHolder.client;
+    const usersTable = supabaseHolder.usersTable;
+
+    // ✅ isProd は Secrets 反映後に require する
+    const { isProd } = require('./env.js');
 
     const userData = {
       timestamp,
@@ -68,3 +76,4 @@ async function writeUserDataToSupabase({
 }
 
 module.exports = writeUserDataToSupabase;
+
