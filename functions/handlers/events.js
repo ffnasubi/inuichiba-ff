@@ -73,7 +73,7 @@ async function handleFollowEvent(event, ACCESS_TOKEN) {
     const emojiTextMessage = buildEmojiMessage("msgFollow", mBody);
     message = emojiTextMessage;
   } catch (error) {
-    console.warn(`⚠️ follow絵文字メッセージの構築失敗: ${error.message}`);
+    if (!isProd) console.warn(`⚠️ follow絵文字メッセージの構築失敗: ${error.message}`);
     message = { type: "text", text: "エラーが発生しました。" };
   }
 
@@ -85,7 +85,7 @@ async function handleFollowEvent(event, ACCESS_TOKEN) {
       await saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN);
       if (!isProd) console.log("✅ Supabase 書き込み完了 (follow)");
     } catch (err) {
-      console.warn("⚠️ follow 書き込み失敗:", err.message);
+      if (!isProd) console.warn("⚠️ follow 書き込み失敗:", err.message);
     }
   }
 
@@ -185,11 +185,11 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
       messages.push(emojiTextMessage);
     }
   } catch (error) {
-    console.warn(`⚠️ Postback絵文字メッセージの構築失敗: ${error.message}`);
+    if (!isProd) console.warn(`⚠️ Postback絵文字メッセージの構築失敗: ${error.message}`);
   }
 
   if (messages.length === 0) {
-    console.warn(`⚠️ Postbackで情報が見つかりませんでした: ${data.toString()}`);
+    if (!isProd) console.warn(`⚠️ Postbackで情報が見つかりませんでした: ${data.toString()}`);
   }
 
   if (messages.length > 0) {

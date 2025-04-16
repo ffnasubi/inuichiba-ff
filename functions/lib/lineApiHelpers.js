@@ -4,8 +4,10 @@ const axios = require('axios');
 // Replyメッセージ送信
 async function sendReplyMessage(replyToken, messages, ACCESS_TOKEN) {
   const url = 'https://api.line.me/v2/bot/message/reply';
+  const { isProd } = require("./lib/env.js");
 
   try {
+    
     const response = await axios.post(
       url,
       { replyToken, messages },
@@ -16,10 +18,10 @@ async function sendReplyMessage(replyToken, messages, ACCESS_TOKEN) {
         }
       }
     );
-    console.log("LINEメッセージ送信成功", response.data);
+    if (!isProd) console.log("LINEメッセージ送信成功", response.data);
   } catch (error) {
     if (error.response) {
-      console.error("❌ LINEメッセージ送信失敗:", error.response.status);
+      if (!isProd) console.warn("❌ LINEメッセージ送信失敗:", error.response.status);
     } else {
       console.error("❌ ネットワークまたはaxiosレベルのエラー:", error.message);
     }
@@ -30,6 +32,8 @@ async function sendReplyMessage(replyToken, messages, ACCESS_TOKEN) {
 // プッシュメッセージ送信
 async function sendPushMessage(userId, messages, ACCESS_TOKEN) {
   const url = 'https://api.line.me/v2/bot/message/push';
+  const { isProd } = require("./lib/env.js");
+
 
   try {
     const response = await axios.post(
@@ -45,7 +49,7 @@ async function sendPushMessage(userId, messages, ACCESS_TOKEN) {
         }
       }
     );
-    console.log('プッシュ成功:', response.data);
+    if (!isProd) console.log('プッシュ成功:', response.data);
   } catch (error) {
     console.error('プッシュエラー:', error.response ? error.response.data : error.message);
   }

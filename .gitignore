@@ -18,6 +18,10 @@ functions/.env*
 firebase-debug.log
 .firebaserc
 
+# テスト用画像・動画ファイル
+public/save/
+
+
 # OS・エディタ系
 .DS_Store
 *.log

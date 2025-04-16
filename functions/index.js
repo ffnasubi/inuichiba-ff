@@ -30,16 +30,16 @@ try {
   const channelAccessToken = env.channelAccessToken;
   const channelSecret = env.channelSecret;
   const isProd = env.isProd;
-//  const envName = env.envName;
 
   if (!channelAccessToken || !channelSecret) {
-    throw new Error("🔐 LINE設定が未定義です（Secretsの設定不足または読み込みタイミングの問題）");
+    if (!isProd) console.warn("🔐 LINE設定が未定義です（Secretsの設定不足または読み込みタイミングの問題）");
   }
 
   lineMiddleware = middleware({ channelAccessToken: channelAccessToken, channelSecret: channelSecret });
   if (!isProd) console.log("✅ LINEミドルウェア初期化完了");
 } catch (err) {
-  console.error("💥 LINE設定の初期化エラー:", err);
+  const { isProd } = require("./lib/env.js");
+  if (!isProd) console.error("💥 LINE設定の初期化エラー:", err);
 }
 
 // ✅ Webhookエンドポイント（/api/webhook で待ち受け）
@@ -52,19 +52,10 @@ app.post("/api/webhook", function(req, res) {
     lineMiddleware(req, res, function() {
       const env = require("./lib/env.js");
       const isProd = env.isProd;
-      const envName = env.envName;
-
-      if (!isProd) {
-        console.log("✅ Webhook関数に到達！");
-        console.log("🔍 環境:", envName);
-        console.log("🔍 リクエスト URL:", req.originalUrl);
-        console.log("🔍 メソッド:", req.method);
-        console.log("🔍 x-line-signature:", req.headers['x-line-signature']);
-      }
-
+      
       const events = req.body && req.body.events;
       if (!events || !(events instanceof Array)) {
-        console.warn("⚠️ イベント配列が不正です:", req.body);
+        if (!isProd) console.warn("⚠️ イベント配列が不正です:", req.body);
         return res.status(200).send("No events");
       }
 

@@ -119,10 +119,10 @@ function logSecretSafe(label, value) {
       console.log(`🔐 ${label} の長さ: ${value.length}`);
       console.log(`🔐 ${label} の先頭5文字: ${value.slice(0, 5)}...`);
     } else {
-      console.warn(`⚠️ ${label} は空文字列です`);
+      if (!isProd) console.warn(`⚠️ ${label} は空文字列です`);
     }
   } else {
-    console.warn(`⚠️ ${label} が未定義または null です（値: ${value}）`);
+    if (!isProd) console.warn(`⚠️ ${label} が未定義または null です（値: ${value}）`);
   }
   
 }

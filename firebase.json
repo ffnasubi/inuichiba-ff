@@ -8,6 +8,16 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/webhook",
+        "function": "webhook"
+      },
+      {
+        "source": "/api/**",
+        "function": "api"
+      }
     ]
   }
 }
