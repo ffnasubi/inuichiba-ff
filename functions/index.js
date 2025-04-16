@@ -1,11 +1,98 @@
-// ✅ 最小構成の functions/index.js（Hello World）
+// functions/index.js（Firebase Functions 移植版）
+// 順番注意。初期化エラー防止のため。require → 設定チェック → ミドルウェア初期化 の流れに統一
+// 非同期処理の繰り返しは processNextEvent(index) による再帰で管理
+// Secrets などの安全な読み込み順序確保。functions.https.onRequest() より後に初期化する
 
-// functions/index.js
+// ✅ 最初に必要なモジュールを読み込む
 const functions = require("firebase-functions/v2");
-const { onRequest } = functions.https;
+const express = require("express");
+const { middleware } = require("@line/bot-sdk");
+const { handleEvent } = require("./handlers/events.js");
 const region = "asia-northeast1";
 
-// 🔐 Firebase Functions にバインドする Secrets 一覧（ここが超重要！！）
+// console.log("🔥 Force redeploy");
+
+// ✅ Expressアプリを作成
+const app = express();
+
+// ✅ リクエストbodyを生で扱うための設定（LINE署名検証に必要）
+app.use(express.json({
+  verify: function(req, res, buf) {
+    req.rawBody = buf;
+  }
+}));
+
+// ✅ Secretsからの読み込みは関数の中で行う（未定義エラー防止のため）
+let lineMiddleware;
+
+try {
+  const env = require("./lib/env.js");
+  const channelAccessToken = env.channelAccessToken;
+  const channelSecret = env.channelSecret;
+  const isProd = env.isProd;
+//  const envName = env.envName;
+
+  if (!channelAccessToken || !channelSecret) {
+    throw new Error("🔐 LINE設定が未定義です（Secretsの設定不足または読み込みタイミングの問題）");
+  }
+
+  lineMiddleware = middleware({ channelAccessToken: channelAccessToken, channelSecret: channelSecret });
+  if (!isProd) console.log("✅ LINEミドルウェア初期化完了");
+} catch (err) {
+  console.error("💥 LINE設定の初期化エラー:", err);
+}
+
+// ✅ Webhookエンドポイント（/api/webhook で待ち受け）
+app.post("/api/webhook", function(req, res) {
+  try {
+    if (!lineMiddleware) {
+      throw new Error("🔐 LINEミドルウェアが初期化されていません。");
+    }
+
+    lineMiddleware(req, res, function() {
+      const env = require("./lib/env.js");
+      const isProd = env.isProd;
+      const envName = env.envName;
+
+      if (!isProd) {
+        console.log("✅ Webhook関数に到達！");
+        console.log("🔍 環境:", envName);
+        console.log("🔍 リクエスト URL:", req.originalUrl);
+        console.log("🔍 メソッド:", req.method);
+        console.log("🔍 x-line-signature:", req.headers['x-line-signature']);
+      }
+
+      const events = req.body && req.body.events;
+      if (!events || !(events instanceof Array)) {
+        console.warn("⚠️ イベント配列が不正です:", req.body);
+        return res.status(200).send("No events");
+      }
+
+      let i = 0;
+      function processNextEvent(index) {
+        if (index >= events.length) {
+          return res.status(200).send("OK from webhook");
+        }
+
+        handleEvent(events[index], req.body.destination)
+          .then(function() {
+            processNextEvent(index + 1);
+          })
+          .catch(function(err) {
+            console.error("💥 handleEvent エラー:", err);
+            res.status(500).send("Internal Server Error");
+          });
+      }
+
+      processNextEvent(i);
+    });
+  } catch (err) {
+    console.error("💥 Webhookハンドラーエラー:", err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// ✅ Firebase Functions v2 としてエクスポート（Secretsを列挙）
 const secrets = [
   "NODE_ENV",
   "CHANNEL_ACCESS_TOKEN_PROD",
@@ -16,11 +103,6 @@ const secrets = [
   "MY_LINE_USER_ID"
 ];
 
-// 🔍 環境変数チェック用に env.js を読み込む
-const env = require("./lib/env.js");
-
-exports.hello = onRequest({ region, secrets }, (req, res) => {
-  console.log("🔥 Hello Function Invoked!");
-  res.send("Hello from Firebase!");
-});
+exports.webhook = functions.https.onRequest({ region: region, secrets: secrets }, app);
+exports.api = functions.https.onRequest({ region: region, secrets: secrets }, app);
 

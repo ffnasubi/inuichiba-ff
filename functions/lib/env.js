@@ -5,12 +5,6 @@
 // 1. NODE_ENV の強制反映（Secrets → fallback）
 process.env.NODE_ENV = process.env["NODE_ENV"] || "production";
 
-// 初期化エラー調査のための一時的ログ出力(通ったらコメントアウトすること)
-// ✅ 🔎 環境判定ログ（Secrets vs .envの切り分けに重要）
-console.log("🧪 secretsは本番環境反映済?(process.env.K_SERVICE):", process.env.K_SERVICE || "(not set)");
-console.log("🧪 NODE_ENVは本番環境反映済?(process.env.FUNCTION_TARGET):", process.env.FUNCTION_TARGET || "(not set)");
-console.log("✅ NODE_ENV(process.env.NODE_ENV):", process.env.NODE_ENV);
-
 
 // 2. dotenv 読み込み（ローカル開発時のみ）
 // Firebase Functions が本番環境かどうかを見分けるチェック
@@ -93,9 +87,13 @@ const envName = rawEnv;
 // ✅ ログ出力（使うのは最後の最後！）
 // console.log() は定義後に！それ以前に使うと未初期化になる
 
-// 本番環境でのデプロイエラーデバッグ用。
-// デプロイでのログ出力が正しくが通ったらコメントアウトすること
+// FF環境ではこの時点で初期化は間に合ってないのでログ出しても読み込みエラーになる
+// なのでコンソールログを抑制する
+// ログは PowerShell で以下のコマンドで確認すること
+// gcloud functions logs read hello --region=asia-northeast1 --project=inuichiba-ffprod
+/*
 if (isProd) {
+  console.log("🧪 NODE_ENVは本番環境反映済?(process.env.FUNCTION_TARGET):", process.env.FUNCTION_TARGET || "(not set)");
   console.log("✅ NODE_ENV(process.env.NODE_ENV):", process.env.NODE_ENV);
 	logSecretSafe("channelSecret(process.env.CHANNEL_SECRET_PROD):", process.env.CHANNEL_SECRET_PROD);
   logSecretSafe("channelAccessToken(process.env.CHANNEL_ACCESS_TOKEN_PROD)", process.env.CHANNEL_ACCESS_TOKEN_PROD);
@@ -103,6 +101,7 @@ if (isProd) {
   console.log("📦 Supabase Table PROD（process.env.SUPABASE_TABLE_NAME_PROD）:", process.env.SUPABASE_TABLE_NAME_PROD || "❌ undefined");
   console.log("📦 Supabase Key PROD（process.env.SUPABASE_SERVICE_ROLE_KEY_PROD読込）:", process.env.SUPABASE_SERVICE_ROLE_KEY_PROD ? "✅ OK" : "❌ NG");
 }
+*/
 
 if (!isProd) {
   console.log("🐾 環境判定された envName:", envName);

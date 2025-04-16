@@ -18,7 +18,6 @@ async function handler(req, res) {
     console.log("🔍 リクエスト URL:", req.url);
     console.log("🔍 メソッド:", req.method);
     console.log("🔍 x-line-signature:", req.headers['x-line-signature']);
-    console.log("🔑 channelSecret used in middleware:", channelSecret);
   }
 
   if (req.method !== 'POST') {
