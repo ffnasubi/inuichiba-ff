@@ -7,6 +7,7 @@ functions/node_modules/
 
 # .env.devなど定義ファイルのみ除外(.env*は絶対gitに含めちゃ駄目)
 functions/.env*
+.env-backup/
 
 # Secrets 管理用ファイル（ルート直下）
 # .env.set_secrets.ffprod.ps1(.ps1や.bat)はgit対象

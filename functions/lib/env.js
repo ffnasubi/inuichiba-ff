@@ -82,6 +82,7 @@ const baseDir = isProd
 
 // 未使用：メニュー名：メニューキャッシュクリアや更新確認に使用(ローカルテスト用)
 // .env.*だけに定義を残して他はコメントアウトしてる
+// なお使用するときは末尾のexports定義も忘れずに行うこと
 // const targetMenuName = process.env.TARGET_MENU_NAME;
 
 // 5. 環境名の最後の定義(ログ出力)
@@ -140,7 +141,6 @@ module.exports = {
   supabaseUrl,
   usersTable,
   myLineUserId,
-  baseDir,
-  targetMenuName,
+  baseDir
 };
 
