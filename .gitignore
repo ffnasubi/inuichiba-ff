@@ -7,9 +7,10 @@ functions/node_modules/
 # functions/lib/
 # ✅ Richmenu定義やメッセージ定義もGit対象（除外しない）
 
-# .env.devなど定義ファイルのみ除外(.env*は絶対gitに含めちゃ駄目)
+# .env.devなど定義ファイルや評価用画像ファイルのバックアップのみ除外
+# (.env*は絶対gitに含めちゃ駄目)
 functions/.env*
-.env-backup/
+backup/
 
 # Secrets 管理用ファイル（ルート直下）
 # .env.set_secrets.ffprod.ps1(.ps1や.bat)はgit対象
@@ -23,9 +24,7 @@ functions/.env*
 firebase-debug.log
 .firebaserc
 
-# テスト用画像・動画ファイル
-public/save/
-
+# 画像ファイル(今はpublic-ffprodもpublic-ffdevもgit対象)
 
 # OS・エディタ系
 .DS_Store
