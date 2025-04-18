@@ -1,4 +1,6 @@
-# Firebase Functions
+# Firebase Functions対応 gitに含めないディレクトリ/ファイル一覧
+
+# npm install で再生成される依存
 functions/node_modules/
 
 # ❌ 削除すべき！重要なコードが除外されてしまう
@@ -13,6 +15,9 @@ functions/.env*
 # .env.set_secrets.ffprod.ps1(.ps1や.bat)はgit対象
 # .env.secrets.ffprod.txt は絶対gitに含めちゃ駄目
 .env.secrets.*.txt
+
+# Firebase CLI が生成する一時ファイル・キャッシュ
+.firebase/
 
 # Firebase Emulators
 firebase-debug.log

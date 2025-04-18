@@ -6,7 +6,7 @@ const msgA12 = "【パークアンドライド】\nパークアンドライド�
 const msgA21 = "イベントを楽しむためのグッドマナーと注意事項です！！\n\n・マスクの着用はご自身の判断でのご参加をお願いいたします\n\n・体調不良の方や発熱がある方は参加自粛をお願いいたします\n\n・マナーベルト/マナーおむつの着用をお願いいたします\n\n・会場施設にはイベントに関係のない一般の方々も往来されますのでマナー・ご配慮いただきますようお願いいたします\n\n・ワンちゃんのトイレは指定場所以外ではさせないようお願いいたします\n\n・ワンちゃんのうんちはそのままにせず、飼い主さまが必ず家に持ち帰ってから処分してください\n\n・会場にはゴミ捨て場はございませんので、各自ゴミはお持ち帰りをお願いいたします";
 const msgA22 = "・ご来場の際は、首輪または胴輪(ハーネス等)を着用し、必ずリードをしてください\n※ロングリードや伸縮リードは万が一何かあった場合に制御できませんので禁止とさせていただきます\n\n・集団でお店の前での立ち話、撮影はお店の方や他のお客さまの迷惑となりますのでおやめください\n\n・会場内、近隣の公園、施設付近で大勢で集まっての写真撮影やオフ会行為等は、他の来場者へご迷惑をおかけします。フードエリア河川上流の共有スペースがございますのでそちらをご利用ください";
 
-const msgA3 = "動画サンプルくださーい！";
+const msgA3 = "動画は有償になりかねないので止めましたー！\n画像サンプルくださーい！";
 
 const msgA4 = "犬市場のドッグランに関して\n\n料金：1頭500円\n\nご利用になる皆さまには皆さまが安全に楽しくご利用いただくためのルールがございますのでご確認をお願いいたします！";
 
@@ -27,10 +27,6 @@ const msgTimeoutAppend = "タイムアウトを検知したためファイルへ
 const msgY = "こんにちは🐶\n投稿やライブを楽しみにしててね!!";
 const msgPostpone = "メッセージありがとうございます！\n申し訳ございませんが、こちらのアカウントでは個別のお問い合わせには対応しておりません。\nどうぞ次の配信をお待ちください。\n\nもしメニューをご覧いただけない場合は、左下の「≡」のマークをタップしていただくか、一度トーク画面を閉じて再度開いてください。";
 // const lineQRtext = "友だち追加用のQRコードです。\nどうぞお使いくださいね。";
-
-// //////////////////////////////////////////////////
-// 固定ディレクトリ（画像・動画など）
-const baseDir = "https://inuichiba.vercel.app/";
 
 
 // //////////////////////////////////////////////////
@@ -56,15 +52,17 @@ const textMessages = {
   "tap_richMenuB6": [ { type: "text", text: msgB6 } ]
 };
 
+const { baseDir, isProd } = require("../../lib/env.js");
 
 // 画像メッセージ
+// 動画imageは有償になりかねないので出さない。動画はYouTubeで出すこと
 const mediaMessages = {
   "tap_richMenuA3": [
     { type: "text", text: msgA3 },
     {
-      type: "video",
-      originalContentUrl: `${baseDir}videos/haro16_9.mp4`,
-      previewImageUrl:    `${baseDir}images/videoPrev1.png`
+      type: "image",
+      originalContentUrl: `${baseDir}videos/dogWait.png`,
+      previewImageUrl:    `${baseDir}images/dogWait.png`
     }
   ],
   "tap_richMenuA4": [
@@ -90,12 +88,18 @@ const mediaMessages = {
 // "QRコード"、"友だち追加"が入力されたときのmessage
 // 現状自動応答メッセージがメッセージだけ出しているので、
 // Botはメッセージは抑制してQRコードだけ表示する
+let lineQRcode;
+if (isProd) {
+  lineQRcode = "lineQRcode_ffprod.png";
+} else {
+  lineQRcode = "lineQRcode_ffdev.png";
+} 
 const lineQRMessages = [
 // { type: "text", text: lineQRtext },
 	{
 		type: "image",
-    originalContentUrl:	`${baseDir}images/lineQRcode.png`,
-    previewImageUrl:	`${baseDir}images/lineQRcode.png`
+    originalContentUrl:	`${baseDir}images/${lineQRcode}`,
+    previewImageUrl:	`${baseDir}images/${lineQRcode}`
 	}
 ];
 

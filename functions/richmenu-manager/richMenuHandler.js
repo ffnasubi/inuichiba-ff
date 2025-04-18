@@ -3,14 +3,6 @@
 const fs = require('fs');
 const path = require('path');
 const { Client } = require('@line/bot-sdk'); 
-const { channelAccessToken } = require('../lib/env.js');
-
-// LINE Bot SDKの初期設定
-const client = new Client({
-  channelAccessToken
-});
-
-
 
 // //////////////////////////////////////////////////
 // リッチメニューのサイズ
@@ -23,6 +15,15 @@ const wItem =  500;
 const hItem =  500;
 const wTab  = 1000;
 const hTab  =  200;
+
+// LINE Bot SDKの初期設定
+const { channelAccessToken } = require('../lib/env.js');
+
+const client = new Client({
+  channelAccessToken
+});
+
+
 
 
 // //////////////////////////////////////////////////
@@ -214,19 +215,21 @@ async function createRichMenus(aRichMenuId, bRichMenuId) {
     const { isProd } = require('../lib/env.js');
 
   	// リッチメニュー用画像ファイルをアップロードして紐づける
-		const imageAPath = path.join(__dirname, '../public/images/tabA2025autumn.png');		
+		const imageAPath = path.join(process.cwd(), '../public/images/tabA2025autumn.png');		
   	const imageAStream = fs.createReadStream(imageAPath);
   	await client.setRichMenuImage(aRichMenuId, imageAStream);
-  	if (!isProd) console.log('aRichMenu画像アップロード完了');
+  	
+    console.log('aRichMenu画像アップロード完了');
  	 	
-  	const imageBPath = path.join(__dirname, '../public/images/tabB2025autumn.png');
+  	const imageBPath = path.join(process.cwd(), '../public/images/tabB2025autumn.png');
   	const imageBStream = fs.createReadStream(imageBPath);
   	await client.setRichMenuImage(bRichMenuId, imageBStream);
-  	if (!isProd) console.log('bRichMenu画像アップロード完了');
+  	
+    console.log('bRichMenu画像アップロード完了');
   	
   	// デフォルトメニューをAにする
 		await client.setDefaultRichMenu(aRichMenuId);
-		if (!isProd) console.log("aRichMenuをデフォルトに設定");
+    console.log("aRichMenuをデフォルトに設定");
 	
 		// エイリアスを定義する
   	await client.createRichMenuAlias(aRichMenuId, 'switch-to-a');
@@ -240,4 +243,4 @@ async function createRichMenus(aRichMenuId, bRichMenuId) {
   }
 } 
 
-module.exports = handleRichMenu;
+module.exports = { handleRichMenu };

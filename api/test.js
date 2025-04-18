@@ -4,4 +4,4 @@ function handler(req, res) {
   res.status(200).json({ message: "✅ This test function is alive!" });
 }
 
-module.exports = handler;
+module.exports = { handler };

@@ -6,7 +6,8 @@ async function saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN, inputData 
   const safeGroupId = groupId || "default";
   
   const { isProd } = require('./env.js'); // env.jsのrequireは関数内で呼び出す直前
-  if (!isProd)  console.log("📥 ユーザーデータ保存開始:", { userId, safeGroupId });
+  if (!isProd) console.log("📥 ユーザーデータ保存開始:", { userId, safeGroupId });
+
 
   try {
     const profile = await getUserProfile(userId, ACCESS_TOKEN);
@@ -15,11 +16,8 @@ async function saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN, inputData 
 		// プロフィールが取れない場合は書き込まない(ブロックや未followなどがあるため)
 		// LINEチャネル設定ミス可能性も有(アクセストークンのスコープにPROFILE権限がない)
 		if (!profile) {
-			if (isProd) {
-				// console.log("👤 profileがnull のためスキップ（本番では例外にしない）:", { userId, groupId });
-			} else {
-				console.warn("⚠️ プロフィール情報の取得に失敗（null）:", { userId, groupId });
-			}
+      // profileがnull のためスキップ（本番では例外にしない）
+			if (!isProd) console.warn("⚠️ プロフィール情報の取得に失敗（null）:", { userId, groupId });
 			return;
 		}
 		
@@ -38,13 +36,11 @@ async function saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN, inputData 
       inputData
     });
 
-    if (!isProd) {
-      console.log("✅ Supabase にプロフィール情報を書き込み完了");
-    }
+    if (!isProd) console.log("✅ Supabase にプロフィール情報を書き込み完了");
 
   } catch (error) {
     console.error("❌ プロフィールの取得または書き込みに失敗:", error);
   }
 }
 
-module.exports = saveUserProfileAndWrite;
+module.exports = { saveUserProfileAndWrite };

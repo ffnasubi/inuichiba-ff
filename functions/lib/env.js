@@ -31,7 +31,9 @@ if (isLocal) {
 
   if (result.error) {
     console.error("❌ .env ファイルの読み込みに失敗しました:", result.error);
-  } 
+  } else {
+    console.log("✅ .env ファイルを読み込みました");
+  }
 }
 
 // 3. 環境モードの判定
@@ -45,29 +47,79 @@ const isDev = rawEnv === "development";
 const isPreview = false; // Firebase Functionsではpreview概念は存在しない
 
 
-// 4. 環境に依存する設定値（もうここではisProdを使ってOK）
+// 4. 環境に依存する設定値（ここからisProdを使ってOK）
 // 本番環境と開発環境とに応じて切り分ける
-const channelAccessToken = isProd
+// チャネルアクセストークン(LINEの秘匿コード)
+let channelAccessToken = isProd
   ? process.env.CHANNEL_ACCESS_TOKEN_PROD
   : process.env.CHANNEL_ACCESS_TOKEN_DEV;
+// もし両端にスペースや改行が入ってた時の対処
+let envToken = channelAccessToken;
+if (typeof envToken === "string") {
+  if (envToken.charAt(0) === "\uFEFF" && envToken.length > 0) {
+    envToken = envToken.slice(1);   // BOM削除
+  }
+  channelAccessToken = envToken.trim();
+}
 
-const channelSecret = isProd
+// チャネルシークレット(LINEの秘匿コード)
+let channelSecret = isProd
   ? process.env.CHANNEL_SECRET_PROD
   : process.env.CHANNEL_SECRET_DEV;
+// もし両端にスペースや改行が入ってた時の対処
+let envSecret = channelSecret;
+if (typeof envSecret === "string" && envSecret.length > 0) {
+  if (envSecret.charAt(0) === "\uFEFF") {
+    envSecret = envSecret.slice(1); // BOM削除
+  }
+  channelSecret = envSecret.trim();
+}
 
-// 使用する Supabase テーブル名を、環境によって切り替える
-const usersTable = isProd
+// 使用する Supabase テーブル名
+let usersTable = isProd
   ? process.env.SUPABASE_TABLE_NAME_PROD
   : process.env.SUPABASE_TABLE_NAME_DEV;
+// もし両端にスペースや改行が入ってた時の対処
+let envTable = usersTable;
+if (typeof envTable === "string" && envTable.length > 0) {
+  if (envTable.charAt(0) === "\uFEFF") {
+    envTable = envTable.slice(1); // BOM削除
+  }
+  usersTable = envTable.trim();
+}
 
-const supabaseKey = isProd
+let supabaseKey = isProd
   ? process.env.SUPABASE_SERVICE_ROLE_KEY_PROD
   : process.env.SUPABASE_SERVICE_ROLE_KEY_DEV;
+// もし両端にスペースや改行が入ってた時の対処
+let envKey = supabaseKey;
+if (typeof envKey === "string" && envKey.length > 0) {
+  if (envKey.charAt(0) === "\uFEFF") {
+    envKey = envKey.slice(1); // BOM削除
+  }
+  supabaseKey = envKey.trim();
+}
 
-const supabaseUrl = process.env.SUPABASE_URL;
+let supabaseUrl = process.env.SUPABASE_URL;
+// もし両端にスペースや改行が入ってた時の対処
+let envUrl = supabaseUrl;
+if (typeof envUrl === "string" && envUrl.length > 0) {
+  if (envUrl.charAt(0) === "\uFEFF") {
+    envUrl = envUrl.slice(1); // BOM削除
+  }
+  supabaseUrl = envUrl.trim();
+}
 
 // LINE Bot管理者用のユーザーID。Supabaseに書き込む時のuserId。確認にひとつは必須
-const myLineUserId = process.env.MY_LINE_USER_ID;
+let myLineUserId = process.env.MY_LINE_USER_ID;
+// もし両端にスペースや改行が入ってた時の対処
+let envId = myLineUserId;
+if (typeof envId === "string" && envId.length > 0) {
+  if (envId.charAt(0) === "\uFEFF") {
+    envId = envId.slice(1); // BOM削除
+  }
+  myLineUserId = envId.trim();
+}
 
 // コンテンツのホスティングURL（画像とカルーセルメッセージのベースパス）
 const baseDir = isProd
@@ -77,7 +129,15 @@ const baseDir = isProd
 // 未使用：メニュー名：メニューキャッシュクリアや更新確認に使用(ローカルテスト用)
 // .env.*だけに定義を残して他はコメントアウトしてる
 // なお使用するときは末尾のexports定義も忘れずに行うこと
-// const targetMenuName = process.env.TARGET_MENU_NAME;
+// let targetMenuName = process.env.TARGET_MENU_NAME;
+// let envName = targetMenuName;
+// if (typeof envName === "string" && envName.length > 0) {
+//  if (envName.charAt(0) === "\uFEFF") {
+//    envName = envName.slice(1); // BOM削除
+//  }
+//  targetMenuName = envName.trim();
+// }
+
 
 // 5. 環境名の最後の定義(ログ出力)
 // ✅ 最後に定義！ ← これが正解
@@ -85,12 +145,12 @@ const baseDir = isProd
 const envName = rawEnv;
 
 // ✅ ログ出力（使うのは最後の最後！）
-// console.log() は定義後に！それ以前に使うと未初期化になる
+// console.*() は定義後に！それ以前に使うと未初期化になる
 
 // FF環境ではこの時点で初期化は間に合ってないのでログ出しても読み込みエラーになる
 // なのでコンソールログを抑制する
 // ログは PowerShell で以下のコマンドで確認すること
-// gcloud functions logs read hello --region=asia-northeast1 --project=inuichiba-ffprod
+// gcloud functions logs read webhook --region=asia-northeast1 --project=inuichiba-ffprod
 /*
 if (isProd) {
   console.log("🧪 NODE_ENVは本番環境反映済?(process.env.FUNCTION_TARGET):", process.env.FUNCTION_TARGET || "(not set)");
@@ -116,8 +176,11 @@ if (!isProd) {
 function logSecretSafe(label, value) {
   if (typeof value === "string") {
     if (value.length > 0) {
-      console.log(`🔐 ${label} の長さ: ${value.length}`);
-      console.log(`🔐 ${label} の先頭5文字: ${value.slice(0, 5)}...`);
+      if (!prod) {
+        console.log(`🔐 ${label} の長さ: ${value.length}`);
+        console.log(`🔐 ${label} の先頭5文字: ${value.slice(0, 5)}...`);
+        console.log(`🔐 ${label} の末尾5文字: ${value.slice(-5)}`);
+            }
     } else {
       if (!isProd) console.warn(`⚠️ ${label} は空文字列です`);
     }

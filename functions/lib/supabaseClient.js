@@ -15,6 +15,6 @@ function initSupabaseClient(clientOut) {
     clientOut.usersTable = usersTable;
   }
   
-  module.exports = initSupabaseClient;
+  module.exports = { initSupabaseClient };
 
 

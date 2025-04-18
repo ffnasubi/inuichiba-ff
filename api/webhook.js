@@ -11,7 +11,7 @@ const config = {
 
 async function handler(req, res) {
   // ✅ 遅延 require：Secrets を確実に初期化後に読み込む
-  const { channelAccessToken, channelSecret, envName, isProd } = require('../lib/env.js');
+  const { channelAccessToken, channelSecret, envName, isProd } = require('../functions/lib/env.js');
   if (!isProd) {
     console.log("✅ Webhook関数に到達！");
     console.log("🔍 環境:", envName);

@@ -10,6 +10,7 @@ const messages = require("../richmenu-manager/data/messages.js");
 // ///////////////////////////////////////////
 // eventタイプで処理を振り分ける
 async function handleEvent(event, ACCESS_TOKEN) {
+  
   const { isProd } = require("../lib/env.js");
 
   switch (event.type) {
@@ -46,7 +47,8 @@ async function handleEvent(event, ACCESS_TOKEN) {
       break;
 
     default:
-      // 未処理イベントだけ本番でも出してみる(多すぎたら対応するか無視するかログを抑制する)
+      // 未処理イベントだけ本番でも出してみる
+      // 多すぎたら対応するか無視するかログを抑制する
       console.log("❓ 未処理イベントタイプ:", event.type);
   }
 }
@@ -60,10 +62,10 @@ async function handleFollowEvent(event, ACCESS_TOKEN) {
   const { isProd } = require("../lib/env.js");
 
   // --- メッセージ生成＆返信
-  const profile = await getUserProfile(userId, ACCESS_TOKEN);
+    const profile = await getUserProfile(userId, ACCESS_TOKEN);
   const displayName = profile?.displayName || null;
   const followText = textTemplates["msgFollow"];
-
+  
   let mBody = (displayName == null || displayName.includes("$"))
     ? followText
     : `${displayName}さん、${followText}`;
@@ -409,4 +411,4 @@ async function handleJoinEvent(event, ACCESS_TOKEN) {
   await sendReplyMessage(event.replyToken, [welcomeMessage], ACCESS_TOKEN);
 }
 
-module.exports = handleEvent;
+module.exports = { handleEvent };

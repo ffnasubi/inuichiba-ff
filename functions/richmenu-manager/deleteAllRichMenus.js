@@ -83,4 +83,4 @@ async function deleteRichMenusAndAliases() {
   }
 }
 
-module.exports = deleteRichMenusAndAliases;
+module.exports = { deleteRichMenusAndAliases };

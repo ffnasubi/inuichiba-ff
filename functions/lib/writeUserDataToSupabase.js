@@ -45,7 +45,7 @@ async function writeUserDataToSupabase({
       inputData
     };
 
-    // ✅ isProd は Secrets 反映後に require する
+    // ✅ env.js は Secrets 反映後に require する
     const { isProd } = require('./env.js');
 
     if (!isProd) {
@@ -63,10 +63,9 @@ async function writeUserDataToSupabase({
       console.error("❌ Supabase書き込みエラー:", error);
     }
 
-    if (data && !isProd) {
-      console.log("✅ Supabaseに保存されました:", data);
-    }
-		// ✅ 本番でも出す：Supabaseの応答を受けた時点の正確なJS時刻（ISO形式）
+    if (data && !isProd) console.log("✅ Supabaseに保存されました:", data);
+		
+    // ✅ 本番でも出す：Supabaseの応答を受けた時点の正確なJS時刻（ISO形式）
     // vercelではそうだったけどcoonsole.logは課金対象なので抑制する
 		if (!isPord) console.log("⏱ 書き込み完了タイムスタンプ:", getFormattedJST());
 
@@ -76,5 +75,5 @@ async function writeUserDataToSupabase({
 	
 }
 
-module.exports = writeUserDataToSupabase;
+module.exports = { writeUserDataToSupabase };
 

@@ -46,11 +46,19 @@ Get-Content $envFile | ForEach-Object {
         Write-Output "🔁 Secret [$key] は既に存在します。バージョンを追加します。"
     }
 
-    # 値を一時ファイルに保存
+    # 値を一時ファイルに保存（不可視文字を除去してから）
     $tmp = New-TemporaryFile
-    Set-Content -Path $tmp -Value $value -NoNewline -Encoding UTF8
 
+    # 💡 追加: 不可視文字（BOM, ゼロ幅スペースなど）を除去
+    # - U+FEFF = BOM（Byte Order Mark）
+    # - U+200B = ゼロ幅スペース
+    # - \x00-\x1F = 制御文字（改行など除く）
+    $cleanValue = $value -replace '^[\uFEFF\u200B]', ''       # 先頭のBOMやゼロ幅スペースを除去
+    $cleanValue = $cleanValue -replace '[\x00-\x1F]', ''      # 制御文字を除去（タブや改行は残すなら不要）
 
+    # 保存（-NoNewline で改行なし）
+    Set-Content -Path $tmp -Value $cleanValue -NoNewline -Encoding UTF8
+   
     # バージョン追加
     & gcloud secrets versions add $key --data-file=$tmp --project=$projectId
     Remove-Item $tmp
@@ -67,11 +75,13 @@ Get-Content $envFile | ForEach-Object {
         }
     }
 
+
+    # 最終確認として、登録済み Secrets を一覧表示
+    Write-Output "`n📋 現在の Secrets 一覧:"
+    & gcloud secrets list --project=$projectId
+
 }
 
-# 最終確認として、登録済み Secrets を一覧表示
-Write-Output "`n📋 現在の Secrets 一覧:"
-& gcloud secrets list --project=$projectId
 
 # 🔍 各 Secret の現在の「有効バージョン」を確認（念のため確認したい場合）
 # 🔄 最新バージョンのみを確認できます（登録直後の確認にも便利）
@@ -86,14 +96,12 @@ $secretNames = @(
     "MY_LINE_USER_ID"
 )
 
+
 foreach ($name in $secretNames) {
-    Write-Output "`n🔑 $name:"
-    & gcloud secrets versions list $name `
-        --filter="state=enabled" `
-        --sort-by="~createTime" `
-        --limit=1 `
-        --project=$projectId `
-        --format="table(name, state, createTime)"
+    Write-Output ""
+    Write-Output "🔑 $name:"
+    $cmd = "gcloud secrets versions list $name --filter=`"state=enabled`" --sort-by=`"~createTime`" --limit=1 --project=$projectId --format=`"table(name, state, createTime)`""
+    Invoke-Expression $cmd
 }
 
 Write-Output "`n🏁 完了：バージョン一覧の確認も含めてすべて実行しました！"

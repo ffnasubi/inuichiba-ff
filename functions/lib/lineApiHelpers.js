@@ -4,7 +4,7 @@ const axios = require('axios');
 // Replyメッセージ送信
 async function sendReplyMessage(replyToken, messages, ACCESS_TOKEN) {
   const url = 'https://api.line.me/v2/bot/message/reply';
-  const { isProd } = require("./lib/env.js");
+  const { isProd } = require("./env.js");
 
   try {
     
@@ -32,7 +32,7 @@ async function sendReplyMessage(replyToken, messages, ACCESS_TOKEN) {
 // プッシュメッセージ送信
 async function sendPushMessage(userId, messages, ACCESS_TOKEN) {
   const url = 'https://api.line.me/v2/bot/message/push';
-  const { isProd } = require("./lib/env.js");
+  const { isProd } = require("./env.js");
 
 
   try {

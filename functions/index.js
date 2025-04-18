@@ -26,10 +26,7 @@ app.use(express.json({
 let lineMiddleware;
 
 try {
-  const env = require("./lib/env.js");
-  const channelAccessToken = env.channelAccessToken;
-  const channelSecret = env.channelSecret;
-  const isProd = env.isProd;
+  const { channelAccessToken, channelSecret, isProd } = require("./lib/env.js");
 
   if (!channelAccessToken || !channelSecret) {
     if (!isProd) console.warn("🔐 LINE設定が未定義です（Secretsの設定不足または読み込みタイミングの問題）");
@@ -49,9 +46,8 @@ app.post("/api/webhook", function(req, res) {
       throw new Error("🔐 LINEミドルウェアが初期化されていません。");
     }
 
-    lineMiddleware(req, res, function() {
-      const env = require("./lib/env.js");
-      const isProd = env.isProd;
+    lineMiddleware(req, res, async function() {
+      const { isProd } = require("./lib/env.js");
       
       const events = req.body && req.body.events;
       if (!events || !(events instanceof Array)) {
@@ -60,28 +56,34 @@ app.post("/api/webhook", function(req, res) {
       }
 
       let i = 0;
-      function processNextEvent(index) {
+      async function processNextEvent(index) {
         if (index >= events.length) {
           return res.status(200).send("OK from webhook");
         }
-
-        handleEvent(events[index], req.body.destination)
-          .then(function() {
-            processNextEvent(index + 1);
-          })
-          .catch(function(err) {
-            console.error("💥 handleEvent エラー:", err);
-            res.status(500).send("Internal Server Error");
-          });
+        
+        try {
+          const { channelAccessToken } = require("./lib/env.js");
+          await handleEvent(events[index], channelAccessToken);
+          await processNextEvent(index + 1);
+        } catch (err) {
+          console.error("💥 handleEvent エラー:", err);
+          res.status(500).send("Internal Server Error");
+        }
       }
 
-      processNextEvent(i);
+      await processNextEvent(i);
     });
   } catch (err) {
     console.error("💥 Webhookハンドラーエラー:", err);
     res.status(500).send("Internal Server Error");
   }
 });
+
+// FF構成で webhook GET を処理する
+app.get("/api/webhook", function(req, res) {
+  res.status(200).send("OK (GET from webhook)");
+});
+
 
 // ✅ Firebase Functions v2 としてエクスポート（Secretsを列挙）
 const secrets = [
@@ -95,5 +97,4 @@ const secrets = [
 ];
 
 exports.webhook = functions.https.onRequest({ region: region, secrets: secrets }, app);
-exports.api = functions.https.onRequest({ region: region, secrets: secrets }, app);
 
