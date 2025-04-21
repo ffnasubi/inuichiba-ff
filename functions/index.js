@@ -6,12 +6,11 @@
 // ✅ 最初に必要なモジュールを読み込む
 const functions = require("firebase-functions/v2");
 const express = require("express");
+const { webhook } = require("./api/webhook"); 
 const { middleware } = require("@line/bot-sdk");
 const { handleEvent } = require("./handlers/events.js");
 const region = "asia-northeast1";
-
-// console.log("🔥 Force redeploy");
-
+ 
 // ✅ Expressアプリを作成
 const app = express();
 
@@ -84,7 +83,6 @@ app.get("/api/webhook", function(req, res) {
   res.status(200).send("OK (GET from webhook)");
 });
 
-
 // ✅ Firebase Functions v2 としてエクスポート（Secretsを列挙）
 const secrets = [
   "NODE_ENV",
@@ -96,5 +94,8 @@ const secrets = [
   "MY_LINE_USER_ID"
 ];
 
-exports.webhook = functions.https.onRequest({ region: region, secrets: secrets }, app);
+// ✅ Firebase Functions v2 としてエクスポート（Secretsを列挙）
+exports.webhook = functions
+  .https
+  .onRequest({ region: region, secrets: secrets }, app);
 

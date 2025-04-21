@@ -151,7 +151,7 @@ const envName = rawEnv;
 // なのでコンソールログを抑制する
 // ログは PowerShell で以下のコマンドで確認すること
 // gcloud functions logs read webhook --region=asia-northeast1 --project=inuichiba-ffprod
-/*
+/**
 if (isProd) {
   console.log("🧪 NODE_ENVは本番環境反映済?(process.env.FUNCTION_TARGET):", process.env.FUNCTION_TARGET || "(not set)");
   console.log("✅ NODE_ENV(process.env.NODE_ENV):", process.env.NODE_ENV);

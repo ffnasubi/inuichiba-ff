@@ -11,7 +11,7 @@
     ],
     "rewrites": [
       {
-        "source": "/api/webhook",
+        "source": "/api/**",
         "function": "webhook"
       }
     ]

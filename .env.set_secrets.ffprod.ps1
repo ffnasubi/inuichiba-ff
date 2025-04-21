@@ -75,7 +75,6 @@ Get-Content $envFile | ForEach-Object {
         }
     }
 
-
     # 最終確認として、登録済み Secrets を一覧表示
     Write-Output "`n📋 現在の Secrets 一覧:"
     & gcloud secrets list --project=$projectId
@@ -103,6 +102,16 @@ foreach ($name in $secretNames) {
     $cmd = "gcloud secrets versions list $name --filter=`"state=enabled`" --sort-by=`"~createTime`" --limit=1 --project=$projectId --format=`"table(name, state, createTime)`""
     Invoke-Expression $cmd
 }
+
+
+# 🔧 Artifact Registry の脆弱性スキャンを無効化（gcf-artifacts リポジトリ）
+Write-Output "`n🛡 脆弱性スキャンを無効化中..."
+& gcloud artifacts repositories update gcf-artifacts `
+    --location=asia-northeast1 `
+    --clear-description `
+    --update-labels=containeranalysis.googleapis.com/scan-on-push=disabled `
+    --project=$projectId
+
 
 Write-Output "`n🏁 完了：バージョン一覧の確認も含めてすべて実行しました！"
 
