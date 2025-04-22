@@ -9,6 +9,7 @@ functions/node_modules/
 
 # ダミー。FFデプロイに必要（空ファイル）→ Storageがないと怒られるため
 # このファイルを入れておくことで public/ バケット生成を防げるケースもある
+# git対象
 !ffdummy.txt
 
 # GCPのサービスアカウント鍵ファイル(鍵だから絶対gitに含めちゃ駄目)
@@ -20,14 +21,12 @@ ffdev.*.json
 # IAMのロール(ポリシー)バックアップ用(個人情報もあるので絶対gitに含めちゃ駄目)
 policy-backup*.json
 
-# .env.devなど定義ファイルや評価用画像ファイルのバックアップのみ除外
-# (.env*は絶対gitに含めちゃ駄目)
-functions/.env*
+# .env.devなど定義ファイルや評価用画像ファイルのバックアップを除外
 .backup/
 
 # Secrets 管理用ファイル（ルート直下）
-# .env.set_secrets.ffprod.ps1(.ps1や.bat)はgit対象
-# .env.secrets.ffprod.txt は絶対gitに含めちゃ駄目
+# .env.set_secrets.ps1(.ps1や.bat)はgit対象
+# .env.secrets.*.txt は絶対gitに含めちゃ駄目
 .env.secrets.*.txt
 
 # Firebase CLI が生成する一時ファイル・キャッシュ
