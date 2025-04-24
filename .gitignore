@@ -1,34 +1,34 @@
 # Firebase Functions対応 gitに含めないディレクトリ/ファイル一覧
 
-# npm install で再生成される依存
+# npm install で再生成される依存(node & firebase)
+node_modules/
 functions/node_modules/
+package-lock.json
 
-# ❌ 削除すべき！重要なコードが除外されてしまう
+# ❌ git対象にすべき！重要なコードが除外されてしまう
 # functions/lib/
 # ✅ Richmenu定義やメッセージ定義もGit対象（除外しない）
+# IAMのロール(ポリシー)バックアップ用(個人情報もあるので絶対gitに含めちゃ駄目)
+# 今は.backup配下にある
+# policy-backup*.json
 
 # ダミー。FFデプロイに必要（空ファイル）→ Storageがないと怒られるため
 # このファイルを入れておくことで public/ バケット生成を防げるケースもある
+# git対象
 !ffdummy.txt
 
 # GCPのサービスアカウント鍵ファイル(鍵だから絶対gitに含めちゃ駄目)
-# ただしfirebase.jsonはgit対象
-ffprod.*.json
-ffdev.*.json
-!firebase.json
-
-# IAMのロール(ポリシー)バックアップ用(個人情報もあるので絶対gitに含めちゃ駄目)
-policy-backup*.json
-
-# .env.devなど定義ファイルや評価用画像ファイルのバックアップのみ除外
-# (.env*は絶対gitに含めちゃ駄目)
-functions/.env*
-.backup/
+# ただしfirebase*.jsonはgit対象
+deployer*.json
+!firebase*.json
 
 # Secrets 管理用ファイル（ルート直下）
-# .env.set_secrets.ffprod.ps1(.ps1や.bat)はgit対象
-# .env.secrets.ffprod.txt は絶対gitに含めちゃ駄目
-.env.secrets.*.txt
+# .env.set_secrets.ps1(.ps1や.bat)はgit対象
+# .env*.txt は絶対gitに含めちゃ駄目
+.env*.txt
+
+# .env.devなど定義ファイルや評価用画像ファイルのバックアップを除外
+.backup/
 
 # Firebase CLI が生成する一時ファイル・キャッシュ
 .firebase/
