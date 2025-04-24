@@ -1,8 +1,0 @@
-{
-  "projects": {
-    "default": "inuichiba-ffprod",
-    "ffprod": "inuichiba-ffprod"
-  },
-  "targets": {},
-  "etags": {}
-}
