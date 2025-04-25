@@ -1,106 +1,187 @@
 ﻿param(
-    [string]$env = "ffdev",         # ← ここで "ffprod" または "ffdev" を指定（既定値は ffdev）
+    [string]$Env = "ffdev",         # ← ここで "ffprod" または "ffdev" を指定（既定値は ffdev）
     [switch]$deleteOldVersions      # ← 古いバージョンを削除するかどうか（--deleteOldVersions）
 )
 
-# PowerShell スクリプト: .env.set_secrets.ps1
+# .env.set_secrets.ps1
+# .env.set_secrets.ps1 - Secrets 登録＋Firebase Deploy＋古いバージョン削除（確認付き）＋状態一覧出力
 # .env.secrets.ffprod.txt/.env.secrets.ffdev.txt を読み込んで Firebase Secrets に一括登録
 # .ps1のファイル形式は UTF-8(BOM付き) であること
+# ただしNODE_ENVは手入力で入れることが推奨されているためここには含まれない
+# 値の確認は最後にできるのでそこで確認すること(定義し忘れるなよー)
 # 実行方法(管理者権限で)
+# firebase login
 # cd "D:\nasubi\inuichiba_ff"
-# 開発環境(ffdev)に Secrets を登録（既定値）
-powershell -ExecutionPolicy Bypass -File .env.set_secrets.ps1
+# 開発環境(ffdev)に Secrets を登録（既定値）して古いバージョンも削除
+# powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -deleteOldVersions
 # 本番環境(ffprod)に登録
-powershell -ExecutionPolicy Bypass -File .env.set_secrets.ps1 -env ffprod
-# 本番環境で古いバージョンも削除
-powershell -ExecutionPolicy Bypass -File .env.set_secrets.ps1 -env ffprod -deleteOldVersions
-
+# powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -env ffprod
+# 本番環境に登録して古いバージョンも削除
+# powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -env ffprod -deleteOldVersions
 
 # 環境ごとの設定
-if ($env -eq "ffprod") {
-    $projectId = "inuichiba-ffprod"
-    $envFile = ".\.env.secrets.ffprod.txt"
-    $secretSuffix = "_PROD"
-} elseif ($env -eq "ffdev") {
-    $projectId = "inuichiba-ffdev"
-    $envFile = ".\.env.secrets.ffdev.txt"
-    $secretSuffix = "_DEV"
-} else {
-    Write-Error "❌ 不明な環境 [$env] が指定されました。'ffdev' または 'ffprod' を指定してください。" -ForegroundColor Red
-    exit 1
+# .env.set_secrets.ps1
+# 指定した環境（ffdev / ffprod）に対応する Secrets を Firebase Secret Manager に登録し、
+# 必要に応じて Firebase Functions を --deleteOldVersions 付きでデプロイ。
+# 実行例：
+#   powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -Env ffdev -deleteOldVersions
+
+# .env.set_secrets.ps1 - Secrets 登録＋Firebase Deploy＋古いバージョン削除（確認付き）＋状態一覧出力
+# ========================================================================
+# ✅ 使い方：
+# powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -Env ffdev -deleteOldVersions
+# -Env: ffdev または ffprod を指定（省略可／既定値 ffdev）
+# -deleteOldVersions: deploy 後に古い Secrets バージョンを確認付きで削除（省略可）
+#
+# 🔐 Secrets 定義ファイルは以下の形式で用意してください：
+# .env.secrets.ffdev.txt / .env.secrets.ffprod.txt
+#   例: CHANNEL_SECRET_DEV=abc123
+# ========================================================================
+
+# マッピング定義
+$projectIdMap = @{ ffdev = "inuichiba-ffdev"; ffprod = "inuichiba-ffprod" }
+$envPathMap   = @{ ffdev = ".env.secrets.ffdev.txt"; ffprod = ".env.secrets.ffprod.txt" }
+
+$projectId = $projectIdMap[$Env]
+$envPath   = $envPathMap[$Env]
+
+if (-not $projectId) {
+  Write-Host "❌ 無効な環境名です。-Env ffdev または -Env ffprod を指定してください。" -ForegroundColor Red
+  exit 1
 }
 
-if (!(Test-Path $envFile)) {
-    Write-Error "❌ 指定されたファイル [$envFile] が見つかりません。スクリプトを終了します。" -ForegroundColor Red
-    exit 1
+# Secret Manager API を有効化（初回のみ）
+Write-Host "🔗 Secret Manager API を有効化中... ($projectId)" -ForegroundColor Cyan
+& gcloud services enable secretmanager.googleapis.com --project=$projectId | Out-Null
+
+# Secretsファイルの存在確認
+if (-not (Test-Path $envPath)) {
+  Write-Host "❌ Secretsファイルが見つかりません: $envPath" -ForegroundColor Red
+  exit 1
 }
 
-Write-Output "🔄 Secrets を [$env] 環境（$projectId）に登録します。" -ForegroundColor Green
-Write-Output "📄 対象ファイル: $envFile" -ForegroundColor Green
+# 登録前の Secrets 一覧
+Write-Host "📋 登録前の Secrets 一覧:" -ForegroundColor Yellow
+Invoke-Expression "gcloud secrets list --project=$projectId --format='table(name, replication.policy)'"
 
-Get-Content $envFile | ForEach-Object {
-    if ($_ -match "^\s*$" -or $_ -match "^\s*#") { return }
+# Secrets の登録処理開始
+$lines = Get-Content $envPath -Encoding UTF8
 
-    $parts = $_ -split '=', 2
-    if ($parts.Count -ne 2) {
-        Write-Warning "⚠️ 無効な行: $_"  -ForegroundColor Yellow
-        return
+foreach ($line in $lines) {
+  if ($line.Trim() -eq "" -or $line.Trim().StartsWith("#")) { continue }
+
+  $parts = $line -split "=", 2
+  if ($parts.Count -ne 2) {
+    Write-Host "⚠️ 無効な形式の行: $line" -ForegroundColor Yellow
+    continue
+  }
+
+  $key = $parts[0].Trim()
+  $value = $parts[1].Trim()
+
+  $exists = & gcloud secrets describe $key --project=$projectId 2>$null
+  if ($exists) {
+    Write-Host "🔁 [$key] は既に存在 → 新バージョン追加中..." -ForegroundColor Yellow
+  } else {
+    Write-Host "🆕 [$key] を新規作成中..." -ForegroundColor Cyan
+    & gcloud secrets create $key --replication-policy="automatic" --project=$projectId | Out-Null
+  }
+
+  $tempFile = [System.IO.Path]::GetTempFileName()
+  Set-Content -Path $tempFile -Value $value -Encoding UTF8
+  & gcloud secrets versions add $key --data-file=$tempFile --project=$projectId | Out-Null
+  Remove-Item $tempFile
+
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host "✅ [$key] 登録完了！" -ForegroundColor Green
+  } else {
+    Write-Host "❌ [$key] 登録に失敗しました" -ForegroundColor Red
+  }
+}
+
+# 登録後の Secrets 一覧
+Write-Host "`n📋 登録後の Secrets 一覧:" -ForegroundColor Yellow
+Invoke-Expression "gcloud secrets list --project=$projectId --format='table(name, replication.policy)'"
+
+# Firebase Deploy と古い Secrets の削除（対話付き）
+if ($deleteOldVersions) {
+  Write-Host "`n🚀 Firebase Deploy を実行中... ($projectId)" -ForegroundColor Cyan
+  Write-Host "⚠️ この操作では古い Secret のバージョン削除確認が表示されます。削除する場合は 'y' を入力してください。" -ForegroundColor Yellow
+
+  & firebase deploy --only functions --project=$projectId
+
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host "✅ Firebase Deploy 完了！" -ForegroundColor Green
+  } else {
+    Write-Host "❌ Firebase Deploy に失敗しました" -ForegroundColor Red
+  }
+
+  # バージョン削除（1件ずつ確認付き）
+  Write-Host "`n🧹 Secrets の古いバージョン削除（1件ずつ確認付き）を開始します..." -ForegroundColor Cyan
+
+  $secrets = gcloud secrets list --project=$projectId --format="value(name)"
+
+  foreach ($secret in $secrets) {
+    Write-Host "`n🔐 Secret: $secret" -ForegroundColor Yellow
+
+    $versions = gcloud secrets versions list $secret `
+      --project=$projectId `
+      --sort-by="~createTime" `
+      --format="value(name,state)"
+
+    $latestEnabledSkipped = $false
+
+    foreach ($line in $versions) {
+      $parts = $line -split "\s+", 2
+      $version = $parts[0]
+      $state = $parts[1]
+
+      if (-not $latestEnabledSkipped -and $state -eq "ENABLED") {
+        Write-Host "⏭ バージョン $version は最新の ENABLED → スキップ" -ForegroundColor DarkGray
+        $latestEnabledSkipped = $true
+        continue
+      }
+
+      if ($state -eq "DESTROYED") {
+        Write-Host "☠️ バージョン $version はすでに DESTROYED → 無視" -ForegroundColor Gray
+        continue
+      }
+
+      Write-Host "⚠️ [$secret] バージョン $version は $state 状態です。" -ForegroundColor Magenta
+      $answer = Read-Host "❓ 削除しますか？（y/N）"
+      if ($answer -eq "y") {
+        Write-Host "🗑 削除中: $secret バージョン $version" -ForegroundColor Red
+        gcloud secrets versions destroy $version --secret=$secret --project=$projectId --quiet
+      } else {
+        Write-Host "⏭ スキップ: $secret バージョン $version" -ForegroundColor Gray
+      }
     }
-
-    $key = $parts[0].Trim()
-    $value = $parts[1].Trim()
-
-    $exists = & gcloud secrets describe $key --project=$projectId 2>$null
-    if (!$?) {
-        Write-Output "🆕 Secret [$key] を新規作成中..."  -ForegroundColor -ForegroundColor DarkCyan
-        & gcloud secrets create $key --replication-policy="automatic" --project=$projectId
-    } else {
-        Write-Output "🔁 Secret [$key] は既に存在します。バージョンを追加します。" -ForegroundColor DarkCyan
-    }
-
-    $tmp = New-TemporaryFile
-    $cleanValue = $value -replace '^[\uFEFF\u200B]', ''
-    $cleanValue = $cleanValue -replace '[\x00-\x1F]', ''
-    Set-Content -Path $tmp -Value $cleanValue -NoNewline -Encoding UTF8
-
-    & gcloud secrets versions add $key --data-file=$tmp --project=$projectId
-    Remove-Item $tmp
-
-    if ($deleteOldVersions) {
-        $versions = & gcloud secrets versions list $key --project=$projectId --format="value(name)"
-        $latest = & gcloud secrets versions list $key --project=$projectId --sort-by="~createTime" --limit=1 --format="value(name)"
-        foreach ($ver in $versions) {
-            if ($ver -ne $latest) {
-                Write-Output "🗑 古いバージョン [$ver] を削除します..." -ForegroundColor Cyan
-                & gcloud secrets versions destroy $ver --secret=$key --project=$projectId
-            }
-        }
-    }
+  }
 }
 
-Write-Output "`n🧪 各 Secret の最新有効バージョン:" -ForegroundColor Green
-$secretNames = @(
-    "CHANNEL_ACCESS_TOKEN$secretSuffix",
-    "CHANNEL_SECRET$secretSuffix",
-    "SUPABASE_URL",
-    "SUPABASE_SERVICE_ROLE_KEY$secretSuffix",
-    "SUPABASE_TABLE_NAME$secretSuffix",
-    "MY_LINE_USER_ID"
-)
 
-foreach ($name in $secretNames) {
-    Write-Output ""
-    Write-Output "🔑 $name:"  -ForegroundColor DarkCyan
-    $cmd = "gcloud secrets versions list $name --filter=`"state=enabled`" --sort-by=`"~createTime`" --limit=1 --project=$projectId --format=`"table(name, state, createTime)`""
-    Invoke-Expression $cmd
+# 最後にすべてのSecretsのバージョン状態を一覧出力
+Write-Host "`n📊 全Secretsのバージョン状態一覧:" -ForegroundColor Cyan
+$allSecrets = gcloud secrets list --project=$projectId --format="value(name)"
+foreach ($secret in $allSecrets) {
+  Write-Host "`n🔎 Secret: $secret" -ForegroundColor Yellow
+  gcloud secrets versions list $secret `
+    --project=$projectId `
+    --sort-by="name" `
+    --format="table(name, state, createTime)"
 }
 
-Write-Output "`n🛡 脆弱性スキャンを無効化中..." -ForegroundColor Cyan
-& gcloud artifacts repositories update gcf-artifacts `
-    --location=asia-northeast1 `
-    --clear-description `
-    --update-labels=containeranalysis.googleapis.com/scan-on-push=disabled `
-    --project=$projectId
+# 使い方ヒントを表示
+Write-Host "`n💡 補足：バージョン操作の参考コマンド" -ForegroundColor Cyan
+Write-Host "🔸 特定バージョンを削除する場合：" -ForegroundColor Yellow
+Write-Host "    gcloud secrets versions destroy VERSION_NUMBER(1とか2とか) --secret=SECRET_NAME --project=$projectId --quiet"
+Write-Host "🔸 特定バージョンを ENABLED に戻す場合：" -ForegroundColor Yellow
+Write-Host "    gcloud secrets versions enable VERSION_NUMBER --secret=SECRET_NAME --project=$projectId"
+Write-Host "🔸 特定バージョンを DISABLED に変更する場合：" -ForegroundColor Yellow
+Write-Host "    gcloud secrets versions disable VERSION_NUMBER --secret=SECRET_NAME --project=$projectId"
 
-Write-Output "`n🏁 完了：すべての Secrets 処理を実行しました！"  -ForegroundColor Green
-Write-Output "✅ Secrets 登録完了しました！" -ForegroundColor Green
+
+# 完了メッセージ
+Write-Host "`n🌟 [$Env] Secrets 登録がすべて完了しました！PowerShellを閉じて大丈夫です。" -ForegroundColor Green
+exit 0
+

@@ -36,4 +36,8 @@ $projectIdMap = @{ ffdev = "inuichiba-ffdev"; ffprod = "inuichiba-ffprod" }
 $env:GCLOUD_PROJECT = $projectIdMap[$env]
 
 Write-Host "`n🚀 リッチメニュー初期化を開始（環境: $env）..."
+
+# 🔧 実行前にカレントディレクトリをスクリプトのある場所に移動（パス解釈を安定させる）
+# Set-Location -Path "$PSScriptRoot"
+
 node functions/richmenu-manager/batchCreateRichMenu.js

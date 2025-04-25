@@ -82,6 +82,7 @@ async function handleFollowEvent(event, ACCESS_TOKEN) {
   await sendReplyMessage(event.replyToken, [message], ACCESS_TOKEN);
 
   // --- 書き込みはあとで非同期に（UI優先！）
+  // 有償を避けるため follow eventしか書き込まない
   if (userId) {
     try {
       await saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN);
@@ -124,7 +125,9 @@ async function handleMessageEvent(event, ACCESS_TOKEN) {
   await sendReplyMessage(event.replyToken, message, ACCESS_TOKEN);
 
   // --- Supabase書き込みはメッセージ送信後、後回しに実行（非同期）
-  if (userId) {
+  const { isProd } = require("../lib/env.js");
+
+  if (userId && !isProd) {
     try {
       await saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN);
     } catch (err) {
@@ -153,7 +156,9 @@ async function handlePostbackEvent(event, ACCESS_TOKEN) {
   }
 
   // --- C. 書き込みは後回しで実行（レスポンスに影響させない）
-  if (userId) {
+  const { isProd } = require("../lib/env.js");
+  
+  if (userId && !isProd) {
     try {
       await saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN);
     } catch (err) {
@@ -177,10 +182,13 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
   } else if (textMessages[data]) {
     messages = textMessages[data];
   } else if (data == "tap_richMenuA5") {
-    await setCarouselMessage(replyToken, ACCESS_TOKEN);
+    await setParkCarouselMessage(replyToken, ACCESS_TOKEN);
+    return;
+  } else if (data == "tap_richMenuA2") {
+    await setMannerCarouselMessage(replyToken, ACCESS_TOKEN);
     return;
   }
-
+    
   try {
     if (textTemplates[data]) {
       const emojiTextMessage = buildEmojiMessage(data, "");
@@ -206,8 +214,8 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
 
 
 // ///////////////////////////////////////////// 
-// テキストメッセージの後にカルーセルメッセージを出力する
-async function setCarouselMessage(replyToken, ACCESS_TOKEN) {
+// 駐車場をカルーセルメッセージで出力する
+async function setParkCarouselMessage(replyToken, ACCESS_TOKEN) {
   const textMessage = {
     type: "text",
     text: messages.msgA5
@@ -221,13 +229,13 @@ async function setCarouselMessage(replyToken, ACCESS_TOKEN) {
       contents: [
         {
           type: "image",
-          url: "https://inuichiba.vercel.app/carousel/cPark1.png",
+          url: `${baseDir}carousel/cPark1_baseline.jpg`,
           size: "full",
           aspectRatio: "1:1",
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: "https://inuichiba.vercel.app/carousel/cPark1detail.png"
+            uri: `${baseDir}carousel/cPark1detail.jpg`
           }
         },
         {
@@ -255,13 +263,13 @@ async function setCarouselMessage(replyToken, ACCESS_TOKEN) {
       contents: [
         {
           type: "image",
-          url: "https://inuichiba.vercel.app/carousel/cPark2.png",
+          url: `${baseDir}carousel/cPark1_baseline2.jpg`,
           size: "full",
           aspectRatio: "1:1",
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: "https://inuichiba.vercel.app/carousel/cPark2detail.png"
+            uri: `${baseDir}carousel/cPark2detail.jpg`
           }
         },
         {
@@ -289,13 +297,13 @@ async function setCarouselMessage(replyToken, ACCESS_TOKEN) {
       contents: [
         {
           type: "image",
-          url: "https://inuichiba.vercel.app/carousel/cPark3.png",
+          url: `${baseDir}carousel/cPark3.jpg`,
           size: "full",
           aspectRatio: "1:1",
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: "https://inuichiba.vercel.app/carousel/cPark3detail.png"
+            uri: `${baseDir}carousel/cPark3detail.jpg`
           }
         },
         {
@@ -319,13 +327,130 @@ async function setCarouselMessage(replyToken, ACCESS_TOKEN) {
 
   const flexMessage = {
     type: "flex",
-    altText: "こちらはカルーセルメッセージです", 
+    altText: "駐車場地図", 
     contents: {
       type: "carousel",
       contents: carouselContents
     }
   };
 	
+  const { isProd } = require("../lib/env.js");
+
+  if (!isProd) {
+    console.log("📦 Flex Message 中身:", JSON.stringify(flexMessage, null, 2));
+    console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
+  }
+
+  await sendReplyMessage(replyToken, [textMessage, flexMessage], ACCESS_TOKEN);
+}
+
+
+// good mannersをカルーセルメッセージで出す
+async function setMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
+  const textMessage = {
+    type: "text",
+    text: "イベントを楽しむためのご来場マナーと注意事項をご確認ください"
+  };
+
+  const flex_message1 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      contents: [
+        {
+          type: "text",
+          text: "📌 ご来場時のお願い",
+          weight: "bold",
+          size: "lg",
+          margin: "md",
+          color: "#333333"
+        },
+        {
+          type: "text",
+          text: messages.msgA21,
+          wrap: true,
+          margin: "sm",
+          size: "md"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#E0F2F1"  // 薄いグリーン
+      }
+    }
+  };
+
+  const flex_message2 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      contents: [
+        {
+          type: "text",
+          text: "🐾 ワンちゃんとの過ごし方",
+          weight: "bold",
+          size: "lg",
+          margin: "md",
+          color: "#333333"
+        },
+        {
+          type: "text",
+          text: messages.msgA22,
+          wrap: true,
+          margin: "sm",
+          size: "md"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFF3E0"  // 薄いオレンジ
+      }
+    }
+  };
+
+  const flex_message3 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      contents: [
+        {
+          type: "text",
+          text: "🚫 立ち話・撮影のマナー",
+          weight: "bold",
+          size: "lg",
+          margin: "md",
+          color: "#333333"
+        },
+        {
+          type: "text",
+          text: messages.msgA23,
+          wrap: true,
+          margin: "sm",
+          size: "md"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#E0F2F1"  // 薄いグリーン（修正済）
+      }
+    }
+  };
+
+  const flexMessage = {
+    type: "flex",
+    altText: "マナーに関して",
+    contents: {
+      type: "carousel",
+      contents: [flex_message1, flex_message2, flex_message3]
+    }
+  };
+
   const { isProd } = require("../lib/env.js");
 
   if (!isProd) {
@@ -403,10 +528,7 @@ async function handleJoinEvent(event, ACCESS_TOKEN) {
 
   if (!isProd) console.log("👋 joinイベント発生！グループまたはルームID:", groupId);
 
-  const welcomeMessage = {
-    type: "text",
-    text: "こんにちは！犬市場Botです🐶\nどうぞよろしくお願いします！"
-  };
+  const welcomeMessage = { type: "text", text: messages.msgJoin };
 
   await sendReplyMessage(event.replyToken, [welcomeMessage], ACCESS_TOKEN);
 }

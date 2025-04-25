@@ -83,19 +83,10 @@ app.get("/api/webhook", function(req, res) {
   res.status(200).send("OK (GET from webhook)");
 });
 
-// ✅ Firebase Functions v2 としてエクスポート（Secretsを列挙）
-const secrets = [
-  "NODE_ENV",
-  "CHANNEL_ACCESS_TOKEN_PROD",
-  "CHANNEL_SECRET_PROD",
-  "SUPABASE_SERVICE_ROLE_KEY_PROD",
-  "SUPABASE_TABLE_NAME_PROD",
-  "SUPABASE_URL",
-  "MY_LINE_USER_ID"
-];
+const { secretNames } = require("./lib/env.js");
 
 // ✅ Firebase Functions v2 としてエクスポート（Secretsを列挙）
 exports.webhook = functions
   .https
-  .onRequest({ region: region, secrets: secrets }, app);
+  .onRequest({ region: region, secrets: secretNames }, app);
 

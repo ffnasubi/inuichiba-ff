@@ -1,6 +1,8 @@
 // lib/env.js
 // ================================
 // Firebase Functions 向けの環境変数設定ファイル
+// ✅ Firebase Functions で使用する Secrets を環境ごとに切り替えて提供
+// 🔐 NODE_ENV によって "production" → 本番 / その他 → 開発と判定
 // -------------------------------
 // ✅ ポイント：変数定義 → 条件分岐 → ログ出力 の順序を厳守！
 // Firebaseでは Secrets が非同期で反映されることがあるため、
@@ -20,7 +22,7 @@ const isProd = projectId === "inuichiba-ffprod";
 const isDev = !isProd;
 const isPreview = false; // Firebase では preview 環境の概念はなし
 
-// NODE_ENVベースの環境名判定
+// NODE_ENVベース(補助的)の環境名判定
 const rawEnv = (process.env.NODE_ENV || 'production').trim().toLowerCase();
 
 
@@ -98,12 +100,17 @@ if (typeof envId === "string" && envId.length > 0) {
 }
 
 // コンテンツのホスティングURL（画像とカルーセルメッセージのベースパス）
+// URLとしてLINEへの通知用
 const baseDir = isProd
   ? "https://inuichiba-ffprod.web.app/"
   : "https://inuichiba-ffdev.web.app/";
 
+// コンテンツの相対パス(ファイルとして読み込むとき。今はメニューだけだね)
+const path = require("path");
+const imageDir = path.resolve(__dirname, "../../public/images/");
+
 // 未使用：メニュー名：メニューキャッシュクリアや更新確認に使用(ローカルテスト用)
-// .env.*だけに定義を残して他はコメントアウトしてる
+// .env.*だけに定義を残して他は.backupへ移すかコメントにしてる
 // なお使用するときは末尾のexports定義も忘れずに行うこと
 // let targetMenuName = process.env.TARGET_MENU_NAME;
 // let envName = targetMenuName;
@@ -119,6 +126,29 @@ const baseDir = isProd
 // ✅ 最後に定義！ ← これが正解
 // (まだ envName が未初期化の状態で使われてしまうとクラッシュする)
 const envName = rawEnv;
+
+
+// 5. Firebase Functions の secrets バインドに使う一覧（index.js から参照）
+// 必要に応じて secrets を追加するだけで管理できる
+const secretNames = isProd
+  ? [
+      "NODE_ENV",
+      "CHANNEL_ACCESS_TOKEN_PROD",
+      "CHANNEL_SECRET_PROD",
+      "SUPABASE_SERVICE_ROLE_KEY_PROD",
+      "SUPABASE_TABLE_NAME_PROD",
+      "SUPABASE_URL",
+      "MY_LINE_USER_ID"
+    ]
+  : [
+      "NODE_ENV",
+      "CHANNEL_ACCESS_TOKEN_DEV",
+      "CHANNEL_SECRET_DEV",
+      "SUPABASE_SERVICE_ROLE_KEY_DEV",
+      "SUPABASE_TABLE_NAME_DEV",
+      "SUPABASE_URL",
+      "MY_LINE_USER_ID"
+    ];
 
 
 // ✅ ログ出力（使うのは最後の最後！）
@@ -161,7 +191,7 @@ function logSecretSafe(label, value) {
       if (!isProd) {
         console.log(`🔐 ${label} の長さ: ${value.length}`);
         console.log(`🔐 ${label} の先頭5文字: ${value.slice(0, 5)}...`);
-        console.log(`🔐 ${label} の末尾5文字: ${value.slice(-5)}`);
+        // console.log(`🔐 ${label} の末尾5文字: ${value.slice(-5)}`);
             }
     } else {
       if (!isProd) console.warn(`⚠️ ${label} は空文字列です`);
@@ -185,6 +215,8 @@ module.exports = {
   supabaseUrl,
   usersTable,
   myLineUserId,
-  baseDir
+  baseDir,
+  imageDir,
+  secretNames
 };
 

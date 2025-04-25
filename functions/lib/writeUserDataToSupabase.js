@@ -67,7 +67,7 @@ async function writeUserDataToSupabase({
 		
     // ✅ 本番でも出す：Supabaseの応答を受けた時点の正確なJS時刻（ISO形式）
     // vercelではそうだったけどcoonsole.logは課金対象なので抑制する
-		if (!isPord) console.log("⏱ 書き込み完了タイムスタンプ:", getFormattedJST());
+		if (!isProd) console.log("⏱ 書き込み完了タイムスタンプ:", getFormattedJST());
 
   } catch (err) {
     console.error("💥 例外でクラッシュしました:", err);

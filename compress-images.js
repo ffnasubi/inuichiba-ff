@@ -17,6 +17,24 @@
 // ✅ 実行方法
 // node compress-images.js
 
+//⚠️ Macユーザーがやるべき環境設定
+//1. Node.js のインストール（Homebrew推奨）
+//brew install node
+//2. プロジェクトルートで sharp をインストール
+//cd /path/to/project
+//npm install sharp
+//3.テスト( → 出力例：✅ sharp 読み込み成功！
+//node -e "require('sharp'); console.log('✅ sharp 読み込み成功！')"
+//▶️ 実行コマンド
+//node compress-images.js
+//🎁 おまけ：Mac用に .sh スクリプトを作ると便利
+//例：run-compress.sh
+//#!/bin/bash
+//node compress-images.js
+//bash
+//chmod +x run-compress.sh
+//./run-compress.sh
+
 
 const sharp = require("sharp");
 const fs = require("fs");
