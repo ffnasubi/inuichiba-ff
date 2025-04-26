@@ -10,6 +10,8 @@
 //  chromaSubsampling: "4:4:4" ＝ 高品質維持
 //  optimizeCoding: true ＝ 効率的なエンコーディング
 //  flatten で透過PNG → 白背景に変換
+// ✅ 前提の前提(Node.jsのバージョンを確認：最低14以上、できれば16以上)
+// node -v
 // ✅ 前提(sharpをインストールする)
 // npm install sharp
 // 確認方法
@@ -36,9 +38,14 @@
 //./run-compress.sh
 
 
+const path = require("path");
+
+// NODE_PATHを動的に設定
+process.env.NODE_PATH = path.resolve(__dirname, "functions", "node_modules");
+require('module').Module._initPaths();
+
 const sharp = require("sharp");
 const fs = require("fs");
-const path = require("path");
 
 // 処理対象ディレクトリ
 const targets = [
@@ -57,13 +64,13 @@ for (const { input, output } of targets) {
 
   fs.readdir(inputDir, (err, files) => {
     if (err) {
-      console.error(`❌ 入力フォルダが見つかりません: ${inputDir}`);
+      console.log(`📂 入力フォルダが見つかりませんでした（スキップします）: ${inputDir}`);
       return;
     }
 
     files.forEach((file) => {
       const ext = path.extname(file).toLowerCase();
-      if (ext !== ".png") return; // 対象はPNGみ
+      if (ext !== ".png") return; // 対象はPNGのみ
 
       const inputPath = path.join(inputDir, file);
       const outputFileName = path.parse(file).name + ".jpg";
@@ -83,7 +90,7 @@ for (const { input, output } of targets) {
           console.log(`✅ ${input}/${file} → ${output}/${outputFileName}`);
         })
         .catch((err) => {
-          console.error(`❌ ${input}/${file} の変換に失敗:`, err.message);
+          console.error(`❌ ${input}/${file} の変換に失敗しました:`, err.message);
         });
     });
   });

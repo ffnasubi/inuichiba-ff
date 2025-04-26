@@ -71,26 +71,26 @@ const mediaMessages = {
     { type: "text", text: msgA3 },
     {
       type: "image",
-      originalContentUrl: `${baseDir}videos/dogWait.png`,
-      previewImageUrl:    `${baseDir}images/dogWait.png`
+      originalContentUrl: `${baseDir}videos/dogWait.jpg`,
+      previewImageUrl:    `${baseDir}images/dogWait.jpg`
     }
   ],
   "tap_richMenuA4": [
     { type: "text", text: msgA4 },
     {
       type: "image",
-      originalContentUrl: `${baseDir}images/dogRun1.png`,
-      previewImageUrl:    `${baseDir}images/dogRun1.png`
+      originalContentUrl: `${baseDir}images/dogRun1.jpg`,
+      previewImageUrl:    `${baseDir}images/dogRun1.jpg`
     },
     {
       type: "image",
-      originalContentUrl: `${baseDir}images/dogRun2.png`,
-      previewImageUrl:    `${baseDir}images/dogRun2.png`
+      originalContentUrl: `${baseDir}images/dogRun2.jpg`,
+      previewImageUrl:    `${baseDir}images/dogRun2.jpg`
     },
     {
       type: "image",
-      originalContentUrl: `${baseDir}images/dogRun3.png`,
-      previewImageUrl:    `${baseDir}images/dogRun3.png`
+      originalContentUrl: `${baseDir}images/dogRun3.jpg`,
+      previewImageUrl:    `${baseDir}images/dogRun3.jpg`
     }
   ]
 };
@@ -101,9 +101,9 @@ const mediaMessages = {
 // Botはメッセージは抑制してQRコードだけ表示する
 let lineQRcode;
 if (isProd) {
-  lineQRcode = "lineQRcode_ffprod.png";
+  lineQRcode = "lineQRcode_ffprod.jpg";
 } else {
-  lineQRcode = "lineQRcode_ffdev.png";
+  lineQRcode = "lineQRcode_ffdev.jpg";
 }
 const lineQRMessages = [
     // { type: "text", text: lineQRtext },

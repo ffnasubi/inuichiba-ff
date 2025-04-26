@@ -1,4 +1,5 @@
 // functions/richmenu-manager/richMenuHandler.js
+// バッチで有償とは関係ないからコンソールログは出す
 
 const fs = require('fs');
 const path = require('path');
@@ -120,9 +121,8 @@ async function aCreateRichMenu() {
 	};
   	
   	// リッチメニューを作りIdをもらう
-    const { isProd } = require('../lib/env.js');
   	const aRichMenuId = await client.createRichMenu(richmenuA);
-  	if (!isProd) console.log('aRichMenuId作成成功: ', aRichMenuId);
+  	console.log('aRichMenuId作成成功: ', aRichMenuId);
   	
   	return(aRichMenuId);
   	
@@ -193,9 +193,8 @@ async function bCreateRichMenu() {
 		};
 		
   	// リッチメニューを作りIdをもらう
-    const { isProd } = require('../lib/env.js');
   	const bRichMenuId = await client.createRichMenu(richmenuB);
-  	if (!isProd) console.log('bRichMenuId作成: ', bRichMenuId);
+  	console.log('bRichMenuId作成: ', bRichMenuId);
   	
   	return(bRichMenuId);
   	
@@ -218,9 +217,9 @@ async function createRichMenus(aRichMenuId, bRichMenuId) {
   	// リッチメニュー用画像ファイルをアップロードして紐づける
 		let imageAPath;
     if (isProd) {
-      imageAPath = path.join(imageDir, "tabA2025autumn.jpg");
+      imageAPath = path.join(imageDir, "tabA2025autumn_v2.jpg");
     } else {
-      imageAPath = path.join(imageDir, "tabA2.jpg"); 
+      imageAPath = path.join(imageDir, "tabA_v2.jpg"); 
     }		
   	const imageAStream = fs.createReadStream(imageAPath);
   	await client.setRichMenuImage(aRichMenuId, imageAStream);
@@ -229,9 +228,9 @@ async function createRichMenus(aRichMenuId, bRichMenuId) {
  	 	
   	let imageBPath;
     if (isProd) {
-      imageBPath = path.join(imageDir, "tabB2025autumn.jpg");
+      imageBPath = path.join(imageDir, "tabB2025autumn_v2.jpg");
     } else {
-      imageBPath = path.join(imageDir, "tabB2.jpg");
+      imageBPath = path.join(imageDir, "tabB_v2.jpg");
     }
   	const imageBStream = fs.createReadStream(imageBPath);
   	await client.setRichMenuImage(bRichMenuId, imageBStream);
@@ -244,10 +243,10 @@ async function createRichMenus(aRichMenuId, bRichMenuId) {
 	
 		// エイリアスを定義する
   	await client.createRichMenuAlias(aRichMenuId, 'switch-to-a');
-  	if (!isProd) console.log('エイリアス switch-to-a 作成');
+  	console.log('エイリアス switch-to-a 作成');
   	 
   	await client.createRichMenuAlias(bRichMenuId, 'switch-to-b');
-  	if (!isProd) console.log('エイリアス switch-to-b 作成');
+  	console.log('エイリアス switch-to-b 作成');
   	 	
   } catch (error) {
     console.error('リッチメニュー作成エラー:', error);

@@ -214,12 +214,14 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
 
 
 // ///////////////////////////////////////////// 
-// 駐車場をカルーセルメッセージで出力する
+// 駐車場をカルーセルメッセージにして出力する
 async function setParkCarouselMessage(replyToken, ACCESS_TOKEN) {
   const textMessage = {
     type: "text",
     text: messages.msgA5
   };
+
+  const { baseDir } = require("../lib/env.js");
 
   const flex_message1 = {
     type: "bubble",
@@ -235,7 +237,7 @@ async function setParkCarouselMessage(replyToken, ACCESS_TOKEN) {
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/cPark1detail.jpg`
+            uri: `${baseDir}carousel/cPark1detail_v2.jpg`
           }
         },
         {
@@ -263,18 +265,18 @@ async function setParkCarouselMessage(replyToken, ACCESS_TOKEN) {
       contents: [
         {
           type: "image",
-          url: `${baseDir}carousel/cPark1_baseline2.jpg`,
+          url: `${baseDir}carousel/cPark2_baseline2.jpg`,
           size: "full",
           aspectRatio: "1:1",
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/cPark2detail.jpg`
+            uri: `${baseDir}carousel/cPark2detail_v2.jpg`
           }
         },
         {
           type: "text",
-          text: "駐車場全体地図",
+          text: "イベント会場",
           align: "center",
           weight: "bold",
           size: "sm",
@@ -291,24 +293,24 @@ async function setParkCarouselMessage(replyToken, ACCESS_TOKEN) {
 
   const flex_message3 = {
     type: "bubble",
-    body: {
+    body: {  
       type: "box",
       layout: "vertical",
       contents: [
         {
           type: "image",
-          url: `${baseDir}carousel/cPark3.jpg`,
+          url: `${baseDir}carousel/cPark3_v2.jpg`,
           size: "full",
           aspectRatio: "1:1",
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/cPark3detail.jpg`
+            uri: `${baseDir}carousel/cPark3detail_v2.jpg`
           }
         },
         {
           type: "text",
-          text: "駐車場全体地図",
+          text: "無料駐車場注意点",
           align: "center",
           weight: "bold",
           size: "sm",
@@ -345,39 +347,39 @@ async function setParkCarouselMessage(replyToken, ACCESS_TOKEN) {
 }
 
 
-// good mannersをカルーセルメッセージで出す
+// ///////////////////////////////////////////// 
+// GOOD MANNERSをカルーセルメッセージにして出力する
 async function setMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
   const textMessage = {
     type: "text",
     text: "イベントを楽しむためのご来場マナーと注意事項をご確認ください"
   };
-
+  
   const flex_message1 = {
     type: "bubble",
     body: {
       type: "box",
       layout: "vertical",
+      spacing: "xl",
       contents: [
         {
           type: "text",
           text: "📌 ご来場時のお願い",
           weight: "bold",
-          size: "lg",
-          margin: "md",
-          color: "#333333"
+          size: "xl",
+          wrap: true
         },
         {
           type: "text",
           text: messages.msgA21,
           wrap: true,
-          margin: "sm",
-          size: "md"
+          size: "lg"
         }
       ]
     },
     styles: {
       body: {
-        backgroundColor: "#E0F2F1"  // 薄いグリーン
+        backgroundColor: "#E8F5E9"  // 薄いグリーン
       }
     }
   };
@@ -387,21 +389,20 @@ async function setMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
     body: {
       type: "box",
       layout: "vertical",
+      spacing: "xl",
       contents: [
         {
           type: "text",
           text: "🐾 ワンちゃんとの過ごし方",
           weight: "bold",
-          size: "lg",
-          margin: "md",
-          color: "#333333"
+          size: "xl",
+          wrap: true
         },
         {
           type: "text",
           text: messages.msgA22,
           wrap: true,
-          margin: "sm",
-          size: "md"
+          size: "lg"
         }
       ]
     },
@@ -417,34 +418,33 @@ async function setMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
     body: {
       type: "box",
       layout: "vertical",
+      spacing: "xl",
       contents: [
         {
           type: "text",
           text: "🚫 立ち話・撮影のマナー",
           weight: "bold",
-          size: "lg",
-          margin: "md",
-          color: "#333333"
+          size: "xl",
+          wrap: true
         },
         {
           type: "text",
           text: messages.msgA23,
           wrap: true,
-          margin: "sm",
-          size: "md"
+          size: "lg"
         }
       ]
     },
     styles: {
       body: {
-        backgroundColor: "#E0F2F1"  // 薄いグリーン（修正済）
+        backgroundColor: "#E8F5E9"  // 薄いグリーン（修正済）
       }
     }
   };
 
   const flexMessage = {
     type: "flex",
-    altText: "マナーに関して",
+    altText: "グッドマナー",
     contents: {
       type: "carousel",
       contents: [flex_message1, flex_message2, flex_message3]

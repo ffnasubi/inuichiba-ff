@@ -1,9 +1,8 @@
 # Firebase Functions対応 gitに含めないディレクトリ/ファイル一覧
 
 # npm install で再生成される依存(node & firebase)
-node_modules/
 functions/node_modules/
-package-lock.json
+functions/package-lock.json
 
 # ❌ git対象にすべき！重要なコードが除外されてしまう
 # functions/lib/
@@ -37,7 +36,7 @@ deployer*.json
 firebase-debug.log
 .firebaserc
 
-# 画像ファイル(今はpublic-ffprodもpublic-ffdevもgit対象)
+# 画像ファイル(今はgit対象)
 
 # OS・エディタ系
 .DS_Store
