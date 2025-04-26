@@ -181,14 +181,17 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
     messages = mediaMessages[data];
   } else if (textMessages[data]) {
     messages = textMessages[data];
-  } else if (data == "tap_richMenuA5") {
-    await setParkCarouselMessage(replyToken, ACCESS_TOKEN);
-    return;
   } else if (data == "tap_richMenuA2") {
-    await setMannerCarouselMessage(replyToken, ACCESS_TOKEN);
+    await sendMannerCarouselMessage(replyToken, ACCESS_TOKEN);
+    return;
+  } else if (data == "tap_richMenuA4") {
+    await sendDogRunCarouselMessage(replyToken, ACCESS_TOKEN);
+    return;
+  } else if (data == "tap_richMenuA5") {
+    await sendMapCarouselMessage(replyToken, ACCESS_TOKEN);
     return;
   }
-    
+
   try {
     if (textTemplates[data]) {
       const emojiTextMessage = buildEmojiMessage(data, "");
@@ -214,8 +217,220 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
 
 
 // ///////////////////////////////////////////// 
-// 駐車場をカルーセルメッセージにして出力する
-async function setParkCarouselMessage(replyToken, ACCESS_TOKEN) {
+// ドッグランの留意事項をカルーセルメッセージにして出力する
+async function sendDogRunCarouselMessage(replyToken, ACCESS_TOKEN) {
+  const textMessage = {
+    type: "text",
+    text: messages.msgA4
+  };
+
+  const { baseDir } = require("../lib/env.js");
+
+  const flex_message1 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      contents: [
+        {
+          type: "image",
+          url: `${baseDir}carousel/dogRun11.jpg?v=1`,
+          size: "full",
+          aspectRatio: "1:1",
+          aspectMode: "fit",
+          action: {
+            type: "uri",
+            uri: `${baseDir}carousel/dogRun11_detail.jpg?v=1`
+          }
+        },
+        {
+          type:  "button",
+          style: "primary",
+          color: "#A5D6A7",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら🔎",
+            uri: `${baseDir}carousel/dogRun11_detail.jpg?v=1`
+          }
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFFFFF"
+      }
+    }
+  };
+
+  const flex_message2 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      contents: [
+        {
+          type: "image",
+          url: `${baseDir}carousel/dogRun12.jpg?v=1`,
+          size: "full",
+          aspectRatio: "1:1",
+          aspectMode: "fit",
+          action: {
+            type: "uri",
+            uri: `${baseDir}carousel/dogRun12_detail.jpg?v=1`
+          }
+        },
+        {
+          type:  "button",
+          style: "primary",
+          color: "#A5D6A7",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら🔎",
+            uri: `${baseDir}carousel/dogRun12_detail.jpg?v=1`
+          }
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFFFFF"
+      }
+    }
+  };
+
+  const flex_message3 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      contents: [
+        {
+          type: "image",
+          url: `${baseDir}carousel/dogRun2.jpg?v=1`,
+          size: "full",
+          aspectRatio: "1:1",
+          aspectMode: "fit",
+          action: {
+            type: "uri",
+            uri: `${baseDir}carousel/dogRun2_detail.jpg?v=1`
+          }
+        },
+        {
+          type:  "button",
+          style: "primary",
+          color: "#A5D6A7",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら🔎",
+            uri: `${baseDir}carousel/dogRun2_detail.jpg?v=1`
+          }
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFFFFF"
+      }
+    }
+  };
+
+  const flex_message4 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      contents: [
+        {
+          type: "image",
+          url: `${baseDir}carousel/dogRun31.jpg?v=1`,
+          size: "full",
+          aspectRatio: "1:1",
+          aspectMode: "fit",
+          action: {
+            type: "uri",
+            uri: `${baseDir}carousel/dogRun31_detail.jpg?v=1`
+          }
+        },
+        {
+          type:  "button",
+          style: "primary",
+          color: "#A5D6A7",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら🔎",
+            uri: `${baseDir}carousel/dogRun31_detail.jpg?v=1`
+          }
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFFFFF"
+      }
+    }
+  };
+
+  const flex_message5 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      contents: [
+        {
+          type: "image",
+          url: `${baseDir}carousel/dogRun32.jpg?v=1`,
+          size: "full",
+          aspectRatio: "1:1",
+          aspectMode: "fit",
+          action: {
+            type: "uri",
+            uri: `${baseDir}carousel/dogRun32_detail.jpg?v=1`
+          }
+        },
+        {
+          type:  "button",
+          style: "primary",
+          color: "#A5D6A7",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら🔎",
+            uri: `${baseDir}carousel/dogRun32_detail.jpg?v=1`
+          }
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFFFFF"
+      }
+    }
+  };
+
+  const carouselContents = [flex_message1, flex_message2, flex_message3, flex_message4, flex_message5];
+
+  const flexMessage = {
+    type: "flex",
+    altText: "ドッグラン", 
+    contents: {
+      type: "carousel",
+      contents: carouselContents
+    }
+  };
+	
+  const { isProd } = require("../lib/env.js");
+
+  if (!isProd) {
+    console.log("📦 Flex Message 中身:", JSON.stringify(flexMessage, null, 2));
+    console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
+  }
+
+  await sendReplyMessage(replyToken, [textMessage, flexMessage], ACCESS_TOKEN);
+}
+
+
+// ///////////////////////////////////////////// 
+// 地図をカルーセルメッセージにして出力する
+async function sendMapCarouselMessage(replyToken, ACCESS_TOKEN) {
   const textMessage = {
     type: "text",
     text: messages.msgA5
@@ -242,7 +457,7 @@ async function setParkCarouselMessage(replyToken, ACCESS_TOKEN) {
         },
         {
           type: "text",
-          text: "駐車場全体地図",
+          text: "地図全体図",
           align: "center",
           weight: "bold",
           size: "sm",
@@ -349,13 +564,15 @@ async function setParkCarouselMessage(replyToken, ACCESS_TOKEN) {
 
 // ///////////////////////////////////////////// 
 // GOOD MANNERSをカルーセルメッセージにして出力する
-async function setMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
+async function sendMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
   const textMessage = {
     type: "text",
     text: "イベントを楽しむためのご来場マナーと注意事項をご確認ください"
   };
   
-  const flex_message1 = {
+  const { baseDir } = require("../lib/env.js");
+
+  const flex_message1 = { 
     type: "bubble",
     body: {
       type: "box",
@@ -372,19 +589,30 @@ async function setMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
         {
           type: "text",
           text: messages.msgA21,
-          wrap: true,
-          size: "lg"
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/arrival_rules.jpg`
+          },
+          style: "secondary",
+          color: "#C8E6C9", // グリーン（ボタン）
+          height: "sm"
         }
       ]
     },
     styles: {
       body: {
-        backgroundColor: "#E8F5E9"  // 薄いグリーン
+        backgroundColor: "#E8F5E9" // 薄いグリーン（バブル背景）
       }
     }
   };
-
-  const flex_message2 = {
+  
+  const flex_message2 = { 
     type: "bubble",
     body: {
       type: "box",
@@ -401,19 +629,30 @@ async function setMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
         {
           type: "text",
           text: messages.msgA22,
-          wrap: true,
-          size: "lg"
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/dog_rules.jpg`
+          },
+          style: "secondary",
+          color: "#FFD180", // オレンジ（ボタン）
+          height: "sm"
         }
       ]
     },
     styles: {
       body: {
-        backgroundColor: "#FFF3E0"  // 薄いオレンジ
+        backgroundColor: "#FFF3E0" // 薄いオレンジ（バブル背景）
       }
     }
   };
-
-  const flex_message3 = {
+    
+  const flex_message3 = { 
     type: "bubble",
     body: {
       type: "box",
@@ -422,7 +661,7 @@ async function setMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
       contents: [
         {
           type: "text",
-          text: "🚫 立ち話・撮影のマナー",
+          text: "📌 立ち話・撮影のマナー",
           weight: "bold",
           size: "xl",
           wrap: true
@@ -430,18 +669,29 @@ async function setMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
         {
           type: "text",
           text: messages.msgA23,
-          wrap: true,
-          size: "lg"
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/manner_rules.jpg`
+          },
+          style: "secondary",
+          color: "#C8E6C9", // グリーン（ボタン）
+          height: "sm"
         }
       ]
     },
     styles: {
       body: {
-        backgroundColor: "#E8F5E9"  // 薄いグリーン（修正済）
+        backgroundColor: "#E8F5E9" // 薄いグリーン（バブル背景）
       }
     }
   };
-
+    
   const flexMessage = {
     type: "flex",
     altText: "グッドマナー",

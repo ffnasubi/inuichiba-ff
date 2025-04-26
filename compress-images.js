@@ -17,7 +17,8 @@
 // 確認方法
 // node -e "require('sharp'); console.log('✅ sharp 読み込み成功！')"
 // ✅ 実行方法
-// node compress-images.js
+// node compress-images.js	      → 通常モード（normal）で変換
+// node compress-images.js detail	→ 拡大モード（detail）で変換、ファイル名に_detailつく
 
 //⚠️ Macユーザーがやるべき環境設定
 //1. Node.js のインストール（Homebrew推奨）
@@ -47,6 +48,20 @@ require('module').Module._initPaths();
 const sharp = require("sharp");
 const fs = require("fs");
 
+// --- ここ強化版 ---
+const args = process.argv.slice(2);
+let mode = "normal"; // デフォルト
+
+if (args.length > 0) {
+  if (args[0] === "detail") {
+    mode = "detail";
+  } else if (args[0] !== "normal") {
+    console.log(`⚠️ 未知のモード "${args[0]}" が指定されました。normalモードで実行します。`);
+  }
+}
+console.log(`🚀 compress-images.js 実行モード: ${mode}`);
+// -----------------
+
 // 処理対象ディレクトリ
 const targets = [
   { input: "images", output: "images" },
@@ -73,18 +88,38 @@ for (const { input, output } of targets) {
       if (ext !== ".png") return; // 対象はPNGのみ
 
       const inputPath = path.join(inputDir, file);
-      const outputFileName = path.parse(file).name + ".jpg";
+
+      // --- ファイル名に_detailを付けるか切り替え ---
+      const baseName = path.parse(file).name;
+      const outputFileName = mode === "detail" ? `${baseName}_detail.jpg` : `${baseName}.jpg`;
+      // -------------------------------------------------
+
       const outputPath = path.join(outputDir, outputFileName);
 
-      sharp(inputPath)
-        .flatten({ background: { r: 255, g: 255, b: 255 } }) // 透明を白背景に
-        .resize({ fit: "inside", withoutEnlargement: true })
-        .jpeg({
-          quality: 85,              // 適度な質でサイズ抑制
-          progressive: false,      // Baseline JPEG 実現
-          optimizeCoding: true,    // コーディング最適化
-          chromaSubsampling: "4:4:4" // 色データのボール保持
-        })
+      const sharpInstance = sharp(inputPath)
+        .flatten({ background: { r: 255, g: 255, b: 255 } }); // 透明を白背景に
+
+      if (mode === "normal") {
+        sharpInstance
+          .resize({ fit: "inside", withoutEnlargement: true })
+          .jpeg({
+            quality: 85,              // 適度な質でサイズ抑制
+            progressive: false,       // Baseline JPEG
+            optimizeCoding: true,     // ハフマン符号化(JPEGへのデータ圧縮方法)をする。少し時間はかかるけどファイルが更に小さくなる
+            chromaSubsampling: "4:4:4" // 色データ保持
+          });
+      } else if (mode === "detail") {
+        sharpInstance
+          .resize({ width: 1920, withoutEnlargement: true }) // 横幅1920pxまで広げる
+          .jpeg({
+            quality: 90,              // 少し高品質
+            progressive: false,       
+            optimizeCoding: true,     
+            chromaSubsampling: "4:4:4"
+          });
+      }
+
+      sharpInstance
         .toFile(outputPath)
         .then(() => {
           console.log(`✅ ${input}/${file} → ${output}/${outputFileName}`);
