@@ -124,7 +124,7 @@ Write-Host "🔗 必要なAPIを有効化中..." -ForegroundColor Cyan
 gcloud services enable artifactregistry.googleapis.com --project=$projectFullId
 gcloud services enable cloudbuild.googleapis.com --project=$projectFullId
 
-Write-Host "⏳ API反映を安定化させるため待機中..." -ForegroundColor Yellow
+Write-Host "⏳ API反映を安定化させるため待機中..." -ForegroundColor Cyan
 Start-Sleep -Seconds 30
 
 # 旧リポジトリ削除
@@ -135,7 +135,7 @@ gcloud artifacts repositories delete $repoName `
   --quiet
 
 # 新リポジトリ作成
-Write-Host "✅ 新リポジトリ [$repoName] を作成中..." -ForegroundColor Green
+Write-Host "✅ 新リポジトリ [$repoName] を作成中..." -ForegroundColor Yellow
 gcloud artifacts repositories create $repoName `
   --project=$projectFullId `
   --repository-format=docker `
@@ -220,7 +220,7 @@ gcloud artifacts repositories describe $repoName `
   --format="value(vulnerabilityScanningConfig.enablementState)"
 
 # ✅ 完了メッセージ（ffdev版）
-Write-Host "🌟 完了しました！このあと以下のコマンドを実行してください:" -ForegroundColor Yellow
+Write-Host "🌟 完了しました！このあと以下のコマンドを実行してください:" -ForegroundColor Cyan
 Write-Host "   Start-Sleep -Seconds 120" -ForegroundColor Green
 Write-Host "  "
 Write-Host "   ✅ 開発環境へのデプロイ"  -ForegroundColor DarkCyan

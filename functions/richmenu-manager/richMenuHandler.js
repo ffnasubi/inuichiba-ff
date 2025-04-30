@@ -38,11 +38,17 @@ async function handleRichMenu() {
     // await deleteRichMenusAndAliases();
   	
   	// リッチメニューを作成してリッチメニューIDを紐づける(リンクする)
-    // まだ作ってないから同じの出すよ
+    const { isProd } = require('../lib/env.js');
+    
     const aRichMenuId = await aCreateRichMenu();
-  	const bRichMenuId = await bCreateRichMenu();
+  	let bRichMenuId;
+    if(isProd) {
+      bRichMenuId = await bCreateRichMenu();
+    } else {
+      bRichMenuId = await bYoichiCreateRichMenu(); 
+    }
 	  
-      if (!aRichMenuId || !bRichMenuId) {
+    if (!aRichMenuId || !bRichMenuId) {
 		  console.error("❌ リッチメニューIDが取得できませんでした。処理を中止します。");
 		  return;	
 	  } 	
@@ -205,6 +211,79 @@ async function bCreateRichMenu() {
 }
 
 
+// //////////////////////////////////////////////////
+// リッチメニュー(異なるメニューのタブB)の各タップ領域の定義
+async function bYoichiCreateRichMenu() {
+	try {
+    const richmenuB = {
+    	size: { width: wAll, height: hAll },
+    	selected: true,
+    	name: "タブＢ(右側メニュー)2025春",
+    	chatBarText: "メニュー(表示/非表示)",
+    	areas: [
+      	// タブA(左側のタブ)がタップされたらタブA画面に遷移する
+        {
+          bounds: { x: 0, y: 0, width: wTab, height: hTab },
+          action: { type: "richmenuswitch", richMenuAliasId: "switch-to-a", data: "change to A" }
+        },
+      	// タブB(右側のタブ)がタップされたらタブB画面に遷移する
+        {
+          bounds: { x: wTab, y: 0, width: wTab, height: hTab },
+          action: { type: "richmenuswitch", richMenuAliasId: "switch-to-b", data: "change to B" }
+        },
+        // B1
+        {
+          bounds: { x: 0, y: hTab, width: wItem, height: hItem },
+          action: { type: "postback", data: "tap_richMenuB1" }
+        },
+        // B2
+        {
+          bounds: { x: wItem, y: hTab, width: wItem, height: hItem },
+          action: { type: "postback", data: "tap_richMenuB2" }
+        },
+      	// 指定されたurlを開く
+        {
+          bounds: { x: wItem*2, y: hTab, width: wItem*2, height: hItem },
+          action: { type: "uri", uri: "https://inuichiba.com/index.html" }
+        },
+	      
+  	    // B3
+        {
+          bounds: { x: 0, y: (hTab+hItem), width: wItem, height: hItem },
+          action: { type: "postback", data: "tap_richMenuB3" }
+        },
+	    // B4(B3と同じ動作をする)
+        {
+          bounds: { x: wItem, y: (hTab+hItem), width: wItem, height: hItem },
+          action: { type: "postback", data: "tap_richMenuB3" }
+        },
+	    // B5
+        {
+          bounds: { x: wItem*2, y: (hTab+hItem), width: wItem, height: hItem },
+          action: { type: "postback", data: "tap_richMenuB5" }
+        },
+	    // B6
+        {
+          bounds: { x:wItem*3, y:(hTab+hItem), width: wItem, height: hItem },
+          action: { type: "postback", data: "tap_richMenuB6" }
+        }
+    	]
+		};
+		
+  	// リッチメニューを作りIdをもらう
+  	const bRichMenuId = await client.createRichMenu(richmenuB);
+  	console.log('bRichMenuId作成: ', bRichMenuId);
+  	
+  	return(bRichMenuId);
+  	
+	} catch (error) {
+    	console.error('bRichMenuId作成エラー:', error);
+  }  
+  
+}
+
+
+
 // // //////////////////////////////////////////////
 // ＊リッチメニュー画像のイメージファイルを読み込んで紐づける
 // ＊既定値のタブ(a)を定義し(どちらを先に開くか)、
@@ -219,7 +298,7 @@ async function createRichMenus(aRichMenuId, bRichMenuId) {
     if (isProd) {
       imageAPath = path.join(imageDir, "tabA2025autumn_v2.jpg");
     } else {
-      imageAPath = path.join(imageDir, "tabA_v2.jpg"); 
+      imageAPath = path.join(imageDir, "tabA2025spring.jpg"); 
     }		
   	const imageAStream = fs.createReadStream(imageAPath);
   	await client.setRichMenuImage(aRichMenuId, imageAStream);
@@ -230,7 +309,7 @@ async function createRichMenus(aRichMenuId, bRichMenuId) {
     if (isProd) {
       imageBPath = path.join(imageDir, "tabB2025autumn_v2.jpg");
     } else {
-      imageBPath = path.join(imageDir, "tabB_v2.jpg");
+      imageBPath = path.join(imageDir, "tabB2025spring.jpg");
     }
   	const imageBStream = fs.createReadStream(imageBPath);
   	await client.setRichMenuImage(bRichMenuId, imageBStream);

@@ -192,10 +192,10 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
     [textMessage, flexMessage] = setDogRunCarouselMessage();
   } else if (data == "tap_richMenuA5") {
     carouselFlg = true;
-    [textMessage, flexMessage] = setMapCarouselMessage();
+    [textMessage, flexMessage] = setDogRunCarouselMessage2();
   } else if (data == "tap_richMenuB5") {
     carouselFlg = true;
-    [textMessage, flexMessage] = setDogRunCarouselMessage2();
+    [textMessage, flexMessage] = setMapCarouselMessage();
   }
 
   try {
