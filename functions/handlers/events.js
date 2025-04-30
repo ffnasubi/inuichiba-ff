@@ -173,8 +173,11 @@ async function handlePostbackEvent(event, ACCESS_TOKEN) {
 // リッチメニュータップのバッチ処理
 async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
   let messages = [];
-  const { isProd } = require("../lib/env.js");
+  let carouselFlg = false;
+  let textMessage, flexMessage;
 
+  const { isProd } = require("../lib/env.js");
+  
   if (!isProd) console.log("🔍 postback data:", data, "（型:", typeof data, "）");
 
   if (mediaMessages[data]) {
@@ -182,14 +185,17 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
   } else if (textMessages[data]) {
     messages = textMessages[data];
   } else if (data == "tap_richMenuA2") {
-    await sendMannerCarouselMessage(replyToken, ACCESS_TOKEN);
-    return;
+    carouselFlg = true;
+    [textMessage, flexMessage] = setMannerCarouselMessage();
   } else if (data == "tap_richMenuA4") {
-    await sendDogRunCarouselMessage(replyToken, ACCESS_TOKEN);
-    return;
+    carouselFlg = true;
+    [textMessage, flexMessage] = setDogRunCarouselMessage();
   } else if (data == "tap_richMenuA5") {
-    await sendMapCarouselMessage(replyToken, ACCESS_TOKEN);
-    return;
+    carouselFlg = true;
+    [textMessage, flexMessage] = setMapCarouselMessage();
+  } else if (data == "tap_richMenuB5") {
+    carouselFlg = true;
+    [textMessage, flexMessage] = setDogRunCarouselMessage2();
   }
 
   try {
@@ -201,27 +207,495 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
     if (!isProd) console.warn(`⚠️ Postback絵文字メッセージの構築失敗: ${error.message}`);
   }
 
-  if (messages.length === 0) {
-    if (!isProd) console.warn(`⚠️ Postbackで情報が見つかりませんでした: ${data.toString()}`);
+  // 配列で初期化してればいきなり0かと聞いても大丈夫(配列が0個と返すから)
+  if (messages.length > 0 && !isProd) {
+    console.log("Reply Token:", replyToken);
+    console.log("送信メッセージ:", JSON.stringify(messages, null, 2));
   }
 
-  if (messages.length > 0) {
-    if (!isProd) {
-      console.log("Reply Token:", replyToken);
-      console.log("送信メッセージ:", JSON.stringify(messages, null, 2));
-    }
-
+  if (carouselFlg) {
+    await sendReplyMessage(replyToken, [textMessage, flexMessage], ACCESS_TOKEN);
+  } else {
     await sendReplyMessage(replyToken, messages, ACCESS_TOKEN);
   }
+
 }
 
 
 // ///////////////////////////////////////////// 
-// ドッグランの留意事項をカルーセルメッセージにして出力する
-async function sendDogRunCarouselMessage(replyToken, ACCESS_TOKEN) {
+// ドッグランの留意事項をカルーセルメッセージにする(テキスト版)
+function setDogRunCarouselMessage() {
   const textMessage = {
     type: "text",
     text: messages.msgA4
+  };
+
+  const { baseDir } = require("../lib/env.js");
+
+  const flex_message1 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "📌  ドッグランをご利用いただくにあたり",
+          weight: "bold",
+          size: "lg",
+          align: "center",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: "ドッグラン専用入場リストバンドがありませんとご利用できません",
+          color: "#FF0000",
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: "料金：1頭 500円",
+          weight: "bold",
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: "ご利用になる皆さまには皆さまが安全に楽しくご利用いただくためのルールがございますのでご確認をお願い申し上げます。",
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/view_dogrun1_v1.jpg`
+          },
+          style: "secondary",
+          color: "#C8E6C9",
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#E8F5E9"
+      }
+    }
+  };
+  
+  const flex_message2 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "🐾 ドッグランをご利用いただくにあたり【利用規約】",
+          weight: "bold",
+          size: "lg",
+          align: "center",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: messages.msgA41,
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/view_dogrun2_v1.jpg`
+          },
+          style: "secondary",
+          color: "#ffd180",
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#fff3E0"
+      }
+    }
+  };
+
+  const flex_message3 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "🐾 ドッグランをご利用いただくにあたり【利用規約】",
+          weight: "bold",
+          size: "lg",
+          align: "center",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: messages.msgA42,
+          size: "md",
+          color: "#FF0000",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/view_dogrun3_v1.jpg`
+          },
+          style: "secondary",
+          color: "#FFD180",
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFF3E0"
+      }
+    }
+  };
+  
+  const flex_message4 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "🐾 ドッグランをご利用いただくにあたり【利用規約】",
+          weight: "bold",
+          size: "lg",
+          align: "center",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: messages.msgA43,
+          size: "md",
+          color: "#FF0000",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/view_dogrun4_v1.jpg`
+          },
+          style: "secondary",
+          color: "#FFD180",
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFF3E0"
+      }
+    }
+  };
+
+  const flex_message5 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "📌 ドッグランをご利用いただくにあたり【注意事項】",
+          weight: "bold",
+          size: "lg",
+          align: "center",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: messages.msgA44,
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/view_dogrun_warning1.jpg`
+          },
+          style: "secondary",
+          color: "#C8E6C9",
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#E8F5E9"
+      }
+    }
+  };
+  
+  const flex_message6 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "📌 ドッグランをご利用いただくにあたり【注意事項】",
+          weight: "bold",
+          size: "lg",
+          align: "center",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: messages.msgA45,
+          color: "#FF0000",
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: messages.msgA46,
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/view_dogrun_warning2.jpg`
+          },
+          style: "secondary",
+          color: "#C8E6C9",
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#E8F5E9"
+      }
+    }
+  };
+
+  const flex_message7 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "📌 ドッグランをご利用いただくにあたり【注意事項】",
+          weight: "bold",
+          size: "lg",
+          align: "center",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: messages.msgA47,
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/view_dogrun_warning3.jpg`
+          },
+          style: "secondary",
+          color: "#C8E6C9",
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#E8F5E9"
+      }
+    }
+  };
+  
+  const flex_message8 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "📋 必要な証明書",
+          weight: "bold",
+          size: "lg",
+          align: "center",
+          wrap: true
+        },
+        {
+          type: "image",
+          url: `${baseDir}carousel/view_dogRun_certificate_detail.jpg`,
+          size: "full",
+          aspectMode: "fit",
+          margin: "md"
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/view_dogRun_certificate_detail.jpg`
+          },
+          style: "secondary",
+          color: "#C8E6C9",
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#E8F5E9"
+      }
+    }
+  };
+  
+  const flex_message9 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "🐾 犬種によるドッグランの分け方【小型犬ゾーン】",
+          weight: "bold",
+          size: "lg",
+          align: "center",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: messages.msgA48,
+          size: "sm",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/view_dogtypes_small_v2.jpg`
+          },
+          style: "secondary",
+          color: "#C8E6C9",
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#E8F5E9"
+      }
+    }
+  };
+  
+  const flex_message10 = {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "🐾 犬種によるドッグランの分け方【全犬種ゾーン】",
+          weight: "bold",
+          size: "lg",
+          align: "center",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: messages.msgA49,
+          size: "sm",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/view_dogtypes_all_v2.jpg`
+          },
+          style: "secondary",
+          color: "#C8E6C9",
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#E8F5E9"
+      }
+    }
+  };
+ 
+  
+  const carouselContents = [flex_message1, flex_message2, flex_message3, flex_message4, flex_message5, 
+                            flex_message6, flex_message7, flex_message8, flex_message9, flex_message10];
+
+  const flexMessage = {
+    type: "flex",
+    altText: "ドッグラン", 
+    contents: {
+      type: "carousel",
+      contents: carouselContents
+    }
+  };
+	
+  const { isProd } = require("../lib/env.js");
+
+  if (!isProd) {
+    console.log("📦 Flex Message 中身:", JSON.stringify(flexMessage, null, 2));
+    console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
+  }
+
+  return [textMessage, flexMessage];
+}
+  
+
+// ///////////////////////////////////////////// 
+// ドッグランの留意事項をカルーセルメッセージにして出力する(図を2分割した版)
+function setDogRunCarouselMessage2() {
+  const textMessage = {
+    type: "text",
+    text: messages.msgB5
   };
 
   const { baseDir } = require("../lib/env.js");
@@ -424,13 +898,13 @@ async function sendDogRunCarouselMessage(replyToken, ACCESS_TOKEN) {
     console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
   }
 
-  await sendReplyMessage(replyToken, [textMessage, flexMessage], ACCESS_TOKEN);
+  return [textMessage, flexMessage];
 }
 
 
 // ///////////////////////////////////////////// 
-// 地図をカルーセルメッセージにして出力する
-async function sendMapCarouselMessage(replyToken, ACCESS_TOKEN) {
+// 地図をカルーセルメッセージにする
+function setMapCarouselMessage() {
   const textMessage = {
     type: "text",
     text: messages.msgA5
@@ -452,7 +926,7 @@ async function sendMapCarouselMessage(replyToken, ACCESS_TOKEN) {
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/cPark1detail_v2.jpg`
+            uri: `${baseDir}carousel/cPark1detail2.jpg`
           }
         },
         {
@@ -486,7 +960,7 @@ async function sendMapCarouselMessage(replyToken, ACCESS_TOKEN) {
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/cPark2detail_v2.jpg`
+            uri: `${baseDir}carousel/cPark2detail2.jpg`
           }
         },
         {
@@ -514,13 +988,13 @@ async function sendMapCarouselMessage(replyToken, ACCESS_TOKEN) {
       contents: [
         {
           type: "image",
-          url: `${baseDir}carousel/cPark3_v2.jpg`,
+          url: `${baseDir}carousel/cPark32.jpg`,
           size: "full",
           aspectRatio: "1:1",
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/cPark3detail_v2.jpg`
+            uri: `${baseDir}carousel/cPark3detail2.jpg`
           }
         },
         {
@@ -558,16 +1032,16 @@ async function sendMapCarouselMessage(replyToken, ACCESS_TOKEN) {
     console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
   }
 
-  await sendReplyMessage(replyToken, [textMessage, flexMessage], ACCESS_TOKEN);
+  return [textMessage, flexMessage];
 }
 
 
 // ///////////////////////////////////////////// 
-// GOOD MANNERSをカルーセルメッセージにして出力する
-async function sendMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
+// GOOD MANNERSをカルーセルメッセージにする
+function setMannerCarouselMessage() {
   const textMessage = {
     type: "text",
-    text: "イベントを楽しむためのご来場マナーと注意事項をご確認ください"
+    text: messages.msgA2
   };
   
   const { baseDir } = require("../lib/env.js");
@@ -597,7 +1071,7 @@ async function sendMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/arrival_rules.jpg`
+            uri: `${baseDir}carousel/rules_arrival_v1.jpg`
           },
           style: "secondary",
           color: "#C8E6C9", // グリーン（ボタン）
@@ -637,7 +1111,7 @@ async function sendMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/dog_rules.jpg`
+            uri: `${baseDir}carousel/rules_dog.jpg`
           },
           style: "secondary",
           color: "#FFD180", // オレンジ（ボタン）
@@ -677,7 +1151,7 @@ async function sendMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/manner_rules.jpg`
+            uri: `${baseDir}carousel/rules_manner.jpg`
           },
           style: "secondary",
           color: "#C8E6C9", // グリーン（ボタン）
@@ -708,7 +1182,7 @@ async function sendMannerCarouselMessage(replyToken, ACCESS_TOKEN) {
     console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
   }
 
-  await sendReplyMessage(replyToken, [textMessage, flexMessage], ACCESS_TOKEN);
+  return [textMessage, flexMessage];
 }
 
 
