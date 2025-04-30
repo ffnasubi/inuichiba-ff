@@ -1,16 +1,19 @@
 ﻿# safe_git_push.ps1
+# gitのソース登録を自動実行する
 # 実行方法
 # .\safe_git_push.ps1
 # もし実行できなかったら最初の一回だけ以下を実行
 # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 
-# safe_git_push.ps1
 Write-Host "🔸 コミットメッセージを入力してください：" -ForegroundColor Cyan
 $commitMessage = Read-Host
 
 Write-Host "`n📦 変更内容を確認中..." -ForegroundColor Yellow
-git status
+$gitStatus = git status
+foreach ($line in $gitStatus) {
+    Write-Host $line -ForegroundColor Cyan
+}
 
 Write-Host "`n⏳ 60秒間お待ちします... じっくり内容を確認してください。" -ForegroundColor DarkGray
 Start-Sleep -Seconds 60
@@ -30,5 +33,5 @@ if ($confirm -eq "Y" -or $confirm -eq "y") {
 
     Write-Host "`n✅ Push 完了！" -ForegroundColor Green
 } else {
-    Write-Host "`n🚫 中止しました。安心してやり直してください。" -ForegroundColor Yellow
+    Write-Host "`n🚫 中止しました。安心してやり直してください。" -ForegroundColor Red
 }

@@ -610,7 +610,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogtypes_small_v2.jpg`
+            uri: `${baseDir}carousel/view_dogtypes_small_v5.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -651,7 +651,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogtypes_all_v2.jpg`
+            uri: `${baseDir}carousel/view_dogtypes_all_v5.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
