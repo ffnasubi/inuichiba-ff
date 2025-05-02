@@ -183,7 +183,6 @@ if (!isProd) {
   console.log("📦 supabaseKey:", supabaseKey ? "✅ OK" : "❌ NG");
 }
 
-
 // 🔒 ログに機密情報を出さないための安全な関数
 function logSecretSafe(label, value) {
   if (typeof value === "string") {

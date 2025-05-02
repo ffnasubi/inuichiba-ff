@@ -40,6 +40,8 @@ try {
 
 // ✅ Webhookエンドポイント（/api/webhook で待ち受け）
 app.post("/api/webhook", function(req, res) {
+  const { isProd } = require("./lib/env.js");
+  if (!isProd) console.log("✅ POST /api/webhook に到達しました！");
   try {
     if (!lineMiddleware) {
       throw new Error("🔐 LINEミドルウェアが初期化されていません。");

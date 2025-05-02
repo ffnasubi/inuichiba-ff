@@ -25,16 +25,15 @@ async function writeUserDataToSupabase({
   shopName,
   inputData
 }) {
-  try {
-    const timestamp = getFormattedJST();
-    const safeGroupId = groupId || "default";
+  const timestamp = getFormattedJST();
+  const safeGroupId = groupId || "default";
+  
+  let supabaseHolder = {};              // ← client を格納するオブジェクトを定義
+  initSupabaseClient(supabaseHolder);   // ← client を初期化(lient を格納（参照渡し）)
+  const supabase = supabaseHolder.client;
+  const usersTable = supabaseHolder.usersTable;
 
-    let supabaseHolder = {};              // ← client を格納するオブジェクトを定義
-    initSupabaseClient(supabaseHolder);   // ← client を初期化(lient を格納（参照渡し）)
-    const supabase = supabaseHolder.client;
-    const usersTable = supabaseHolder.usersTable;
-
-    const userData = {
+  const userData = {
       timestamp,
       groupId: safeGroupId,
       userId,
@@ -43,34 +42,65 @@ async function writeUserDataToSupabase({
       statusMessage,
       shopName,
       inputData
-    };
+  };
 
-    // ✅ env.js は Secrets 反映後に require する
-    const { isProd } = require('./env.js');
+  // ✅ env.js は Secrets 反映後に require する
+  const { isProd } = require('./env.js');
 
-    if (!isProd) {
-			console.log("🕐 書き込み開始:", timestamp);
-      console.log("📦 書き込みデータ:", userData);
-    }
+  if (!isProd) {
+		console.log("🕐 書き込み開始タイムスタンプ:", timestamp);
+    console.log("📦 書き込みデータ:", userData);
+  }
+    
+  try {
+    let result;
 
-    const { data, error } = await supabase
-      .from(usersTable)
-      .upsert([userData], {
-        onConflict: ['groupId', 'userId']
+    // 本番環境(ffprod)では既存レコードがあるか確認し、初回だけ書き込む
+    if (isProd) {
+      // ✅ 既存チェック（groupId + userId がすでに存在するか）
+      const { data: existing, error: selectError } = await supabase
+        .from(usersTable)
+        .select('userId')
+        .eq('groupId', safeGroupId)
+        .eq('userId', userId)
+        .limit(1);
+
+      if (selectError) {
+        // ❌ Supabase 存在確認エラー
+        return { error: selectError };
+      }
+
+      if (existing && existing.length > 0) {
+        // 🟡 Supabase 書き込みスキップ（既存データ）
+        return { data: [] }; // ← 書き込みはスキップしたが、成功扱い
+      }
+
+      // ✅ 初回のみ insert（conflict の心配なし）
+      result = await supabase
+        .from(usersTable)
+        .insert([userData]);
+    
+    } 
+    // 開発環境(ffdev)では同じデータがあっても何回でも書き込む
+    else {
+      // ✅ 開発環境は毎回上書きOK
+      result = await supabase
+        .from(usersTable)
+        .upsert([userData], {
+          onConflict: ['groupId', 'userId']
       });
-
-    if (error) {
-      console.error("❌ Supabase書き込みエラー:", error);
-    }
-
-    if (data && !isProd) console.log("✅ Supabaseに保存されました:", data);
-		
+    } 
+    
     // ✅ 本番でも出す：Supabaseの応答を受けた時点の正確なJS時刻（ISO形式）
-    // vercelではそうだったけどcoonsole.logは課金対象なので抑制する
-		if (!isProd) console.log("⏱ 書き込み完了タイムスタンプ:", getFormattedJST());
+    // vercelではそうだったけどFFではcoonsole.logは課金対象なので抑制する
+		if (!isProd) console.log("🕐 書き込み完了タイムスタンプ:", getFormattedJST());
 
-  } catch (err) {
-    console.error("💥 例外でクラッシュしました:", err);
+    return result; // ← 呼び出し元で .error や .data を扱えるように返す！
+  
+  }
+  catch (err) {
+    // 💥 Supabase書き込み中に例外
+    return { error: err };
   }
 	
 }

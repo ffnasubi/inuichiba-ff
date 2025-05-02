@@ -57,12 +57,18 @@ async function handleEvent(event, ACCESS_TOKEN) {
 // ///////////////////////////////////////////
 // followイベントの処理（書き込みはあとから実行）
 async function handleFollowEvent(event, ACCESS_TOKEN) {
-  const userId = event.source?.userId;
-  const groupId = event.source?.groupId || null;
+  const userId = event.source?.userId ?? null;
+  const groupId =
+    event.source?.type === "group" ? event.source.groupId :
+    event.source?.type === "room"  ? event.source.roomId :
+    null;
+  const sourceType = event.source?.type ?? null;  // 'user' | 'group' | 'room'
+  const eventType = "follow";
+  
   const { isProd } = require("../lib/env.js");
 
   // --- メッセージ生成＆返信
-    const profile = await getUserProfile(userId, ACCESS_TOKEN);
+  const profile = await getUserProfile(userId, ACCESS_TOKEN);
   const displayName = profile?.displayName || null;
   const followText = textTemplates["msgFollow"];
   
@@ -86,9 +92,8 @@ async function handleFollowEvent(event, ACCESS_TOKEN) {
   if (userId) {
     try {
       await saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN);
-      if (!isProd) console.log("✅ Supabase 書き込み完了 (follow)");
     } catch (err) {
-      if (!isProd) console.warn("⚠️ follow 書き込み失敗:", err.message);
+      if (!isProd) console.warn(`⚠️ ${eventType}書き込み失敗: 種別=${sourceType}`, err.message);
     }
   }
 
@@ -100,9 +105,12 @@ async function handleFollowEvent(event, ACCESS_TOKEN) {
 async function handleMessageEvent(event, ACCESS_TOKEN) {
 	const userId = event.source?.userId ?? null;
 	const sourceType = event.source?.type ?? null;  // 'user' | 'group' | 'room'
-	const groupId = event.source?.type === "group" ? event.source.groupId : null;
+  const groupId =
+    event.source?.type === "group" ? event.source.groupId :
+    event.source?.type === "room"  ? event.source.roomId :
+    null;
   const data = event.message.text;
-	
+  const eventType = "message";
 	let message = [];
 	
 	// LINE公式アカウントの「自動応答対象ワード」はBotが代わりに返信
@@ -127,11 +135,11 @@ async function handleMessageEvent(event, ACCESS_TOKEN) {
   // --- Supabase書き込みはメッセージ送信後、後回しに実行（非同期）
   const { isProd } = require("../lib/env.js");
 
-  if (userId && !isProd) {
+  if (userId) {
     try {
       await saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN);
     } catch (err) {
-      if (!isProd) console.log("⚠️ message書き込み失敗:", err.message);
+      if (!isProd) console.warn(`⚠️ ${eventType}書き込み失敗: 種別=${sourceType}`, err.message);
     }
   }
 	
@@ -141,9 +149,14 @@ async function handleMessageEvent(event, ACCESS_TOKEN) {
 // ///////////////////////////////////////////
 // postbackイベント：リッチメニューのタップ処理へ委譲 + 書き込みは後回しで
 async function handlePostbackEvent(event, ACCESS_TOKEN) {
-  const userId = event.source?.userId;
-  const groupId = event.source?.groupId;
+  const userId = event.source?.userId ?? null;
+  const groupId =
+    event.source?.type === "group" ? event.source.groupId :
+    event.source?.type === "room"  ? event.source.roomId :
+    null;
+  const sourceType = event.source?.type ?? null;  // 'user' | 'group' | 'room'
   const data = event.postback.data;
+  const eventType = "postback";
 
   // --- A. メニュータップ系（返信処理）
   if (data.startsWith("tap_richMenu")) {
@@ -156,13 +169,11 @@ async function handlePostbackEvent(event, ACCESS_TOKEN) {
   }
 
   // --- C. 書き込みは後回しで実行（レスポンスに影響させない）
-  const { isProd } = require("../lib/env.js");
-  
-  if (userId && !isProd) {
+  if (userId) {
     try {
       await saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN);
     } catch (err) {
-      if (!isProd) console.log("⚠️ postback書き込み失敗:", err.message);
+      if (!isProd) console.warn(`⚠️ ${eventType}書き込み失敗: 種別=${sourceType}`, err.message);
     }
   }
 	
@@ -204,7 +215,7 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
       messages.push(emojiTextMessage);
     }
   } catch (error) {
-    if (!isProd) console.warn(`⚠️ Postback絵文字メッセージの構築失敗: ${error.message}`);
+    if (!isProd) console.warn(`⚠️ Postback 絵文字メッセージの構築失敗: ${error.message}`);
   }
 
   // 配列で初期化してればいきなり0かと聞いても大丈夫(配列が0個と返すから)
@@ -219,6 +230,91 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
     await sendReplyMessage(replyToken, messages, ACCESS_TOKEN);
   }
 
+}
+
+
+// ///////////////////////////////////////////
+// joinイベント（グループやルームに招待されたときの挨拶）
+async function handleJoinEvent(event, ACCESS_TOKEN) {
+  const userId = event.source?.userId ?? null;
+  const groupId =
+    event.source?.type === "group" ? event.source.groupId :
+    event.source?.type === "room"  ? event.source.roomId :
+    null;
+  const sourceType = event.source?.type ?? null;  // 'user' | 'group' | 'room'
+  const eventType = "join";
+  
+  const { isProd } = require("../lib/env.js");
+    
+  const welcomeMessage = { type: "text", text: messages.msgJoin };
+  await sendReplyMessage(event.replyToken, [welcomeMessage], ACCESS_TOKEN);
+
+  if (userId) {
+    try {
+      await saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN);
+    } catch (err) {
+      if (!isProd) console.warn(`⚠️ ${eventType}書き込み失敗: 種別=${sourceType}`, err.message);
+    }
+  }
+
+}
+
+
+// /////////////////////////////////////////
+// 絵文字入りメッセージを組み立てる
+function buildEmojiMessage(templateKey, mBody) {
+  let rawText = textTemplates[templateKey];
+  const emojiList = emojiMap[templateKey];
+
+  if (templateKey === "msgFollow") {
+    rawText = mBody;
+  }
+
+  if (!rawText) {
+    throw new Error(`テキストテンプレートが見つかりません: ${templateKey}`);
+  }
+
+  const placeholderCount = (rawText.match(/\$/g) || []).length;
+  const { isProd } = require("../lib/env.js");
+  
+  if (!isProd) {
+    console.log("💡 placeholderCount ($の数):", placeholderCount);
+    console.log("🔢 emojiList.length:", emojiList ? emojiList.length : 0);
+  }
+
+  if (!emojiList || placeholderCount !== emojiList.length) {
+    throw new Error(`$の数(${placeholderCount})とemojiListの数(${emojiList ? emojiList.length : 0})が一致しません: ${templateKey}`);
+  }
+
+  const emojis = [];
+  let i = 0;
+  let placeholderIndex = rawText.indexOf('$');  
+
+  while (placeholderIndex !== -1) {
+    emojis.push({
+      index:     placeholderIndex,
+      productId: emojiList[i].productId,
+      emojiId:   emojiList[i].emojiId
+    });
+
+    placeholderIndex = rawText.indexOf("$", placeholderIndex + 1);
+    i++;
+  }
+
+  if (!isProd) {
+    console.log("📦 最終構築される emojis 配列:", emojis);
+    console.log("✅ 最終返却メッセージ:", {
+      type: "text",
+      text: rawText,
+      emojis: emojis
+    });
+  }
+
+  return {
+    type: "text",
+    text: rawText,
+    emojis: emojis
+  };
 }
 
 
@@ -1186,75 +1282,5 @@ function setMannerCarouselMessage() {
 }
 
 
-// /////////////////////////////////////////
-// 絵文字入りメッセージを組み立てる
-function buildEmojiMessage(templateKey, mBody) {
-  let rawText = textTemplates[templateKey];
-  const emojiList = emojiMap[templateKey];
-
-  if (templateKey === "msgFollow") {
-    rawText = mBody;
-  }
-
-  if (!rawText) {
-    throw new Error(`テキストテンプレートが見つかりません: ${templateKey}`);
-  }
-
-  const placeholderCount = (rawText.match(/\$/g) || []).length;
-  const { isProd } = require("../lib/env.js");
-  
-  if (!isProd) {
-    console.log("💡 placeholderCount ($の数):", placeholderCount);
-    console.log("🔢 emojiList.length:", emojiList ? emojiList.length : 0);
-  }
-
-  if (!emojiList || placeholderCount !== emojiList.length) {
-    throw new Error(`$の数(${placeholderCount})とemojiListの数(${emojiList ? emojiList.length : 0})が一致しません: ${templateKey}`);
-  }
-
-  const emojis = [];
-  let i = 0;
-  let placeholderIndex = rawText.indexOf('$');  
-
-  while (placeholderIndex !== -1) {
-    emojis.push({
-      index:     placeholderIndex,
-      productId: emojiList[i].productId,
-      emojiId:   emojiList[i].emojiId
-    });
-
-    placeholderIndex = rawText.indexOf("$", placeholderIndex + 1);
-    i++;
-  }
-
-  if (!isProd) {
-    console.log("📦 最終構築される emojis 配列:", emojis);
-    console.log("✅ 最終返却メッセージ:", {
-      type: "text",
-      text: rawText,
-      emojis: emojis
-    });
-  }
-
-  return {
-    type: "text",
-    text: rawText,
-    emojis: emojis
-  };
-}
-
-
-// ///////////////////////////////////////////
-// joinイベント（グループやルームに招待されたときの挨拶）
-async function handleJoinEvent(event, ACCESS_TOKEN) {
-  const groupId = event.source?.groupId || event.source?.roomId || "不明";
-  const { isProd } = require("../lib/env.js");
-
-  if (!isProd) console.log("👋 joinイベント発生！グループまたはルームID:", groupId);
-
-  const welcomeMessage = { type: "text", text: messages.msgJoin };
-
-  await sendReplyMessage(event.replyToken, [welcomeMessage], ACCESS_TOKEN);
-}
-
 module.exports = { handleEvent };
+
