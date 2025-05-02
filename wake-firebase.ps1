@@ -1,38 +1,39 @@
 ﻿# wake-firebase.ps1
 # ===============================
-# Firebase Functions + Hosting 復旧スクリプト
+# Firebase Functions + Hosting + Secrets 復旧スクリプト
 # (詳細はwake-firebase.mdと★最低限覚えとこう.txtをよむこと)
+# Secrets 登録は .env.set_secrets.ps1 に一任する
 # ===============================
-# 前提: firebase login / gcloud auth login が済んでいること
+# 前提1: firebase login / gcloud auth login が済んでいること
 # firebase login
 # gcloud auth login
+# 前提2：PowerShellでルートから以下を実行すること(IAMロールをつけるため)
+# .\reset-artifactregistry.ps1 -env ffdev
+# .\reset-artifactregistry.ps1 -env ffprod
 # 実行方法
 # cd D:\nasubi\inuichiba_ff
 # powershell -ExecutionPolicy Bypass -File .\wake-firebase.ps1
 
+$envKeys = @("ffprod", "ffdev")  # "ffmain" は通常対象外
+$projectIdMap = @{ ffprod = "inuichiba-ffprod"; ffdev = "inuichiba-ffdev" }
+$configFileMap = @{ ffprod = "firebase.ffprod.json"; ffdev = "firebase.ffdev.json" }
 
-$projectIds = @("inuichiba-ffprod", "inuichiba-ffdev")
-$configFileProd = "firebase.ffprod.json"
-$configFileDev  = "firebase.ffdev.json"
+foreach ($envKey in $envKeys) {
+    $projectId = $projectIdMap[$envKey]
+    $configFile = $configFileMap[$envKey]
 
-foreach ($project in $projectIds) {
-    Write-Host "🚀 [$project] Functions をデプロイ中..." -ForegroundColor Cyan
+    Write-Host "`n🚀 [$envKey] Secrets 再登録処理開始..." -ForegroundColor Cyan
 
-    if ($project -eq "inuichiba-ffprod") {
-        firebase deploy --only functions --project=$project --config=$configFileProd
-    } else {
-        firebase deploy --only functions --project=$project --config=$configFileDev
-    }
+    # Secretsの再登録（us-central1回避用に別スクリプトを呼ぶ）
+    powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -Env $envKey -deleteOldVersions
 
-    Write-Host "🧱 [$project] Hosting をデプロイ中..." -ForegroundColor Cyan
+    Write-Host "`n🧩 [$envKey] Firebase Functions をデプロイ中..." -ForegroundColor Cyan
+    firebase deploy --only functions --project=$projectId --config=$configFile
 
-    if ($project -eq "inuichiba-ffprod") {
-        firebase deploy --only hosting --project=$project --config=$configFileProd
-    } else {
-        firebase deploy --only hosting --project=$project --config=$configFileDev
-    }
+    Write-Host "🧱 [$envKey] Firebase Hosting をデプロイ中..." -ForegroundColor Cyan
+    firebase deploy --only hosting --project=$projectId --config=$configFile
 
-    Write-Host "✅ [$project] Functions と Hosting の復旧が完了" -ForegroundColor Green
+    Write-Host "✅ [$envKey] の復旧処理完了！" -ForegroundColor Green
 }
 
 Write-Host "`n🎉 全プロジェクトの復旧処理が完了しました！" -ForegroundColor Green

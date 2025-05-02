@@ -1,5 +1,5 @@
 ﻿# ===============================
-# Firebase 休眠スクリプト（FF + Artifact Registry + Hosting）
+# Firebase 休眠スクリプト（FF + Artifact Registry + Hosting + Secret manager）
 # 対象: inuichiba-ffprod / inuichiba-ffdev
 # これで課金対象からはずれる
 # 実行方法
@@ -23,6 +23,14 @@ foreach ($project in $projectIds) {
 
     Write-Host "🛑 Firebase Hosting を無効化中..."
     firebase hosting:disable --project=$project
+
+    Write-Host "🔐 Secret Manager の全 Secret を削除中..."
+    $secrets = gcloud secrets list --project=$project --format="value(name)"
+    foreach ($secret in $secrets) {
+    Write-Host "🗑 Secret [$secret] を削除中..."
+    gcloud secrets delete $secret --project=$project --quiet
+}
+
 }
 
 Write-Host "`n✅ すべての削除処理が完了しました。これで課金対象は一時停止状態になりました。"
