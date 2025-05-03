@@ -6,6 +6,8 @@
 # .env.set_secrets.ps1
 # .env.set_secrets.ps1 - Secrets 登録＋Firebase Deploy＋古いバージョン削除（確認付き）＋状態一覧出力
 # .env.secrets.ffprod.txt/.env.secrets.ffdev.txt を読み込んで Firebase Secrets に一括登録
+# secrets登録先を間違えて(automatic)課金対象にならないように
+# gcloud secrets create に --replication-policy=user-managed --locations=asia-northeast1 を追加
 # .ps1のファイル形式は UTF-8(BOM付き) であること
 # ただしNODE_ENVは手入力で入れることが推奨されているためここには含まれない
 # 値の確認は最後にできるのでそこで確認すること(定義し忘れるなよー)
@@ -16,7 +18,7 @@
 # powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -deleteOldVersions
 # 本番環境(ffprod)に登録
 # powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -env ffprod
-# 本番環境に登録して古いバージョンも削除
+# 本番環境に登録して古いバージョンも削除（課金されないため、オススメはこちら）
 # powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -env ffprod -deleteOldVersions
 
 # 環境ごとの設定
@@ -84,9 +86,9 @@ foreach ($line in $lines) {
     Write-Host "🔁 [$key] は既に存在 → 新バージョン追加中..." -ForegroundColor Yellow
   } else {
     Write-Host "🆕 [$key] を新規作成中..." -ForegroundColor Cyan
-    & gcloud secrets create $key --replication-policy="automatic" --project=$projectId | Out-Null
+    & gcloud secrets create $key --replication-policy="user-managed" --locations="asia-northeast1" --project=$projectId | Out-Null
   }
-
+  
   $tempFile = [System.IO.Path]::GetTempFileName()
   Set-Content -Path $tempFile -Value $value -Encoding UTF8
   & gcloud secrets versions add $key --data-file=$tempFile --project=$projectId | Out-Null
@@ -98,6 +100,37 @@ foreach ($line in $lines) {
     Write-Host "❌ [$key] 登録に失敗しました" -ForegroundColor Red
   }
 }
+
+# ✅ レプリケーション確認
+Write-Host "`n🛡 登録済み Secrets のレプリケーションポリシーを確認中..." -ForegroundColor Cyan
+
+$allSecrets = gcloud secrets list --project=$projectId --format="value(name)"
+$badReplicas = @()
+
+foreach ($secret in $allSecrets) {
+  $replication = gcloud secrets describe $secret `
+    --project=$projectId `
+    --format="value(replication.userManaged.replicas[0].location)"
+
+  if ($replication -ne "asia-northeast1") {
+    Write-Host "⚠️ $secret は asia-northeast1 に複製されていません！（→ $replication）" -ForegroundColor Red
+    $badReplicas += $secret
+  } else {
+    Write-Host "✅ $secret は正しく asia-northeast1 に複製されています。" -ForegroundColor Green
+  }
+}
+
+if ($badReplicas.Count -eq 0) {
+  Write-Host "`n🌟 すべての Secrets が正しく user-managed + asia-northeast1 です！" -ForegroundColor Green
+} else {
+  Write-Host "`n❌ 複製リージョンに問題のある Secret が存在します：" -ForegroundColor Red
+  $badReplicas | ForEach-Object { Write-Host "  - $_" -ForegroundColor Yellow }
+
+  Write-Host "`n🔎 後で以下のコマンドで削除し再登録しましょう：" -ForegroundColor Cyan
+  Write-Host "gcloud secrets delete <secret-name> --project=$projectId" -ForegroundColor Yellow
+  Write-Host "gcloud secrets create <secret-name> --replication-policy=user-managed --locations=asia-northeast1 --project=$projectId" -ForegroundColor Yellow
+}
+
 
 # 登録後の Secrets 一覧
 Write-Host "`n📋 登録後の Secrets 一覧:" -ForegroundColor Yellow
@@ -144,6 +177,12 @@ if ($deleteOldVersions) {
 
       if ($state -eq "DESTROYED") {
         Write-Host "☠️ バージョン $version はすでに DESTROYED → 無視" -ForegroundColor Gray
+        $latestEnabledSkipped = $true
+        continue
+      }
+
+      if ($state -eq "DESTROYED") {
+        Write-Host "☠️ バージョン $version は DESTROYED → 無視" -ForegroundColor Gray
         continue
       }
 
@@ -161,7 +200,7 @@ if ($deleteOldVersions) {
 
 
 # 最後にすべてのSecretsのバージョン状態を一覧出力
-Write-Host "`n📊 全Secretsのバージョン状態一覧:" -ForegroundColor Cyan
+Write-Host "`n📊 全Secretsのバージョン状態一覧:enabledがひとつだけであることを確認してください" -ForegroundColor Cyan
 $allSecrets = gcloud secrets list --project=$projectId --format="value(name)"
 foreach ($secret in $allSecrets) {
   Write-Host "`n🔎 Secret: $secret" -ForegroundColor Yellow
@@ -170,6 +209,9 @@ foreach ($secret in $allSecrets) {
     --sort-by="name" `
     --format="table(name, state, createTime)"
 }
+
+
+
 
 # 使い方ヒントを表示
 Write-Host "`n💡 補足：バージョン操作の参考コマンド" -ForegroundColor Cyan

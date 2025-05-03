@@ -7,7 +7,6 @@
       "SUPABASE_URL",
       "SUPABASE_SERVICE_ROLE_KEY_DEV",
       "SUPABASE_TABLE_NAME_DEV",
-      "MY_LINE_USER_ID",
       "NODE_ENV"
     ]
   },

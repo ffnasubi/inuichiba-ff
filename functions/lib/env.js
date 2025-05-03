@@ -88,17 +88,6 @@ if (typeof envUrl === "string" && envUrl.length > 0) {
   supabaseUrl = envUrl.trim();
 }
 
-// LINE Bot管理者用のユーザーID。Supabaseに書き込む時のuserId。確認にひとつは必須
-let myLineUserId = process.env.MY_LINE_USER_ID;
-// もし両端にスペースや改行が入ってた時の対処
-let envId = myLineUserId;
-if (typeof envId === "string" && envId.length > 0) {
-  if (envId.charAt(0) === "\uFEFF") {
-    envId = envId.slice(1); // BOM削除
-  }
-  myLineUserId = envId.trim();
-}
-
 // コンテンツのホスティングURL（画像とカルーセルメッセージのベースパス）
 // URLとしてLINEへの通知用
 const baseDir = isProd
@@ -137,8 +126,7 @@ const secretNames = isProd
       "CHANNEL_SECRET_PROD",
       "SUPABASE_SERVICE_ROLE_KEY_PROD",
       "SUPABASE_TABLE_NAME_PROD",
-      "SUPABASE_URL",
-      "MY_LINE_USER_ID"
+      "SUPABASE_URL"
     ]
   : [
       "NODE_ENV",
@@ -146,8 +134,7 @@ const secretNames = isProd
       "CHANNEL_SECRET_DEV",
       "SUPABASE_SERVICE_ROLE_KEY_DEV",
       "SUPABASE_TABLE_NAME_DEV",
-      "SUPABASE_URL",
-      "MY_LINE_USER_ID"
+      "SUPABASE_URL"
     ];
 
 
@@ -213,7 +200,6 @@ module.exports = {
   supabaseKey,
   supabaseUrl,
   usersTable,
-  myLineUserId,
   baseDir,
   imageDir,
   secretNames
