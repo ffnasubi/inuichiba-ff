@@ -1,6 +1,7 @@
 {
   "functions": {
     "source": "functions",
+    "region": "asia-northeast1",
     "secrets": [
       "CHANNEL_ACCESS_TOKEN_DEV",
       "CHANNEL_SECRET_DEV",
@@ -29,7 +30,16 @@
         "headers": [
           {
             "key": "Cache-Control",
-            "value": "public,max-age=5184000"
+            "value": "public,max-age=5184000,immutable"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(json|js)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public,max-age=604800"
           }
         ]
       }

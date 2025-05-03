@@ -54,7 +54,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     echo "🔁 [$KEY] exists → adding new version..."
   else
     echo "🆕 [$KEY] does not exist → creating..."
-    gcloud secrets create "$KEY" --replication-policy="automatic" --project=$PROJECT_ID
+    gcloud secrets create "$KEY" --replication-policy="user-managed" --locations="asia-northeast1"  --project=$PROJECT_ID
   fi
 
   echo -n "$VALUE" | gcloud secrets versions add "$KEY" --data-file=- --project=$PROJECT_ID

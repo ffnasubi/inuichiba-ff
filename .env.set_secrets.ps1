@@ -1,20 +1,22 @@
 ﻿param(
     [string]$Env = "ffdev",         # ← ここで "ffprod" または "ffdev" を指定（既定値は ffdev）
-    [switch]$deleteOldVersions      # ← 古いバージョンを削除するかどうか（--deleteOldVersions）
+    [switch]$deleteOldVersions      # ← 古いバージョンを削除する（--deleteOldVersions）指定推奨
 )
 
 # .env.set_secrets.ps1
 # .env.set_secrets.ps1 - Secrets 登録＋Firebase Deploy＋古いバージョン削除（確認付き）＋状態一覧出力
 # .env.secrets.ffprod.txt/.env.secrets.ffdev.txt を読み込んで Firebase Secrets に一括登録
-# secrets登録先を間違えて(automatic)課金対象にならないように
-# gcloud secrets create に --replication-policy=user-managed --locations=asia-northeast1 を追加
+# secrets登録先を間違えてautomaticにして、課金対象にならないように
+# gcloud secrets create に --replication-policy=user-managed --locations=asia-northeast1 に変更
+
 # .ps1のファイル形式は UTF-8(BOM付き) であること
 # ただしNODE_ENVは手入力で入れることが推奨されているためここには含まれない
 # 値の確認は最後にできるのでそこで確認すること(定義し忘れるなよー)
+
 # 実行方法(管理者権限で)
 # firebase login
 # cd "D:\nasubi\inuichiba_ff"
-# 開発環境(ffdev)に Secrets を登録（既定値）して古いバージョンも削除
+# 開発環境(ffdev)に Secrets を登録（既定値）して古いバージョンも削除（課金されないため、オススメはこちら）
 # powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -deleteOldVersions
 # 本番環境(ffprod)に登録
 # powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -env ffprod

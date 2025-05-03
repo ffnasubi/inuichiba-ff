@@ -27,9 +27,9 @@ foreach ($project in $projectIds) {
     Write-Host "🔐 Secret Manager の全 Secret を削除中..."
     $secrets = gcloud secrets list --project=$project --format="value(name)"
     foreach ($secret in $secrets) {
-    Write-Host "🗑 Secret [$secret] を削除中..."
-    gcloud secrets delete $secret --project=$project --quiet
-}
+        Write-Host "🗑 Secret [$secret] を削除中..."
+        gcloud secrets delete $secret --project=$project --quiet
+    }   
 
 }
 
