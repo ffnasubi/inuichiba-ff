@@ -1,4 +1,4 @@
-﻿# create-deployer-service-account.ps1
+﻿# deployer-create-service-account.ps1
 <#[
 .SYNOPSIS
   Firebase Functions デプロイ用のサービスアカウントを自動確認・作成・鍵発行するスクリプト
@@ -14,9 +14,9 @@
   対象環境。"ffdev" または "ffprod" のいずれか。
   省略時は "ffdev"。
   # ffdev用
-  .\create-deployer-service-account.ps1
+  .\deployer-create-service-account.ps1
   # ffprod用
-  .\create-deployer-service-account.ps1 -env ffprod
+  .\deployer-create-service-account.ps1 -env ffprod
 
 .NOTES
   実行者には以下の IAM 権限が必要：
