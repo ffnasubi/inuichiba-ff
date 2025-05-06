@@ -3,7 +3,7 @@
 
 const { saveUserProfileAndWrite } = require("../lib/saveUserInfo.js");
 const { sendReplyMessage, getUserProfile } = require("../lib/lineApiHelpers.js");
-const { textMessages, mediaMessages, lineQRMessages, textTemplates, emojiMap } = require("../richmenu-manager/data/messages.js");
+const { keywordMap, textMessages, mediaMessages, lineQRMessages, textTemplates, emojiMap } = require("../richmenu-manager/data/messages.js");
 const messages = require("../richmenu-manager/data/messages.js");
 
 
@@ -116,6 +116,7 @@ async function handleMessageEvent(event, ACCESS_TOKEN) {
 	// LINE公式アカウントの「自動応答対象ワード」はBotが代わりに返信
 	if (data === "QRコード" || data === "友だち追加") {
     message = lineQRMessages;
+    await sendReplyMessage(event.replyToken, message, ACCESS_TOKEN);
   } 
 	// グループ or ルームからのメッセージは、LINE自動応答メッセージのみBotの代わりに返信
 	// 他は完全に無視
@@ -125,50 +126,22 @@ async function handleMessageEvent(event, ACCESS_TOKEN) {
   // 以下は「個人チャット」で、自動応答以外のメッセージ
 	else if (data === "ワイワイ") {
     message = [{ type: "text", text: messages.msgY }];
+    await sendReplyMessage(event.replyToken, message, ACCESS_TOKEN);
+  }
+  // keywordMap に一致するかどうかで分岐
+  else if (keywordMap[data]) {
+    const key = keywordMap[data];  // 例: "tap_richMenuA1"
+    await handleRichMenuTap(key, event.replyToken, ACCESS_TOKEN);  // ✅ postbackと共通処理に流す
   } 
+  // 上記すべてに該当しない場合
 	else {
     message = [{ type: "text", text: messages.msgPostpone }];
+    await sendReplyMessage(event.replyToken, message, ACCESS_TOKEN);
   }
 	
-  await sendReplyMessage(event.replyToken, message, ACCESS_TOKEN);
-
   // --- Supabase書き込みはメッセージ送信後、後回しに実行（非同期）
   const { isProd } = require("../lib/env.js");
 
-  if (userId) {
-    try {
-      await saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN);
-    } catch (err) {
-      if (!isProd) console.warn(`⚠️ ${eventType}書き込み失敗: 種別=${sourceType}`, err.message);
-    }
-  }
-	
-}
-
-
-// ///////////////////////////////////////////
-// postbackイベント：リッチメニューのタップ処理へ委譲 + 書き込みは後回しで
-async function handlePostbackEvent(event, ACCESS_TOKEN) {
-  const userId = event.source?.userId ?? null;
-  const groupId =
-    event.source?.type === "group" ? event.source.groupId :
-    event.source?.type === "room"  ? event.source.roomId :
-    null;
-  const sourceType = event.source?.type ?? null;  // 'user' | 'group' | 'room'
-  const data = event.postback.data;
-  const eventType = "postback";
-
-  // --- A. メニュータップ系（返信処理）
-  if (data.startsWith("tap_richMenu")) {
-    await handleRichMenuTap(data, event.replyToken, ACCESS_TOKEN);
-  }
-
-  // --- B. タブ切り替えなど、今は何もしないケース
-  if (data === "change to A" || data === "change to B") {
-    return;
-  }
-
-  // --- C. 書き込みは後回しで実行（レスポンスに影響させない）
   if (userId) {
     try {
       await saveUserProfileAndWrite(userId, groupId, ACCESS_TOKEN);
@@ -189,7 +162,7 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
 
   const { isProd } = require("../lib/env.js");
   
-  if (!isProd) console.log("🔍 postback data:", data, "（型:", typeof data, "）");
+  if (!isProd) console.log("🔍 message data:", data, "（型:", typeof data, "）");
 
   if (mediaMessages[data]) {
     messages = mediaMessages[data];
@@ -215,7 +188,7 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
       messages.push(emojiTextMessage);
     }
   } catch (error) {
-    if (!isProd) console.warn(`⚠️ Postback 絵文字メッセージの構築失敗: ${error.message}`);
+    if (!isProd) console.warn(`⚠️ message 絵文字メッセージの構築失敗: ${error.message}`);
   }
 
   // 配列で初期化してればいきなり0かと聞いても大丈夫(配列が0個と返すから)
@@ -230,6 +203,31 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
     await sendReplyMessage(replyToken, messages, ACCESS_TOKEN);
   }
 
+}
+
+
+// ///////////////////////////////////////////
+// メニュー切り替え時に通知されるpostback処理を行う
+async function handlePostbackEvent(event, ACCESS_TOKEN) {
+  const userId = event.source?.userId ?? null;
+  const groupId =
+    event.source?.type === "group" ? event.source.groupId :
+    event.source?.type === "room"  ? event.source.roomId :
+    null;
+  const sourceType = event.source?.type ?? null;  // 'user' | 'group' | 'room'
+  const data = event.postback.data;
+  const eventType = "postback";
+
+  const { isProd } = require("../lib/env.js");
+    
+  // タブ切り替え。ログだけ出す(安定したらログ不要になるかな？)
+  if (data === "change to A" || data === "change to B") {
+    if (!isProd) console.log("🔁 タブ切り替え postback 受信（許可）:", data);
+    return;
+  }
+
+  // その他のpostbackは明示的に禁止
+  console.error("⚠️ 想定外の postback を受信しました:", event);  
 }
 
 

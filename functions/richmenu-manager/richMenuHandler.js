@@ -90,12 +90,12 @@ async function aCreateRichMenu() {
       	// A1
         {
           bounds: { x: 0, y: hTab, width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuA1" }
+          action: { type: "message", text: "開催情報" }
         },
 	    // A2
         {
           bounds: { x: wItem, y: hTab, width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuA2" }
+          action: { type: "message", text: "会場におけるマナーのお願い" }
         },
       	// 指定されたurlを開く
         {
@@ -106,22 +106,22 @@ async function aCreateRichMenu() {
   	    // A3
         {
           bounds: { x: 0, y: (hTab+hItem), width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuA3" }
+          action: { type: "message", text: "アクティビティに関するご案内" }
         },
 	    // A4
         {
           bounds: { x: wItem, y: (hTab+hItem), width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuA4" }
+          action: { type: "message", text: "ドッグランに関するご案内" }
         },
 	    // A5
         {
           bounds: { x: wItem*2, y: (hTab+hItem), width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuA5" }
+          action: { type: "message", text: "会場マップ\nショップリスト" }
         },
 	    // A6
         {
           bounds: { x:wItem*3, y: (hTab+hItem), width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuA6" }
+          action: { type: "message", text: "駐車場及びアクセス方法" }
         }
     	]
 	};
@@ -162,12 +162,12 @@ async function bCreateRichMenu() {
         // B1
         {
           bounds: { x: 0, y: hTab, width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuB1" }
+          action: { type: "message", text: "開催情報について" }
         },
         // B2
         {
           bounds: { x: wItem, y: hTab, width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuB2" }
+          action: { type: "message", text: "会場におけるマナーのお願いについて" }
         },
       	// 指定されたurlを開く
         {
@@ -178,22 +178,22 @@ async function bCreateRichMenu() {
   	    // B3
         {
           bounds: { x: 0, y: (hTab+hItem), width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuB3" }
+          action: { type: "message", text: "アクティビティに関するご案内について" }
         },
 	    // B4
         {
           bounds: { x: wItem, y: (hTab+hItem), width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuB4" }
+          action: { type: "message", text: "ドッグランに関するご案内について" }
         },
 	    // B5
         {
           bounds: { x: wItem*2, y: (hTab+hItem), width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuB5" }
+          action: { type: "message", text: "会場マップ\nショップリストについて" }
         },
 	    // B6
         {
           bounds: { x:wItem*3, y:(hTab+hItem), width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuB6" }
+          action: { type: "message", text: "駐車場及びアクセス方法について" }
         }
     	]
 		};
@@ -234,12 +234,12 @@ async function bYoichiCreateRichMenu() {
         // B1
         {
           bounds: { x: 0, y: hTab, width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuB1" }
+          action: { type: "message", text: "開催情報について" }
         },
         // B2
         {
           bounds: { x: wItem, y: hTab, width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuB2" }
+          action: { type: "message", text: "会場におけるマナーのお願いについて" }
         },
       	// 指定されたurlを開く
         {
@@ -250,22 +250,22 @@ async function bYoichiCreateRichMenu() {
   	    // B3
         {
           bounds: { x: 0, y: (hTab+hItem), width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuB3" }
+          action: { type: "message", text: "アクティビティに関するご案内について" }
         },
 	    // B4(B3と同じ動作をする)
         {
           bounds: { x: wItem, y: (hTab+hItem), width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuB3" }
+          action: { type: "message", text: "アクティビティに関するご案内について" }
         },
 	    // B5
         {
           bounds: { x: wItem*2, y: (hTab+hItem), width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuB5" }
+          action: { type: "message", text: "会場マップ\nショップリストについて" }
         },
 	    // B6
         {
           bounds: { x:wItem*3, y:(hTab+hItem), width: wItem, height: hItem },
-          action: { type: "postback", data: "tap_richMenuB6" }
+          action: { type: "message", text: "駐車場及びアクセス方法について" }
         }
     	]
 		};

@@ -103,8 +103,27 @@ const msgPostpone = "メッセージありがとうございます！\n申し訳
 // const msgTimeoutAppend = "タイムアウトを検知したためファイルへの書き込みに失敗しました。\nもう一度処理を行ってください。";
 // const lineQRtext = "友だち追加用のQRコードです。\nどうぞお使いくださいね。";
 
+
 // //////////////////////////////////////////////////
-// Postback用テキストメッセージマップ
+// リッチメニューと旧postback dataとの関連付け
+const keywordMap = {
+  "開催情報":                   "tap_richMenuA1",
+  "会場におけるマナーのお願い":   "tap_richMenuA2",
+  "アクティビティに関するご案内": "tap_richMenuA3",
+  "ドッグランに関するご案内":     "tap_richMenuA4",
+  "会場マップ\nショップリスト":   "tap_richMenuA5",
+  "駐車場及びアクセス方法":       "tap_richMenuA6",
+  "開催情報について":                   "tap_richMenuB1",
+  "会場におけるマナーのお願いについて":   "tap_richMenuB2",
+  "アクティビティに関するご案内について": "tap_richMenuB3",
+  "ドッグランに関するご案内について":     "tap_richMenuB4",
+  "会場マップ\nショップリストについて":   "tap_richMenuB5",
+  "駐車場及びアクセス方法について":       "tap_richMenuB6"
+};
+
+
+// //////////////////////////////////////////////////
+// message用テキストメッセージマップ
 const textMessages = {
   "tap_richMenuA1": [
 									    { type: "text", text: msgA11 },
@@ -198,6 +217,7 @@ const emojiMap = {
 // //////////////////////////////////////////////////
 // エクスポート（外部から使われる値のみ）
 module.exports = {
+  keywordMap,
   textMessages,
   mediaMessages,
 	lineQRMessages,
