@@ -7,7 +7,7 @@
 # powershell -ExecutionPolicy Bypass -File .\pause-firebase.ps1
 # ===============================
 
-$projectIds = @("inuichiba-ffprod", "inuichiba-ffdev")
+$projectIds = @("inuichiba-ffprod", "inuichiba-ffdev")  # 必要に応じて ffprod を外して実行
 $functions = @("webhook")
 $region = "asia-northeast1"
 
@@ -24,6 +24,14 @@ foreach ($project in $projectIds) {
     Write-Host "🛑 Firebase Hosting を無効化中..."
     firebase hosting:disable --project=$project
 
+    Write-Host "🚫 Hosting 全チャネルを削除中（Preview + live 含む）..."
+    $channels = firebase hosting:channel:list --project=$project --json | ConvertFrom-Json
+    foreach ($channel in $channels) {
+        $channelId = $channel.id
+        Write-Host "🗑 チャネル [$channelId] を削除中..."
+        firebase hosting:channel:delete $channelId --project=$project --force
+    }
+
     Write-Host "🔐 Secret Manager の全 Secret を削除中..."
     $secrets = gcloud secrets list --project=$project --format="value(name)"
     foreach ($secret in $secrets) {
@@ -31,6 +39,14 @@ foreach ($project in $projectIds) {
         gcloud secrets delete $secret --project=$project --quiet
     }   
 
+    Write-Host "🧹 Cloud Run Functions を削除中（保険的措置）..."
+    $runServices = gcloud run services list --platform=managed --region=$region --project=$project --format="value(metadata.name)"
+    foreach ($svc in $runServices) {
+        Write-Host "🗑 Cloud Run Service [$svc] を削除中..."
+        gcloud run services delete $svc --platform=managed --region=$region --project=$project --quiet
+    }
+
 }
 
 Write-Host "`n✅ すべての削除処理が完了しました。これで課金対象は一時停止状態になりました。"
+Write-Host "💰 請求確認はこちら → https://console.cloud.google.com/billing"
