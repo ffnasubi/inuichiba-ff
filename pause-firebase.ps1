@@ -1,6 +1,6 @@
 ﻿# ===============================
 # Firebase 休眠スクリプト（FF + Artifact Registry + Hosting + Secret manager）
-# 対象: inuichiba-ffprod / inuichiba-ffdev
+# 対象: inuichiba-ffprod / inuichiba-ffdev の両方
 # これで課金対象からはずれる
 # 実行方法
 # cd D:\nasubi\inuichiba_ff

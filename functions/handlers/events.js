@@ -366,7 +366,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogrun1_v1.jpg`
+            uri: `${baseDir}carousel/view_dogrun1_v2.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -1020,7 +1020,7 @@ function setMapCarouselMessage() {
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/cPark1detail2.jpg`
+            uri: `${baseDir}carousel/cPark1_baseline.jpg`
           }
         },
         {
@@ -1054,7 +1054,7 @@ function setMapCarouselMessage() {
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/cPark2detail2.jpg`
+            uri: `${baseDir}carousel/cPark2_baseline2.jpg`
           }
         },
         {
@@ -1088,7 +1088,7 @@ function setMapCarouselMessage() {
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/cPark3detail2.jpg`
+            uri: `${baseDir}carousel/cPark32.jpg`
           }
         },
         {

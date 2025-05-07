@@ -296,9 +296,9 @@ async function createRichMenus(aRichMenuId, bRichMenuId) {
   	// リッチメニュー用画像ファイルをアップロードして紐づける
 		let imageAPath;
     if (isProd) {
-      imageAPath = path.join(imageDir, "tabA2025autumn_v2.jpg");
+      imageAPath = path.join(imageDir, "tabA2025autumn_v3.jpg");
     } else {
-      imageAPath = path.join(imageDir, "tabA2025spring.jpg"); 
+      imageAPath = path.join(imageDir, "tabA2025spring_v1.jpg"); 
     }		
   	const imageAStream = fs.createReadStream(imageAPath);
   	await client.setRichMenuImage(aRichMenuId, imageAStream);
@@ -307,9 +307,9 @@ async function createRichMenus(aRichMenuId, bRichMenuId) {
  	 	
   	let imageBPath;
     if (isProd) {
-      imageBPath = path.join(imageDir, "tabB2025autumn_v2.jpg");
+      imageBPath = path.join(imageDir, "tabB2025autumn_v3.jpg");
     } else {
-      imageBPath = path.join(imageDir, "tabB2025spring.jpg");
+      imageBPath = path.join(imageDir, "tabB2025spring_v1.jpg");
     }
   	const imageBStream = fs.createReadStream(imageBPath);
   	await client.setRichMenuImage(bRichMenuId, imageBStream);

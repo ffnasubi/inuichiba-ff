@@ -9,13 +9,12 @@ LINE bot for Inuichiba
 📁 ディレクトリ構成（主要）
 
 inuichiba_ff/
-├── functions/               # Firebase Functions 本体
+├── functions/              # Firebase Functions 本体
 ├── public/                 # Firebase Hosting 公開用ディレクトリ（画像など）
 ├── .backup/                # 自動・手動バックアップ格納用
 ├── .github/                # GitHub Actions用設定
 ├── .gitignore              # Git管理除外ファイル定義
-├── firebase.json           # Firebase設定
-├── .firebaserc             # プロジェクト切り替え設定
+├── firebase.*.json         # Firebase設定
 ├── eslint.config.js        # ESLint設定（使用中！）
 
 📂 環境変数とSecretsファイル
