@@ -10,9 +10,22 @@
 $projectIds = @("inuichiba-ffprod", "inuichiba-ffdev")  # 必要に応じて ffprod を外して実行
 $functions = @("webhook")
 $region = "asia-northeast1"
-
+  
 foreach ($project in $projectIds) {
-    Write-Host "🌙 [$project] Firebase Functions 削除開始..."
+    switch ($project) {
+        "inuichiba-ffprod" {
+          $env:GOOGLE_APPLICATION_CREDENTIALS = "D:\nasubi\inuichiba_ff\deployer.ffprod.json"
+        }
+        "inuichiba-ffdev" {
+          $env:GOOGLE_APPLICATION_CREDENTIALS = "D:\nasubi\inuichiba_ff\deployer.ffdev.json"
+        }
+        default {
+          Write-Host "❌ 未知の環境名です: $project" -ForegroundColor Red
+          exit 1
+        }
+    }
+    
+			Write-Host "🌙 [$project] Firebase Functions 削除開始..."
     foreach ($fn in $functions) {
         Write-Host "🧹 関数 $fn を削除中..."
         firebase functions:delete $fn --region $region --force --project=$project

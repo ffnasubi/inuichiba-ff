@@ -1,10 +1,4 @@
-﻿param(
-    [string]$Env = "ffdev",         # ← ここで "ffprod" または "ffdev" を指定（既定値は ffdev）
-    [switch]$deleteOldVersions      # ← 古いバージョンを削除する（--deleteOldVersions）指定推奨
-)
-
-# .env.set_secrets.ps1
-# .env.set_secrets.ps1 - Secrets 登録＋Firebase Deploy＋古いバージョン削除（確認付き）＋状態一覧出力
+﻿# .env.set_secrets.ps1 - Secrets 登録＋Firebase Deploy＋古いバージョン削除（確認付き）＋状態一覧出力
 # .env.secrets.ffprod.txt/.env.secrets.ffdev.txt を読み込んで Firebase Secrets に一括登録
 # secrets登録先を間違えてautomaticにして、課金対象にならないように
 # gcloud secrets create に --replication-policy=user-managed --locations=asia-northeast1 に変更
@@ -42,20 +36,30 @@
 #   例: CHANNEL_SECRET_DEV=abc123
 # ========================================================================
 
+param(
+    [string]$Env = "ffdev",         # ← ここで "ffprod" または "ffdev" を指定（既定値は ffdev）
+    [switch]$deleteOldVersions      # ← 古いバージョンを削除する（--deleteOldVersions）指定推奨
+)
+
 # マッピング定義
 $projectIdMap = @{ ffdev = "inuichiba-ffdev"; ffprod = "inuichiba-ffprod" }
 $envPathMap   = @{ ffdev = ".env.secrets.ffdev.txt"; ffprod = ".env.secrets.ffprod.txt" }
 
 $projectId = $projectIdMap[$Env]
 $envPath   = $envPathMap[$Env]
+$env:GOOGLE_APPLICATION_CREDENTIALS = "D:\nasubi\inuichiba_ff\deployer.$Env.json"
 
 if (-not $projectId) {
   Write-Host "❌ 無効な環境名です。-Env ffdev または -Env ffprod を指定してください。" -ForegroundColor Red
   exit 1
 }
+if (-not (Test-Path $envPath)) { 
+  Write-Host "❌ Secretsファイルが見つかりません。: $envPath" -ForegroundColor Red
+  exit 1 
+}
 
 # Secret Manager API を有効化（初回のみ）
-Write-Host "🔗 Secret Manager API を有効化中... ($projectId)" -ForegroundColor Cyan
+Write-Host "🚀 [$Env] Secrets 再登録処理開始..." -ForegroundColor Cyan
 & gcloud services enable secretmanager.googleapis.com --project=$projectId | Out-Null
 
 # Secretsファイルの存在確認
@@ -92,7 +96,7 @@ foreach ($line in $lines) {
   }
   
   $tempFile = [System.IO.Path]::GetTempFileName()
-  Set-Content -Path $tempFile -Value $value -Encoding UTF8
+  [System.IO.File]::WriteAllText($tempFile, $value, [System.Text.Encoding]::UTF8)  # 安全なUTF-8書き込み
   & gcloud secrets versions add $key --data-file=$tempFile --project=$projectId | Out-Null
   Remove-Item $tempFile
 

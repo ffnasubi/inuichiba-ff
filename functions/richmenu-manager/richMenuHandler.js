@@ -77,17 +77,17 @@ async function aCreateRichMenu() {
     	name: "タブＡ(左側メニュー)2025秋",  // バージョン管理用。.env.xx..xxに書いてLINEのキャッシュを強制的に削除するときにも使う
     	chatBarText: "メニュー(表示/非表示)",
     	areas: [
-      	// タブA(左側のタブ)がタップされたらタブA画面に遷移する
+      // タブA(左側のタブ)がタップされたらタブA画面に遷移する
         {
           bounds: { x: 0, y: 0, width: wTab, height: hTab },
           action: { type: "richmenuswitch", richMenuAliasId: "switch-to-a", data: "change to A" }
         },
-      	// タブB(右側のタブ)がタップされたらタブB画面に遷移する
+      // タブB(右側のタブ)がタップされたらタブB画面に遷移する
         {
           bounds: { x: wTab, y: 0, width: wTab, height: hTab },
           action: { type: "richmenuswitch", richMenuAliasId: "switch-to-b", data: "change to B" }
         },
-      	// A1
+      // A1
         {
           bounds: { x: 0, y: hTab, width: wItem, height: hItem },
           action: { type: "message", text: "開催情報" }
@@ -97,13 +97,18 @@ async function aCreateRichMenu() {
           bounds: { x: wItem, y: hTab, width: wItem, height: hItem },
           action: { type: "message", text: "会場におけるマナーのお願い" }
         },
-      	// 指定されたurlを開く
+      // A7
         {
-          bounds: { x: wItem*2, y: hTab, width: wItem*2, height: hItem },
+          bounds: { x:wItem*2, y: hTab, width: wItem, height: hItem },
+          action: { type: "message", text: "パークアンドライド(P&R)" }
+        },
+      // 指定されたurlを開く
+        {
+          bounds: { x: wItem*3, y: hTab, width: wItem, height: hItem },
           action: { type: "uri", uri: "https://inuichiba.com/index.html" }
         },
 	      
-  	    // A3
+  	  // A3
         {
           bounds: { x: 0, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "アクティビティに関するご案内" }
@@ -123,8 +128,8 @@ async function aCreateRichMenu() {
           bounds: { x:wItem*3, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "駐車場及びアクセス方法" }
         }
-    	]
-	};
+      ] 
+	  };
   	
   	// リッチメニューを作りIdをもらう
   	const aRichMenuId = await client.createRichMenu(richmenuA);
@@ -133,7 +138,7 @@ async function aCreateRichMenu() {
   	return(aRichMenuId);
   	
 	} catch (error) {
-    	console.error('aRichMenuId作成エラー:', error);
+    console.error('aRichMenuId作成エラー:', error);
   }  
   
 }
@@ -183,7 +188,7 @@ async function bCreateRichMenu() {
 	    // B4
         {
           bounds: { x: wItem, y: (hTab+hItem), width: wItem, height: hItem },
-          action: { type: "message", text: "ドッグランに関するご案内について" }
+          action: { type: "message", text: "アクティビティに関するご案内について" }
         },
 	    // B5
         {
@@ -296,9 +301,9 @@ async function createRichMenus(aRichMenuId, bRichMenuId) {
   	// リッチメニュー用画像ファイルをアップロードして紐づける
 		let imageAPath;
     if (isProd) {
-      imageAPath = path.join(imageDir, "tabA2025autumn_v3.jpg");
+      imageAPath = path.join(imageDir, "tabA2025autumn.jpg");
     } else {
-      imageAPath = path.join(imageDir, "tabA2025spring_v1.jpg"); 
+      imageAPath = path.join(imageDir, "tabA2025spring.jpg"); 
     }		
   	const imageAStream = fs.createReadStream(imageAPath);
   	await client.setRichMenuImage(aRichMenuId, imageAStream);
@@ -307,9 +312,9 @@ async function createRichMenus(aRichMenuId, bRichMenuId) {
  	 	
   	let imageBPath;
     if (isProd) {
-      imageBPath = path.join(imageDir, "tabB2025autumn_v3.jpg");
+      imageBPath = path.join(imageDir, "tabB2025autumn.jpg");
     } else {
-      imageBPath = path.join(imageDir, "tabB2025spring_v1.jpg");
+      imageBPath = path.join(imageDir, "tabB2025spring.jpg");
     }
   	const imageBStream = fs.createReadStream(imageBPath);
   	await client.setRichMenuImage(bRichMenuId, imageBStream);

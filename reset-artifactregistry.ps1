@@ -106,6 +106,7 @@ $projectFullId = "inuichiba-$env"
 $credentialFile = ".\deployer.$env.json"
 $region = "asia-northeast1"
 $repoName = "gcf-artifacts"
+$env:GOOGLE_APPLICATION_CREDENTIALS = "D:\nasubi\inuichiba_ff\deployer.$env.json"
 
 # 🔐 認証ファイル確認
 if (-not (Test-Path $credentialFile)) {
@@ -224,6 +225,6 @@ Write-Host "🌟 完了しました！このあと以下のコマンドを実行
 Write-Host "   Start-Sleep -Seconds 120" -ForegroundColor Green
 Write-Host "  "
 Write-Host "   ✅ 開発環境へのデプロイ"  -ForegroundColor DarkCyan
-Write-Host "   firebase deploy --only functions --project=inuichiba-ffdev --config=firebase.ffdev.json --force"  -ForegroundColor Green
+Write-Host "   powershell -ExecutionPolicy Bypass -File .\deploy-and-cleanup.ps1 -env ffdev" -ForegroundColor Green
 Write-Host "   ✅ 本番環境へのデプロイ"  -ForegroundColor DarkCyan
-Write-Host "   firebase deploy --only functions --project=inuichiba-ffprod --config=firebase.ffprod.json --force"  -ForegroundColor Green
+Write-Host "   powershell -ExecutionPolicy Bypass -File .\deploy-and-cleanup.ps1 -env ffprod" -ForegroundColor Green

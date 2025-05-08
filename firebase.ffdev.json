@@ -3,13 +3,14 @@
     "source": "functions",
     "region": "asia-northeast1",
     "secrets": [
-      "CHANNEL_ACCESS_TOKEN_DEV",
+      "NODE_ENV",
       "CHANNEL_SECRET_DEV",
+      "CHANNEL_ACCESS_TOKEN_DEV",
       "SUPABASE_URL",
       "SUPABASE_SERVICE_ROLE_KEY_DEV",
-      "SUPABASE_TABLE_NAME_DEV",
-      "NODE_ENV"
+      "SUPABASE_TABLE_NAME_DEV"
     ]
+
   },
   "hosting": {
     "public": "public",

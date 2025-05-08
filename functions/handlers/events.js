@@ -177,6 +177,12 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
   } else if (data == "tap_richMenuA5") {
     carouselFlg = true;
     [textMessage, flexMessage] = setDogRunCarouselMessage2();
+  } else if (data == "tap_richMenuA6") {
+    carouselFlg = true;
+    [textMessage, flexMessage] = setParkingCarouselMessage();
+  } else if (data == "tap_richMenuA7") {
+    carouselFlg = true;
+    [textMessage, flexMessage] = setPandRCarouselMessage();
   } else if (data == "tap_richMenuB5") {
     carouselFlg = true;
     [textMessage, flexMessage] = setMapCarouselMessage();
@@ -316,6 +322,157 @@ function buildEmojiMessage(templateKey, mBody) {
 }
 
 
+
+// ///////////////////////////////////////////// 
+// GOOD MANNERSをカルーセルメッセージにする
+function setMannerCarouselMessage() {
+  const textMessage = {
+    type: "text",
+    text: messages.msgA2
+  };
+  
+  const { baseDir } = require("../lib/env.js");
+
+  const flex_message1 = { 
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "📌 ご来場時のお願い",
+          weight: "bold",
+          size: "xl",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: messages.msgA21,
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/rules_arrival.jpg`
+          },
+          style: "secondary",
+          color: "#C8E6C9", // グリーン（ボタン）
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#E8F5E9" // 薄いグリーン（バブル背景）
+      }
+    }
+  };
+  
+  const flex_message2 = { 
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "🐾 ワンちゃんとの過ごし方",
+          weight: "bold",
+          size: "xl",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: messages.msgA22,
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/rules_dog.jpg`
+          },
+          style: "secondary",
+          color: "#FFD180", // オレンジ（ボタン）
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFF3E0" // 薄いオレンジ（バブル背景）
+      }
+    }
+  };
+    
+  const flex_message3 = { 
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "xl",
+      contents: [
+        {
+          type: "text",
+          text: "📌 立ち話・撮影のマナー",
+          weight: "bold",
+          size: "xl",
+          wrap: true
+        },
+        {
+          type: "text",
+          text: messages.msgA23,
+          size: "md",
+          wrap: true
+        },
+        {
+          type: "button",
+          action: {
+            type: "uri",
+            label: "拡大版はこちら",
+            uri: `${baseDir}carousel/rules_manner.jpg`
+          },
+          style: "secondary",
+          color: "#C8E6C9", // グリーン（ボタン）
+          height: "sm"
+        }
+      ]
+    },
+    styles: {
+      body: {
+        backgroundColor: "#E8F5E9" // 薄いグリーン（バブル背景）
+      }
+    }
+  };
+    
+  const flexMessage = {
+    type: "flex",
+    altText: "グッドマナー",
+    contents: {
+      type: "carousel",
+      contents: [flex_message1, flex_message2, flex_message3]
+    }
+  };
+
+  const { isProd } = require("../lib/env.js");
+
+  if (!isProd) {
+    console.log("📦 Flex Message 中身:", JSON.stringify(flexMessage, null, 2));
+    console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
+  }
+
+  return [textMessage, flexMessage];
+}
+
+
 // ///////////////////////////////////////////// 
 // ドッグランの留意事項をカルーセルメッセージにする(テキスト版)
 function setDogRunCarouselMessage() {
@@ -366,7 +523,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogrun1_v2.jpg`
+            uri: `${baseDir}carousel/view_dogrun1.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -449,7 +606,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogrun3_v1.jpg`
+            uri: `${baseDir}carousel/view_dogrun3.jpg`
           },
           style: "secondary",
           color: "#FFD180",
@@ -491,7 +648,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogrun4_v1.jpg`
+            uri: `${baseDir}carousel/view_dogrun4.jpg`
           },
           style: "secondary",
           color: "#FFD180",
@@ -653,7 +810,7 @@ function setDogRunCarouselMessage() {
         },
         {
           type: "image",
-          url: `${baseDir}carousel/view_dogRun_certificate_detail.jpg`,
+          url: `${baseDir}carousel/dogRun2.jpg`,
           size: "full",
           aspectMode: "fit",
           margin: "md"
@@ -663,7 +820,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogRun_certificate_detail.jpg`
+            uri: `${baseDir}carousel/dogRun2.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -704,7 +861,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogtypes_small_v5.jpg`
+            uri: `${baseDir}carousel/view_dogtypes_small_v1.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -745,7 +902,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogtypes_all_v5.jpg`
+            uri: `${baseDir}carousel/view_dogtypes_all.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -789,7 +946,7 @@ function setDogRunCarouselMessage() {
 function setDogRunCarouselMessage2() {
   const textMessage = {
     type: "text",
-    text: messages.msgB5
+    text: messages.msgA5
   };
 
   const { baseDir } = require("../lib/env.js");
@@ -802,13 +959,13 @@ function setDogRunCarouselMessage2() {
       contents: [
         {
           type: "image",
-          url: `${baseDir}carousel/dogRun11.jpg?v=1`,
+          url: `${baseDir}carousel/dogRun11.jpg`,
           size: "full",
           aspectRatio: "1:1",
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/dogRun11_detail.jpg?v=1`
+            uri: `${baseDir}carousel/dogRun11.jpg`
           }
         },
         {
@@ -818,7 +975,7 @@ function setDogRunCarouselMessage2() {
           action: {
             type: "uri",
             label: "拡大版はこちら🔎",
-            uri: `${baseDir}carousel/dogRun11_detail.jpg?v=1`
+            uri: `${baseDir}carousel/dogRun11.jpg`
           }
         }
       ]
@@ -838,13 +995,13 @@ function setDogRunCarouselMessage2() {
       contents: [
         {
           type: "image",
-          url: `${baseDir}carousel/dogRun12.jpg?v=1`,
+          url: `${baseDir}carousel/dogRun12.jpg`,
           size: "full",
           aspectRatio: "1:1",
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/dogRun12_detail.jpg?v=1`
+            uri: `${baseDir}carousel/dogRun12.jpg`
           }
         },
         {
@@ -854,7 +1011,7 @@ function setDogRunCarouselMessage2() {
           action: {
             type: "uri",
             label: "拡大版はこちら🔎",
-            uri: `${baseDir}carousel/dogRun12_detail.jpg?v=1`
+            uri: `${baseDir}carousel/dogRun12.jpg`
           }
         }
       ]
@@ -874,13 +1031,13 @@ function setDogRunCarouselMessage2() {
       contents: [
         {
           type: "image",
-          url: `${baseDir}carousel/dogRun2.jpg?v=1`,
+          url: `${baseDir}carousel/dogRun2.jpg`,
           size: "full",
           aspectRatio: "1:1",
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/dogRun2_detail.jpg?v=1`
+            uri: `${baseDir}carousel/dogRun2.jpg`
           }
         },
         {
@@ -890,7 +1047,7 @@ function setDogRunCarouselMessage2() {
           action: {
             type: "uri",
             label: "拡大版はこちら🔎",
-            uri: `${baseDir}carousel/dogRun2_detail.jpg?v=1`
+            uri: `${baseDir}carousel/dogRun2.jpg`
           }
         }
       ]
@@ -910,13 +1067,13 @@ function setDogRunCarouselMessage2() {
       contents: [
         {
           type: "image",
-          url: `${baseDir}carousel/dogRun31.jpg?v=1`,
+          url: `${baseDir}carousel/dogRun31.jpg`,
           size: "full",
           aspectRatio: "1:1",
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/dogRun31_detail.jpg?v=1`
+            uri: `${baseDir}carousel/dogRun31.jpg`
           }
         },
         {
@@ -926,7 +1083,7 @@ function setDogRunCarouselMessage2() {
           action: {
             type: "uri",
             label: "拡大版はこちら🔎",
-            uri: `${baseDir}carousel/dogRun31_detail.jpg?v=1`
+            uri: `${baseDir}carousel/dogRun31.jpg`
           }
         }
       ]
@@ -946,13 +1103,13 @@ function setDogRunCarouselMessage2() {
       contents: [
         {
           type: "image",
-          url: `${baseDir}carousel/dogRun32.jpg?v=1`,
+          url: `${baseDir}carousel/dogRun32.jpg`,
           size: "full",
           aspectRatio: "1:1",
           aspectMode: "fit",
           action: {
             type: "uri",
-            uri: `${baseDir}carousel/dogRun32_detail.jpg?v=1`
+            uri: `${baseDir}carousel/dogRun32.jpg`
           }
         },
         {
@@ -962,7 +1119,7 @@ function setDogRunCarouselMessage2() {
           action: {
             type: "uri",
             label: "拡大版はこちら🔎",
-            uri: `${baseDir}carousel/dogRun32_detail.jpg?v=1`
+            uri: `${baseDir}carousel/dogRun32.jpg`
           }
         }
       ]
@@ -997,122 +1154,61 @@ function setDogRunCarouselMessage2() {
 
 
 // ///////////////////////////////////////////// 
-// 地図をカルーセルメッセージにする
-function setMapCarouselMessage() {
+// PARKING(駐車場及びアクセス方法)をカルーセルメッセージにする
+function setParkingCarouselMessage() {
   const textMessage = {
-    type: "text",
-    text: messages.msgA5
+    type: "text", 
+    text: messages.msgA61 + "\n\n" + messages.msgA62 + "\n\n" + messages.msgA63
   };
 
   const { baseDir } = require("../lib/env.js");
 
   const flex_message1 = {
     type: "bubble",
-    body: {
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "image",
-          url: `${baseDir}carousel/cPark1_baseline.jpg`,
-          size: "full",
-          aspectRatio: "1:1",
-          aspectMode: "fit",
-          action: {
-            type: "uri",
-            uri: `${baseDir}carousel/cPark1_baseline.jpg`
-          }
-        },
-        {
-          type: "text",
-          text: "地図全体図",
-          align: "center",
-          weight: "bold",
-          size: "sm",
-          color: "#333333"
-        }
-      ]
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/parking1.jpg`,
+      size: "full",
+      aspectRatio: "3:4",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/parking1.jpg`
+      }   
     },
     styles: {
       body: {
-        backgroundColor: "#F3C2D5"
+        backgroundColor: "#75BF82"
       }
     }
   };
 
   const flex_message2 = {
     type: "bubble",
-    body: {
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "image",
-          url: `${baseDir}carousel/cPark2_baseline2.jpg`,
-          size: "full",
-          aspectRatio: "1:1",
-          aspectMode: "fit",
-          action: {
-            type: "uri",
-            uri: `${baseDir}carousel/cPark2_baseline2.jpg`
-          }
-        },
-        {
-          type: "text",
-          text: "イベント会場",
-          align: "center",
-          weight: "bold",
-          size: "sm",
-          color: "#333333"
-        }
-      ]
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/parking2.jpg`,
+      size: "full",
+      aspectRatio: "3:4",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/parking2.jpg`
+      }   
     },
     styles: {
       body: {
-        backgroundColor: "#F3C2D5"
+        backgroundColor: "#75BF82"
       }
     }
   };
 
-  const flex_message3 = {
-    type: "bubble",
-    body: {  
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "image",
-          url: `${baseDir}carousel/cPark32.jpg`,
-          size: "full",
-          aspectRatio: "1:1",
-          aspectMode: "fit",
-          action: {
-            type: "uri",
-            uri: `${baseDir}carousel/cPark32.jpg`
-          }
-        },
-        {
-          type: "text",
-          text: "無料駐車場注意点",
-          align: "center",
-          weight: "bold",
-          size: "sm",
-          color: "#333333"
-        }
-      ]
-    },
-    styles: {
-      body: {
-        backgroundColor: "#F3C2D5"
-      }
-    }
-  };
 
-  const carouselContents = [flex_message1, flex_message2, flex_message3];
+  const carouselContents = [flex_message1, flex_message2];
 
   const flexMessage = {
     type: "flex",
-    altText: "駐車場地図", 
+    altText: "Parking", 
     contents: {
       type: "carousel",
       contents: carouselContents
@@ -1131,144 +1227,280 @@ function setMapCarouselMessage() {
 
 
 // ///////////////////////////////////////////// 
-// GOOD MANNERSをカルーセルメッセージにする
-function setMannerCarouselMessage() {
+// P&R(パークアンドライド)をカルーセルメッセージにする
+function setPandRCarouselMessage() {
   const textMessage = {
-    type: "text",
-    text: messages.msgA2
+    type: "text", 
+    text: messages.msgA7
   };
-  
+
   const { baseDir } = require("../lib/env.js");
 
-  const flex_message1 = { 
+  const flex_message1 = {
     type: "bubble",
-    body: {
-      type: "box",
-      layout: "vertical",
-      spacing: "xl",
-      contents: [
-        {
-          type: "text",
-          text: "📌 ご来場時のお願い",
-          weight: "bold",
-          size: "xl",
-          wrap: true
-        },
-        {
-          type: "text",
-          text: messages.msgA21,
-          size: "md",
-          wrap: true
-        },
-        {
-          type: "button",
-          action: {
-            type: "uri",
-            label: "拡大版はこちら",
-            uri: `${baseDir}carousel/rules_arrival_v1.jpg`
-          },
-          style: "secondary",
-          color: "#C8E6C9", // グリーン（ボタン）
-          height: "sm"
-        }
-      ]
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/pandr1.jpg`,
+      size: "full",
+      aspectRatio: "3:4",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/pandr1.jpg`
+      }   
     },
     styles: {
       body: {
-        backgroundColor: "#E8F5E9" // 薄いグリーン（バブル背景）
+        backgroundColor: "#75BF82"
       }
-    }
-  };
-  
-  const flex_message2 = { 
-    type: "bubble",
-    body: {
-      type: "box",
-      layout: "vertical",
-      spacing: "xl",
-      contents: [
-        {
-          type: "text",
-          text: "🐾 ワンちゃんとの過ごし方",
-          weight: "bold",
-          size: "xl",
-          wrap: true
-        },
-        {
-          type: "text",
-          text: messages.msgA22,
-          size: "md",
-          wrap: true
-        },
-        {
-          type: "button",
-          action: {
-            type: "uri",
-            label: "拡大版はこちら",
-            uri: `${baseDir}carousel/rules_dog.jpg`
-          },
-          style: "secondary",
-          color: "#FFD180", // オレンジ（ボタン）
-          height: "sm"
-        }
-      ]
-    },
-    styles: {
-      body: {
-        backgroundColor: "#FFF3E0" // 薄いオレンジ（バブル背景）
-      }
-    }
-  };
-    
-  const flex_message3 = { 
-    type: "bubble",
-    body: {
-      type: "box",
-      layout: "vertical",
-      spacing: "xl",
-      contents: [
-        {
-          type: "text",
-          text: "📌 立ち話・撮影のマナー",
-          weight: "bold",
-          size: "xl",
-          wrap: true
-        },
-        {
-          type: "text",
-          text: messages.msgA23,
-          size: "md",
-          wrap: true
-        },
-        {
-          type: "button",
-          action: {
-            type: "uri",
-            label: "拡大版はこちら",
-            uri: `${baseDir}carousel/rules_manner.jpg`
-          },
-          style: "secondary",
-          color: "#C8E6C9", // グリーン（ボタン）
-          height: "sm"
-        }
-      ]
-    },
-    styles: {
-      body: {
-        backgroundColor: "#E8F5E9" // 薄いグリーン（バブル背景）
-      }
-    }
-  };
-    
-  const flexMessage = {
-    type: "flex",
-    altText: "グッドマナー",
-    contents: {
-      type: "carousel",
-      contents: [flex_message1, flex_message2, flex_message3]
     }
   };
 
+  const flex_message2 = {
+    type: "bubble",
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/pandr2.jpg`,
+      size: "full",
+      aspectRatio: "3:4",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/pandr2.jpg`
+      }   
+    },
+    styles: {
+      body: {
+        backgroundColor: "#75BF82"
+      }
+    }
+  };
+
+  const flex_message3 = {
+    type: "bubble",
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/pandr3.jpg`,
+      size: "full",
+      aspectRatio: "3:4",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/pandr3.jpg`
+      }   
+    },
+    styles: {
+      body: {
+        backgroundColor: "#75BF82"
+      }
+    }
+  };
+
+  const flex_message4 = {
+    type: "bubble",
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/pandr4.jpg`,
+      size: "full",
+      aspectRatio: "3:4",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/pandr4.jpg`
+      }   
+    },
+    styles: {
+      body: {
+        backgroundColor: "#75BF82"
+      }
+    }
+  };
+
+  const flex_message5 = {
+    type: "bubble",
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/pandr5.jpg`,
+      size: "full",
+      aspectRatio: "3:4",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/pandr5.jpg`
+      }   
+    },
+    styles: {
+      body: {
+        backgroundColor: "#75BF82"
+      }
+    }
+  };
+
+  const flex_message6 = {
+    type: "bubble",
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/pandr6.jpg`,
+      size: "full",
+      aspectRatio: "3:4",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/pandr6.jpg`
+      }   
+    },
+    styles: {
+      body: {
+        backgroundColor: "#75BF82"
+      }
+    }
+  };
+
+  const flex_message7 = {
+    type: "bubble",
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/pandr7.jpg`,
+      size: "full",
+      aspectRatio: "3:4",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/pandr7.jpg`
+      }   
+    },
+    styles: {
+      body: {
+        backgroundColor: "#75BF82"
+      }
+    }
+  };
+
+
+  const carouselContents = [flex_message1, flex_message2, flex_message3, flex_message4, flex_message5, flex_message6, flex_message7];
+
+  const flexMessage = {
+    type: "flex",
+    altText: "Parking", 
+    contents: {
+      type: "carousel",
+      contents: carouselContents
+    }
+  };
+	
+  const { isProd } = require("../lib/env.js");
+
+  if (!isProd) {
+    console.log("📦 Flex Message 中身:", JSON.stringify(flexMessage, null, 2));
+    console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
+  }
+
+  return [textMessage, flexMessage];
+}
+
+
+// ///////////////////////////////////////////// 
+// MAP(会場マップ/ショップリスト)をカルーセルメッセージにする
+function setMapCarouselMessage() {
+  const textMessage = {
+    type: "text",
+    text: messages.msgB5
+  };
+
+  const { baseDir } = require("../lib/env.js");
+
+  const flex_message1 = {
+    type: "bubble",
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/mapAll.jpg`,
+      size: "full",
+      aspectRatio: "4:3",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/mapAll.jpg`
+      }   
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFFFFF"
+      }
+    }
+  };
+
+  const flex_message2 = {
+    type: "bubble",
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/map1.jpg`,
+      size: "full",
+      aspectRatio: "4:3",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/map1.jpg`
+      }   
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFFFFF"
+      }
+    }
+  };
+
+  const flex_message3 = {
+    type: "bubble",
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/map2.jpg`,
+      size: "full",
+      aspectRatio: "4:3",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/map2.jpg`
+      }   
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFFFFF"
+      }
+    }
+  };
+
+  const flex_message4 = {
+    type: "bubble",
+    hero: {
+      type: "image",
+      url: `${baseDir}carousel/map3.jpg`,
+      size: "full",
+      aspectRatio: "4:3",
+      aspectMode: "cover",
+      action: {
+        type: "uri",
+        uri: `${baseDir}carousel/map3.jpg`
+      }   
+    },
+    styles: {
+      body: {
+        backgroundColor: "#FFFFFF"
+      }
+    }
+  };
+
+
+  const carouselContents = [flex_message1, flex_message2, flex_message3, flex_message4];
+
+  const flexMessage = {
+    type: "flex",
+    altText: "MAP", 
+    contents: {
+      type: "carousel",
+      contents: carouselContents
+    }
+  };
+	
   const { isProd } = require("../lib/env.js");
 
   if (!isProd) {

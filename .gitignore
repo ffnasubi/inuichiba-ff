@@ -29,14 +29,17 @@ deployer*.json
 # .env.devなど定義ファイルや評価用画像ファイルのバックアップを除外
 .backup/
 
+# 画像ファイル
+public_input/images/
+public_input/carousel/
+public_input/save/
+
 # Firebase CLI が生成する一時ファイル・キャッシュ
 .firebase/
 
 # Firebase Emulators
 firebase-debug.log
 .firebaserc
-
-# 画像ファイル(今はgit対象)
 
 # OS・エディタ系
 .DS_Store

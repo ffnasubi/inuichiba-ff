@@ -1,7 +1,8 @@
 // ////////////////////////////////////////////////
 // 出力メッセージ定義
-const msgA11 = "犬市場 in OKAZAKI 2025 Autumnの詳細です！\n\n開催概要\n◆開催日 / 5月17日(土)18日(日)少雨決行\n※荒天・台風など不測の場合を除き雨天でも開催いたします。\n◆開催時間 / 9:30〜16:00\n◆開催場所 /愛知県岡崎城公園第6号乙川河川緑地\n◆住所 /〒444-0052 愛知県岡崎市康生町５２１\n◆入場料 / 1日500円(小学生以下無料)\n◆出店店舗 / 約230ブース(予定)\n◆主催 / WAN'S team\n◆来場予定人数 / 10,000人(予定)\n\n当日は【P&R】【特設駐車場】もございます。皆さまお誘い合わせの上ご来場いただけますよう心よりお待ち申し上げております！";   
-const msgA12 = "【パークアンドライド】\nパークアンドライドの詳細は決まり次第公開いたします。\nそれまで、今しばらくお待ち下さい！";
+const msgA1 = "犬市場 in OKAZAKI 2025 Springの詳細です！\n\n開催概要\n◆開催日 / 5月17日(土)18日(日)少雨決行\n※荒天・台風など不測の場合を除き雨天でも開催いたします。" + 
+  "◆開催時間 / 9:30〜16:00\n◆開催場所 /愛知県岡崎城公園第6号乙川河川緑地\n◆住所 /〒444-0052 愛知県岡崎市康生町５２１\n◆入場料 / 1日500円(小学生以下無料)\n◆出店店舗 / 約230ブース(予定)\n" +
+  "◆主催 / WAN'S team\n◆来場予定人数 / 10,000人(予定)\n\n当日は【パークアンドライド】【特設駐車場】もございますので、皆さまお誘い合わせの上ご来場心よりお待ちしております！";
 
 const msgA2  = "イベントを楽しむためのご来場マナーと注意事項をご確認ください";
 const msgA21 =
@@ -61,12 +62,18 @@ const msgA49=
   "イングリッシュポインター／エアデール／グレイハウンド／グレート・ピレニーズ／コリー／ゴールデン・レトリバー／サモエド／シベリアンハスキー／グレート・デン／ジャーマンシェパードドッグ／" +
   "ボルゾイ／セントバーナード／ダルメシアン／チャウチャウ／ボクサー／ニューファンドランド／バーニーズマウンテンドッグ／フラットコーテッドレトリバー／ラブラドールレトリバーほか";
 
-const msgA5 = "犬市場のドッグランに関して\n\n料金：1頭500円\n\nご利用になる皆さまには皆さまが安全に楽しくご利用いただくためのルールがございますのでご確認をお願いいたします！";
-
+const msgA5 = msgA3;
 
 const msgA61 = "【駐車場に関して】\n会場専用の駐車場はございません、近隣の有料駐車場をご利用ください。\n公共の施設などにはお停めにならないようお願いいたします。\nなお近隣の駐車場をマッピングしましたのでご確認ください。\n https://goo.gl/maps/AFh1DBZ88AvNLvsR8 \nまた、下記駐車場検索WEBサイトもございますのでご活用ください\nPPPark!\n https://pppark.com/okazaki/riverfront/ \n特P\n https://toku-p.earth-car.com/";
 const msgA62 = "【新設有料駐車場】もございます。\n◆乙川河川緑地駐車場は\n開場:8:00〜17:00まで\n1台500円でご利用可能ですのでこちらもご利用ください。\n約400台収容可※下記地図参照・一方通行あり\n特設駐車場につきカーナビにはでてきませんので地図をご参照ください\n〒444-0053 愛知県岡崎市板屋町221番地（付近）\n\n◆明神橋公園臨時駐車場\n〒444-0858 愛知県岡崎市上六名１丁目１−９（付近）\n開場:8:00〜17:00まで\n1台500円でご利用可能ですのでこちらもご利用ください。\n約300台収容可※地図参照・一方通行あり\n特設駐車場につきカーナビにはでてきませんので地図をご参照ください";
 const msgA63 = "臨時駐車場は17:00を過ぎますと施錠を致します\n施錠をしますと明朝までお車は出すことはできなくなりますので、必ず時間内にお車の退出をお願い致します。\n\n※コムタウンなどの近隣商業施設駐車場の無断駐車は絶対にしないでください。\n※西三河総合庁舎の駐車場はイベント利用者様は利用出来ません。";
+
+const msgA7 = "🚗🐾パークアンドライドのご案内🐾🚗\n🐕愛犬との特別な1日を、移動から楽しもう！✨\nパークアンドライドを使えば、スムーズで気持ちのいいスタートがきれます！\n" +
+  "会場までの道のりを、ストレスフリーに楽しむなら、パークアンドライドがオススメ！💡\n車を停めたら、あとは大型バスで快適移動🚌✨\n愛犬と一緒に、ちょっとした旅気分を味わいながら会場へGO！🌟🐶\n\n" +
+  "🌟3つのポイントで選ばれています！🌟\n① 混雑知らずでスイスイ到着！🚦🛣️会場近くの渋滞や駐車場探しのイライラを解消！🎉\n\n" + 
+  "② シャトルバスで愛犬と一緒にリラックス♪🚌💺\nペット対応OKだから安心。🐕✨ ワクワクする時間をプラス！🎈\n\n" +
+  "③ 駐車も安心＆低コスト！🅿️💸\n指定駐車場は広々スペースで、駐車料金は無料！🆓\n※駐車場の数には限りがあるので、早めのご利用がおすすめです！⏰🚗\n\n" +
+  "詳しくは、下記URLよりご確認ください！👇🔗\n🔗 https://inuichiba.com/cn7/pg1339008.html";   
 
 const msgB1 = "動画は有償になりかねないので止めましたー！\n画像サンプルくださーい!\nでも本当はflexメッセージが一番データとしては小さいでーす!";
 
@@ -92,13 +99,15 @@ const msgB33 =
   "詳細はDOG HOUSE RUPOのインスタにて随時発表🎊(@doghouse_rupo )";
 
 const msgB4 = "現在準備中です。\n情報更新まで今しばらくお待ちください。";
-const msgB5 =  "こちらでは【有料】と【無料】2種類の駐車場をご用意しております。\n尚、会場近くにある商業施設の駐車場へのご駐車は施設を利用される方のご迷惑となりますのでご遠慮ください。\n\n詳細は画像をタップしてください。詳細画面では画像の拡大もできます";
+
+const msgB5 = "下記よりご確認いただけます👇📄\n\nまた、URLよりMAPのダウンロードも可能です🗺️📥\n" +
+  "ぜひ、そちらも合わせてご確認ください！😊\nhttps://inuichiba.com/pg1135073.html";
 
 const msgB6 = "現在準備中です。\n情報更新まで今しばらくお待ちください。";
 
 
-const msgJoin = "こんにちは！犬市場Botです🐶\nどうぞよろしくお願いします！";
-const msgY = "こんにちは🐶\n投稿やライブを楽しみにしててね!!";
+const msgJoin = "こんにちは🐾 犬市場Botです🐶\nどうぞよろしくお願いします！";
+const msgY = "こんにちは🐕🐾\n投稿やライブを楽しみにしててね✨";
 const msgPostpone = "メッセージありがとうございます！\n申し訳ございませんが、こちらのアカウントでは個別のお問い合わせには対応しておりません。\nどうぞ次の配信をお待ちください。\n\nもしメニューをご覧いただけない場合は、左下の「≡」のマークをタップしていただくか、一度トーク画面を閉じて再度開いてください。";
 // const msgTimeoutAppend = "タイムアウトを検知したためファイルへの書き込みに失敗しました。\nもう一度処理を行ってください。";
 // const lineQRtext = "友だち追加用のQRコードです。\nどうぞお使いくださいね。";
@@ -107,33 +116,25 @@ const msgPostpone = "メッセージありがとうございます！\n申し訳
 // //////////////////////////////////////////////////
 // リッチメニューと旧postback dataとの関連付け
 const keywordMap = {
-  "開催情報":                   "tap_richMenuA1",
-  "会場におけるマナーのお願い":   "tap_richMenuA2",
-  "アクティビティに関するご案内": "tap_richMenuA3",
-  "ドッグランに関するご案内":     "tap_richMenuA4",
-  "会場マップ\nショップリスト":   "tap_richMenuA5",
-  "駐車場及びアクセス方法":       "tap_richMenuA6",
-  "開催情報について":                   "tap_richMenuB1",
-  "会場におけるマナーのお願いについて":   "tap_richMenuB2",
-  "アクティビティに関するご案内について": "tap_richMenuB3",
-  "ドッグランに関するご案内について":     "tap_richMenuB4",
-  "会場マップ\nショップリストについて":   "tap_richMenuB5",
-  "駐車場及びアクセス方法について":       "tap_richMenuB6"
+    "開催情報":                   "tap_richMenuA1",
+    "会場におけるマナーのお願い":   "tap_richMenuA2",
+    "パークアンドライド(P&R)":     "tap_richMenuA7",
+    "アクティビティに関するご案内": "tap_richMenuA3",
+    "ドッグランに関するご案内":     "tap_richMenuA4",
+    "会場マップ\nショップリスト":   "tap_richMenuA5",
+    "駐車場及びアクセス方法":       "tap_richMenuA6",
+    "開催情報について":                   "tap_richMenuB1",
+    "会場におけるマナーのお願いについて":   "tap_richMenuB2",
+    "アクティビティに関するご案内について": "tap_richMenuB3",
+    "会場マップ\nショップリストについて":   "tap_richMenuB5",
+    "駐車場及びアクセス方法について":       "tap_richMenuB6"
 };
 
 
 // //////////////////////////////////////////////////
 // message用テキストメッセージマップ
 const textMessages = {
-  "tap_richMenuA1": [
-									    { type: "text", text: msgA11 },
-    									{ type: "text", text: msgA12 }
-  									],
-  "tap_richMenuA6": [
-									    { type: "text", text: msgA61 },
-									    { type: "text", text: msgA62 },
-    									{ type: "text", text: msgA63 }
-  									],
+  "tap_richMenuA1": [ { type: "text", text: msgA1 } ],
   "tap_richMenuB3": [
                       { type: "text", text: msgB31 },
                       { type: "text", text: msgB32 },
@@ -160,18 +161,18 @@ const mediaMessages = {
     { type: "text", text: msgA4 },
     {
       type: "image",
-      originalContentUrl: `${baseDir}images/dogrun1_v1.jpg`,
-      previewImageUrl:    `${baseDir}images/dogrun1_v1.jpg`
+      originalContentUrl: `${baseDir}images/dogrun1.jpg`,
+      previewImageUrl:    `${baseDir}images/dogrun1.jpg`
     },
     {
       type: "image",
-      originalContentUrl: `${baseDir}images/dogrun2_v1.jpg`,
-      previewImageUrl:    `${baseDir}images/dogrun2_v1.jpg`
+      originalContentUrl: `${baseDir}images/dogrun2.jpg`,
+      previewImageUrl:    `${baseDir}images/dogrun2.jpg`
     },
     {
       type: "image",
-      originalContentUrl: `${baseDir}images/dogrun3_v1.jpg`,
-      previewImageUrl:    `${baseDir}images/dogrun3_v1.jpg`
+      originalContentUrl: `${baseDir}images/dogrun3.jpg`,
+      previewImageUrl:    `${baseDir}images/dogrun3.jpg`
     }
   ]
 };
@@ -223,25 +224,13 @@ module.exports = {
 	lineQRMessages,
   textTemplates,
   emojiMap,
-  msgA2,
-  msgA21,
-  msgA22,
-  msgA23,
-  msgA4,
-  msgA41,
-  msgA42,
-  msgA43,
-  msgA44,
-  msgA45,
-  msgA46,
-  msgA47,
-  msgA48,
-  msgA49,
+  msgA2, msgA21,msgA22,msgA23,
+  msgA4, msgA41,msgA42,msgA43,msgA44,msgA45,msgA46,msgA47,msgA48,msgA49,
   msgA5,
-  msgB31,
-  msgB32,
-  msgB33,
+  msgB31,msgB32,msgB33,
   msgB5,
+  msgA61,msgA62,msgA63,
+  msgA7,
   msgJoin,
   msgY,
   msgPostpone

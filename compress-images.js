@@ -3,8 +3,9 @@
 // ✅ 目的:
 //   - pngを、Cloudinary 等と同等のLINE上表示体系JPEGに変換
 //   - 全ファイルBaseline JPEG/最小メタ/RGBに
-//   - public_input/{images|carousel} → public/{images|carousel}へ
-//   - public_input/{images|carousel}配下のpngは全部変換しちゃうから注意(他は無視)
+//   - public_input/{images|carousel} → 
+//      public/{images|carousel} と public_input/assts-hosting/{images|carousel}へ
+//   - public_input/{images|carousel}配下のpngは全部変換しちゃうから注意(png以外は無視)
 // ✅ 画像変換の主な仕様（CDN級）
 //  progressive: false ＝ Baseline JPEG（LINE互換）
 //  chromaSubsampling: "4:4:4" ＝ 高品質維持
@@ -70,46 +71,58 @@ const targets = [
 
 // 全ターゲットを回して変換実行
 for (const { input, output } of targets) {
-  const inputDir = path.join(__dirname, "public_input", input); 
-  const outputDir = path.join(__dirname, "public", output); 
+  const baseInputDir = path.join(__dirname, "public_input", input);
+  const outputDir1 = path.join(__dirname, "public", output);       // ① public 配下
+  const outputDir2 = path.join(__dirname, "public_input", "assets-hosting", output); // ② assets-hosting 配下
 
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
+  // 出力ディレクトリの作成
+  [outputDir1, outputDir2].forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
 
-  fs.readdir(inputDir, (err, files) => {
+  fs.readdir(baseInputDir, (err, files) => {
     if (err) {
-      console.log(`📂 入力フォルダが見つかりませんでした（スキップします）: ${inputDir}`);
+      console.log(`📂 入力フォルダが見つかりませんでした（スキップします）: ${baseInputDir}`);
+      console.log(`🔍 エラー内容: ${err.message}`);
       return;
     }
+
+    files = files.filter(f => f.toLowerCase().endsWith(".png")).sort();  // ✅ ファイル名順に並べる
 
     files.forEach((file) => {
       const ext = path.extname(file).toLowerCase();
       if (ext !== ".png") return; // 対象はPNGのみ
 
-      const inputPath = path.join(inputDir, file);
+      const inputPath = path.join(baseInputDir, file);
 
       // --- ファイル名に_detailを付けるか切り替え ---
       const baseName = path.parse(file).name;
       const outputFileName = mode === "detail" ? `${baseName}_detail.jpg` : `${baseName}.jpg`;
       // -------------------------------------------------
 
-      const outputPath = path.join(outputDir, outputFileName);
+      const outputPaths = [
+        path.join(outputDir1, outputFileName),
+        path.join(outputDir2, outputFileName)
+      ];
 
-      const sharpInstance = sharp(inputPath)
-        .flatten({ background: { r: 255, g: 255, b: 255 } }); // 透明を白背景に
+      // 共通のsharp処理
+      // 透明を白背景に
+      const baseSharp = sharp(inputPath).flatten({ background: { r: 255, g: 255, b: 255 } });
 
       if (mode === "normal") {
-        sharpInstance
-          .resize({ fit: "inside", withoutEnlargement: true })
+        baseSharp
+//        .resize({ width: 1200, withoutEnlargement: true })    // ★ 横幅を強制的に制限（1920→1200など）
+          .resize({ fit: "inside", withoutEnlargement: true })  // ファイルサイズが大きいなら避けた方がいい
           .jpeg({
-            quality: 85,              // 適度な質でサイズ抑制
+            quality: 85,              // 適度な質でサイズ抑制(元は85だが大きいときは65迄さげてOK)
             progressive: false,       // Baseline JPEG
             optimizeCoding: true,     // ハフマン符号化(JPEGへのデータ圧縮方法)をする。少し時間はかかるけどファイルが更に小さくなる
-            chromaSubsampling: "4:4:4" // 色データ保持
+            chromaSubsampling: "4:4:4" // 色データ保持(LINE表示品質向上)
           });
       } else if (mode === "detail") {
-        sharpInstance
+        baseSharp
           .resize({ width: 1920, withoutEnlargement: true }) // 横幅1920pxまで広げる
           .jpeg({
             quality: 90,              // 少し高品質
@@ -119,14 +132,29 @@ for (const { input, output } of targets) {
           });
       }
 
-      sharpInstance
-        .toFile(outputPath)
-        .then(() => {
-          console.log(`✅ ${input}/${file} → ${output}/${outputFileName}`);
-        })
-        .catch((err) => {
-          console.error(`❌ ${input}/${file} の変換に失敗しました:`, err.message);
-        });
+      // 出力先それぞれに保存
+      outputPaths.forEach((outputPath) => {
+        baseSharp.clone()         // 同じ画像処理を複数ファイルに安全に出力する
+          .toFile(outputPath)
+          .then(() => {
+            // 元ファイルサイズ取得
+            const inputSize = fs.statSync(inputPath).size;
+            // 変換後ファイルサイズ取得
+            fs.stat(outputPath, (err, stats) => {
+              if (!err) {
+                const outputSize = stats.size;
+                const rate = ((outputSize / inputSize) * 100).toFixed(1);
+                const sizeKB = (outputSize / 1024).toFixed(1);
+                console.log(`✅ ${input}/${file} → ${outputPath}（${sizeKB} KB, 圧縮率 ${rate}%）`);
+              } else {
+                console.log(`✅ ${input}/${file} → ${outputPath}（圧縮率計算失敗）`);
+              }
+            })
+          })
+          .catch((err) => {
+            console.error(`❌ 変換失敗: ${outputPath} - ${err.message}`);
+          });
+      });
     });
   });
 }

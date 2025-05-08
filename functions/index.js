@@ -92,3 +92,6 @@ exports.webhook = functions
   .https
   .onRequest({ region: region, secrets: secretNames }, app);
 
+// exports.helloWorld = require("./helloWorld").helloWorld;
+
+

@@ -96,7 +96,7 @@ const baseDir = isProd
 
 // コンテンツの相対パス(ファイルとして読み込むとき。今はメニューだけだね)
 const path = require("path");
-const imageDir = path.resolve(__dirname, "../../public/images/");
+const imageDir = path.resolve(__dirname, "../richmenu-manager/data/");
 
 // 未使用：メニュー名：メニューキャッシュクリアや更新確認に使用(ローカルテスト用)
 // .env.*だけに定義を残して他は.backupへ移すかコメントにしてる
@@ -145,8 +145,7 @@ const secretNames = isProd
 // なのでコンソールログを抑制する
 // ログは PowerShell で以下のコマンドで確認すること
 // gcloud functions logs read webhook --region=asia-northeast1 --project=inuichiba-ffprod
-/**
-if (isProd) {
+/** 
   console.log("🧪 NODE_ENVは本番環境反映済?(process.env.FUNCTION_TARGET):", process.env.FUNCTION_TARGET || "(not set)");
   console.log("✅ NODE_ENV(process.env.NODE_ENV):", process.env.NODE_ENV);
 	logSecretSafe("channelSecret(process.env.CHANNEL_SECRET_PROD):", process.env.CHANNEL_SECRET_PROD);
@@ -154,7 +153,6 @@ if (isProd) {
   console.log("📦 Supabase URL(process.env.SUPABASE_URL):", process.env.SUPABASE_URL);
   console.log("📦 Supabase Table PROD（process.env.SUPABASE_TABLE_NAME_PROD）:", process.env.SUPABASE_TABLE_NAME_PROD || "❌ undefined");
   console.log("📦 Supabase Key PROD（process.env.SUPABASE_SERVICE_ROLE_KEY_PROD読込）:", process.env.SUPABASE_SERVICE_ROLE_KEY_PROD ? "✅ OK" : "❌ NG");
-}
 */
 
 // ✅ すべての環境変数の読み込みと加工が終わった直後
@@ -169,6 +167,7 @@ if (!isProd) {
   console.log("📦 Supabase Table(usersTable):", usersTable);
   console.log("📦 supabaseKey:", supabaseKey ? "✅ OK" : "❌ NG");
 }
+
 
 // 🔒 ログに機密情報を出さないための安全な関数
 function logSecretSafe(label, value) {

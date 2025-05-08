@@ -1,6 +1,6 @@
 ﻿# ----------------------------------------------
 # Firebase Functions をデプロイし、
-# GCF由来の不要なバケットを削除する統合スクリプト
+# GCF由来の不要なバケットと Artifact Registry を削除する統合スクリプト
 # 使用例:
 #   powershell -ExecutionPolicy Bypass -File .\deploy-and-cleanup.ps1 -env ffprod
 #   powershell -ExecutionPolicy Bypass -File .\deploy-and-cleanup.ps1 -env ffdev
@@ -14,10 +14,12 @@ switch ($env) {
   "ffprod" {
     $projectId = "inuichiba-ffprod"
     $configFile = "firebase.ffprod.json"
+    $env:GOOGLE_APPLICATION_CREDENTIALS = "D:\nasubi\inuichiba_ff\deployer.ffprod.json"
   }
   "ffdev" {
     $projectId = "inuichiba-ffdev"
     $configFile = "firebase.ffdev.json"
+    $env:GOOGLE_APPLICATION_CREDENTIALS = "D:\nasubi\inuichiba_ff\deployer.ffdev.json"
   }
   default {
     Write-Host "❌ 未知の環境名です: $env" -ForegroundColor Red
