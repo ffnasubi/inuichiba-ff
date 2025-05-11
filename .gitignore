@@ -11,10 +11,6 @@ functions/package-lock.json
 # 今は.backup配下にある
 # policy-backup*.json
 
-# ダミー。FFデプロイに必要（空ファイル）→ Storageがないと怒られるため
-# このファイルを入れておくことで public/ バケット生成を防げるケースもある
-# git対象
-!ffdummy.txt
 
 # GCPのサービスアカウント鍵ファイル(鍵だから絶対gitに含めちゃ駄目)
 # ただしfirebase*.jsonはgit対象
@@ -30,9 +26,9 @@ deployer*.json
 .backup/
 
 # 画像ファイル
-public_input/images/
-public_input/carousel/
-public_input/save/
+public_input_backup_20250511/images/
+public_input_backup_20250511/carousel/
+public_input_backup_20250511/save/
 
 # Firebase CLI が生成する一時ファイル・キャッシュ
 .firebase/
