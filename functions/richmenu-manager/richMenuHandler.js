@@ -257,17 +257,17 @@ async function bYoichiCreateRichMenu() {
           bounds: { x: 0, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "アクティビティに関するご案内について" }
         },
-	    // B4(B3と同じ動作をする)
+	      // B4(空いてるところに入れた)
         {
           bounds: { x: wItem, y: (hTab+hItem), width: wItem, height: hItem },
-          action: { type: "message", text: "アクティビティに関するご案内について" }
+          action: { type: "message", text: "パークアンドライド(P&R)について" }
         },
-	    // B5
+	      // B5
         {
           bounds: { x: wItem*2, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "会場マップ\nショップリストについて" }
         },
-	    // B6
+	      // B6
         {
           bounds: { x:wItem*3, y:(hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "駐車場及びアクセス方法について" }

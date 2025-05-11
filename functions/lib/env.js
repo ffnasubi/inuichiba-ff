@@ -88,13 +88,11 @@ if (typeof envUrl === "string" && envUrl.length > 0) {
   supabaseUrl = envUrl.trim();
 }
 
-// コンテンツのホスティングURL（画像とカルーセルメッセージのベースパス）
-// URLとしてLINEへの通知用
-const baseDir = isProd
-  ? "https://inuichiba-ffprod.web.app/"
-  : "https://inuichiba-ffdev.web.app/";
+// コンテンツの Cloudflaire Pages の URL（画像とカルーセルメッセージのベースパス）
+// URLとしてLINEへの通知用(isProdに関わらずどちらも同じ)
+const baseDir = "https://inuichiba-ffimages.pages.dev/";
 
-// コンテンツの相対パス(ファイルとして読み込むとき。今はメニューだけだね)
+// コンテンツの相対パス(ファイルとして読み込むとき。今はリッチメニューだけだね)
 const path = require("path");
 const imageDir = path.resolve(__dirname, "../richmenu-manager/data/");
 

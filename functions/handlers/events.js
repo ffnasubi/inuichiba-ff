@@ -358,7 +358,7 @@ function setMannerCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/rules_arrival.jpg`
+            uri: `${baseDir}rules/rules_arrival.jpg`
           },
           style: "secondary",
           color: "#C8E6C9", // グリーン（ボタン）
@@ -398,7 +398,7 @@ function setMannerCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/rules_dog.jpg`
+            uri: `${baseDir}rules/rules_dog.jpg`
           },
           style: "secondary",
           color: "#FFD180", // オレンジ（ボタン）
@@ -438,7 +438,7 @@ function setMannerCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/rules_manner.jpg`
+            uri: `${baseDir}rules/rules_manner.jpg`
           },
           style: "secondary",
           color: "#C8E6C9", // グリーン（ボタン）
@@ -523,7 +523,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogrun1.jpg`
+            uri: `${baseDir}dogrun/view_dogrun1.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -564,7 +564,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogrun2_v1.jpg`
+            uri: `${baseDir}dogrun/view_dogrun2_v1.jpg`
           },
           style: "secondary",
           color: "#ffd180",
@@ -606,7 +606,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogrun3.jpg`
+            uri: `${baseDir}dogrun/view_dogrun3.jpg`
           },
           style: "secondary",
           color: "#FFD180",
@@ -648,7 +648,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogrun4.jpg`
+            uri: `${baseDir}dogrun/view_dogrun4.jpg`
           },
           style: "secondary",
           color: "#FFD180",
@@ -689,7 +689,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogrun_warning1.jpg`
+            uri: `${baseDir}dogrun/view_dogrun_warning1.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -737,7 +737,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogrun_warning2.jpg`
+            uri: `${baseDir}dogrun/view_dogrun_warning2.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -778,7 +778,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogrun_warning3.jpg`
+            uri: `${baseDir}dogrun/view_dogrun_warning3.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -861,7 +861,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogtypes_small_v1.jpg`
+            uri: `${baseDir}dogrun/view_dogtypes_small_v1.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -902,7 +902,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/view_dogtypes_all.jpg`
+            uri: `${baseDir}dogrun/view_dogtypes_all.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -1158,7 +1158,7 @@ function setDogRunCarouselMessage2() {
 function setParkingCarouselMessage() {
   const textMessage = {
     type: "text", 
-    text: messages.msgA61 + "\n\n" + messages.msgA62 + "\n\n" + messages.msgA63
+    text: messages.msgA61 + "\n\n\n" + messages.msgA62 + "\n\n\n" + messages.msgA63
   };
 
   const { baseDir } = require("../lib/env.js");

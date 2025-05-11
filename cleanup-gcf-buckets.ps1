@@ -26,6 +26,7 @@ switch ($env) {
 
 gcloud config set project $projectId | Out-Null
 
+# 🔍 まずバケット一覧を取得
 Write-Host "`n🔍 不要なバケットを検索中..." -ForegroundColor Cyan
 $buckets = gcloud storage buckets list --project=$projectId --format="value(name)"
 $bucketsToDelete = $buckets | Where-Object {
@@ -36,15 +37,36 @@ $bucketsToDelete = $buckets | Where-Object {
   $_ -like "staging.$projectId.appspot.com"
 }
 
+# 🔎 プロジェクト番号を取得して動的にバケット名を構築
+Write-Host "🔎 プロジェクト番号を取得中..." -ForegroundColor Cyan
+$projectNumber = (gcloud projects describe $projectId --format="value(projectNumber)")
+
+# 🔽 明示的な GCF v2 バケット（uploads / sources）を環境別に追加
+$explicitBuckets = @(
+  "gcf-v2-uploads-$projectNumber.asia-northeast1.cloudfunctions.appspot.com",
+  "gcf-v2-sources-$projectNumber-asia-northeast1"
+)
+foreach ($explicit in $explicitBuckets) {
+  if ($buckets -contains $explicit -and -not ($bucketsToDelete -contains $explicit)) {
+    Write-Host "➕ 明示的に削除対象に追加: $explicit" -ForegroundColor Cyan
+    $bucketsToDelete += $explicit
+  }
+}
+
+
 if ($bucketsToDelete.Count -eq 0) {
   Write-Host "✅ 削除対象バケットは見つかりませんでした。" -ForegroundColor Green
 } else {
   foreach ($bucket in $bucketsToDelete) {
+    Write-Host "🧹 中身を削除中: $bucket" -ForegroundColor Cyan
+    gsutil -m rm -r "gs://$bucket/**" 2>$null
+
     Write-Host "🗑️ 削除中: $bucket" -ForegroundColor Yellow
-    gcloud storage buckets delete $bucket --quiet
+    gcloud storage buckets delete "gs://$bucket" --quiet
   }
   Write-Host "`n✅ バケットのクリーンアップ完了！" -ForegroundColor Green
 }
+
 
 # Artifact Registry の gcf-artifacts リポジトリを削除
 Write-Host "`n🔍 Artifact Registry の gcf-artifacts を削除中..." -ForegroundColor Cyan

@@ -114,9 +114,9 @@ for (const { input, output } of targets) {
       if (mode === "normal") {
         baseSharp
 //        .resize({ width: 1200, withoutEnlargement: true })    // ★ 横幅を強制的に制限（1920→1200など）
-          .resize({ fit: "inside", withoutEnlargement: true })  // ファイルサイズが大きいなら避けた方がいい
+          .resize({ fit: "inside", withoutEnlargement: true })  // ファイルサイズが大きいなら避けて上の方法でどうぞ
           .jpeg({
-            quality: 85,              // 適度な質でサイズ抑制(元は85だが大きいときは65迄さげてOK)
+            quality: 75,              // 適度な質でサイズ抑制(元は85だが大きいときは65迄さげてOK)
             progressive: false,       // Baseline JPEG
             optimizeCoding: true,     // ハフマン符号化(JPEGへのデータ圧縮方法)をする。少し時間はかかるけどファイルが更に小さくなる
             chromaSubsampling: "4:4:4" // 色データ保持(LINE表示品質向上)

@@ -54,7 +54,7 @@ async function deleteRichMenusAndAliases() {
     for (const aliasId of ['switch-to-a', 'switch-to-b']) {
       try {
         await client.deleteRichMenuAlias(aliasId);
-        console.log(`❌ エイリアス '${aliasId}' を削除しました`);
+        console.log(`🧹 エイリアス '${aliasId}' を削除しました`);
       } catch (e) {
 				if (e.statusCode !== 404) {
 					throw e; // ← 404 以外は本当のエラーだから投げる

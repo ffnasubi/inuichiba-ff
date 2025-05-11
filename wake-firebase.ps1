@@ -1,6 +1,6 @@
 ﻿# wake-firebase.ps1
 # ===============================
-# Firebase Functions + Hosting + Secrets 復旧スクリプト
+# Firebase Functions + Secrets 復旧スクリプト
 # (詳細はwake-firebase.mdと★最低限覚えとこう.txtをよむこと)
 # Secrets 登録は .env.set_secrets.ps1 に一任する
 # ===============================
@@ -35,8 +35,8 @@ foreach ($envKey in $envKeys) {
     Write-Host "`n🧩 [$envKey] Firebase Functions をデプロイ中..." -ForegroundColor Cyan
 		powershell -ExecutionPolicy Bypass -File .\deploy-and-cleanup.ps1 -env $envKey
 
-    Write-Host "🧱 [$envKey] Firebase Hosting をデプロイ中..." -ForegroundColor Cyan
-		.\cleanup-hosting-and-deploy.ps1 -env $envKey
+#   Write-Host "🧱 [$envKey] Firebase Hosting をデプロイ中..." -ForegroundColor Cyan
+#	 .\cleanup-hosting-and-deploy.ps1 -env $envKey
 
     Write-Host "✅ [$envKey] の復旧処理完了！" -ForegroundColor Green
 }

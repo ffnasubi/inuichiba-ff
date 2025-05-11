@@ -1,7 +1,7 @@
-# Firebase Functions + Hosting 復旧手順
+# Firebase Functions 復旧手順
 
 ## 💡 目的
-一時休眠していた Firebase Functions（webhook）と Hosting を復元し、再び稼働できる状態に戻します。
+一時休眠していた Firebase Functions（webhook）を復元し、再び稼働できる状態に戻します。
 
 ---
 

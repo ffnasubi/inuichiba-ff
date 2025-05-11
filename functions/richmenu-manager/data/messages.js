@@ -126,6 +126,7 @@ const keywordMap = {
     "開催情報について":                   "tap_richMenuB1",
     "会場におけるマナーのお願いについて":   "tap_richMenuB2",
     "アクティビティに関するご案内について": "tap_richMenuB3",
+    "パークアンドライド(P&R)について":     "tap_richMenuB4",
     "会場マップ\nショップリストについて":   "tap_richMenuB5",
     "駐車場及びアクセス方法について":       "tap_richMenuB6"
 };

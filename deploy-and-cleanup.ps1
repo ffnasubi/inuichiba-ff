@@ -37,7 +37,9 @@ if ($LASTEXITCODE -ne 0) {
   exit 1
 }
 
-Write-Host "`n🧹 GCFバケットのクリーンアップを実行します..." -ForegroundColor Cyan
+
+Write-Host "`n🧹 GCFバケットとArtifact Registryのクリーンアップを実行します..." -ForegroundColor Cyan
 powershell -ExecutionPolicy Bypass -File .\cleanup-gcf-buckets.ps1 -env $env
+
 
 Write-Host "`n✅ デプロイ & クリーンアップ完了！" -ForegroundColor Green
