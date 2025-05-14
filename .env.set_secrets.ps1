@@ -147,8 +147,6 @@ if ($deleteOldVersions) {
   Write-Host "`n🚀 Firebase Deploy を実行中... ($projectId)" -ForegroundColor Cyan
   Write-Host "⚠️ この操作では古い Secret のバージョン削除確認が表示されます。削除する場合は 'y' を入力してください。" -ForegroundColor Yellow
 
-  & firebase deploy --only functions --project=$projectId
-
   if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Firebase Deploy 完了！" -ForegroundColor Green
   } else {

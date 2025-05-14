@@ -1,7 +1,7 @@
 ﻿# ===============================
-# Firebase 休眠スクリプト（FF + Artifact Registry + Hosting + Secret manager）
+# Firebase 休眠スクリプト（FF + Artifact Registry + Secret manager）
 # 対象: inuichiba-ffprod / inuichiba-ffdev の両方
-# これで課金対象からはずれる
+# これで課金対象からはずれる（その前にやること沢山あるから注意）
 # 実行方法
 # cd D:\nasubi\inuichiba_ff
 # powershell -ExecutionPolicy Bypass -File .\pause-firebase.ps1
@@ -25,33 +25,39 @@ foreach ($project in $projectIds) {
         }
     }
     
-			Write-Host "🌙 [$project] Firebase Functions 削除開始..."
+		Write-Host "🌙 [$project] Firebase Functions 削除開始..."
     foreach ($fn in $functions) {
         Write-Host "🧹 関数 $fn を削除中..."
         firebase functions:delete $fn --region $region --force --project=$project
     }
 
-    Write-Host "📦 Artifact Registry (gcf-artifacts) を削除中..."
-    gcloud artifacts repositories delete gcf-artifacts --location=$region --project=$project --quiet
-
-    Write-Host "🛑 Firebase Hosting を無効化中..."
-    firebase hosting:disable --project=$project
-
-    Write-Host "🚫 Hosting 全チャネルを削除中（Preview + live 含む）..."
-    $channels = firebase hosting:channel:list --project=$project --json | ConvertFrom-Json
-    foreach ($channel in $channels) {
-        $channelId = $channel.id
-        Write-Host "🗑 チャネル [$channelId] を削除中..."
-        firebase hosting:channel:delete $channelId --project=$project --force
+    Write-Host "📦 不要な Cloud Storage バケットと Artifact Registry を削除中..."
+    foreach ($project in $projectIds) {
+        Write-Host "🧹 [$project] バケット & Artifact のクリーンアップ中..."
+        powershell -ExecutionPolicy Bypass -File .\cleanup-gcf-buckets.ps1 -env $project
     }
 
     Write-Host "🔐 Secret Manager の全 Secret を削除中..."
-    $secrets = gcloud secrets list --project=$project --format="value(name)"
-    foreach ($secret in $secrets) {
-        Write-Host "🗑 Secret [$secret] を削除中..."
-        gcloud secrets delete $secret --project=$project --quiet
-    }   
+    foreach ($project in $projectIds) {
+      Write-Host "🔐 [$project] Secret Manager の全 Secret を確認中..."
+      $secrets = gcloud secrets list --project=$project --format="value(name)"
 
+      if ($secrets.Count -eq 0) {
+        Write-Host "✅ [$project] 削除対象の Secrets は存在しません。"
+      } else {
+        foreach ($secret in $secrets) {
+          Write-Host "🗑 [$project] Secret [$secret] を削除中..."
+          $result = gcloud secrets delete $secret --project=$project --quiet 2>&1
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "❌ [$project] Secret [$secret] の削除に失敗: $result" -ForegroundColor Red
+          } else {
+              Write-Host "✅ [$project] Secret [$secret] を削除しました。"
+          }
+        }  
+      }
+    } 
+
+    # 🧹 Cloud Run Functions を削除中（Functions v2の内部実体、再デプロイ時に復活します）
     Write-Host "🧹 Cloud Run Functions を削除中（保険的措置）..."
     $runServices = gcloud run services list --platform=managed --region=$region --project=$project --format="value(metadata.name)"
     foreach ($svc in $runServices) {

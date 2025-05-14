@@ -1,30 +1,26 @@
-﻿# deployer-create-service-account.ps1
-<#[
+﻿<#
 .SYNOPSIS
-  Firebase Functions デプロイ用のサービスアカウントを自動確認・作成・鍵発行するスクリプト
+Firebase Functions デプロイ用サービスアカウントを作成または確認し、鍵を再生成。
 
 .DESCRIPTION
-  - ffdev または ffprod 用のサービスアカウントを確認または作成
-  - 既存の鍵を自動取得し、すべて削除（安全な一括削除）
-  - 新しい鍵を JSON 形式でルートに保存
-  - サービスアカウントに roles/editor を自動付与
-  - 生成された JSON は reset-artifactregistry.ps1 や firebase deploy に使用可能
+- ffdev / ffprod 用の SA を作成（または確認）
+- 既存の鍵は削除
+- 新しい鍵を deployer.{env}.json として保存
 
 .PARAMETER env
-  対象環境。"ffdev" または "ffprod" のいずれか。
-  省略時は "ffdev"。
-  # ffdev用
-  .\deployer-create-service-account.ps1
-  # ffprod用
-  .\deployer-create-service-account.ps1 -env ffprod
+ffdev または ffprod（既定値は ffdev）
+
+.PARAMETER Method of Execution
+cd d:\nasubi\inuichiba_ff
+#ffprod
+powershell -ExecutionPolicy Bypass -File .\deployer-create-service-account.ps1 -env ffprod
+#ffdev
+powershell -ExecutionPolicy Bypass -File .\deployer-create-service-account.ps1 -env ffdev
 
 .NOTES
-  実行者には以下の IAM 権限が必要：
-    - roles/iam.serviceAccountAdmin           サービスアカウントの作成・管理
-    - roles/iam.serviceAccountKeyAdmin        鍵の作成・削除
-    - roles/resourcemanager.projectIamAdmin   他のメンバーへのロール付与（必要に応じて）
-  🔐 オーナー（Owner）権限がこれらを内包している場合もありますが、
-     明示的にロールを持つことが推奨されます。
+- この鍵ファイルは Git 管理外にしてください（.gitignore）
+- 鍵漏洩対策のため定期的に rotate 推奨(最低でも月1回、重要なら1日1回も可)
+
 #>
 
 # ─────────────────────────────
@@ -36,11 +32,11 @@
 #   1. サービスアカウント自体を削除→再作成したとき
 #   2. 鍵の漏洩や不正アクセスの疑いが発生したとき
 #   3. 組織のポリシーで定期ローテーションが義務付けられている場合
+#   結局2の対策で、定期的にローテーション推奨でしょう(3にもつながる) 
 #
 # ✅ 以下の場合は再発行不要
 #
 #   - gcf-artifactsリポジトリを削除・再作成しただけ
-#   - Firebaseプロジェクト側で設定変更しただけ
 #
 # ✅ 安全運用のための推奨事項
 #
@@ -49,81 +45,61 @@
 #   - 使用が終わったら `$env:GOOGLE_APPLICATION_CREDENTIALS` をクリア
 #     （例: `$env:GOOGLE_APPLICATION_CREDENTIALS=""`）
 #
-# ✅ もし再発行が必要になった場合の手順
-#
-#   1. 古い鍵をGCPコンソールまたはスクリプトで削除
-#   2. 新しい鍵を作成し、ルートに保存（例: deployer.ffdev.json）
-#   3. `$env:GOOGLE_APPLICATION_CREDENTIALS` を新しいファイルに設定
-#   4. テストデプロイで動作確認
-#
 # ─────────────────────────────
 
 
 param (
-  [ValidateSet("ffdev", "ffprod")]
-  [string]$env = "ffdev"
+  [ValidateSet("ffdev","ffprod")]
+  [string]$env="ffdev"
 )
 
-# 定数定義
 $projectId = "inuichiba-$env"
 $saName = "$env-inuichiba-deployer"
 $saEmail = "$saName@$projectId.iam.gserviceaccount.com"
 $outputJson = "deployer.$env.json"
 
+Write-Host "✅ Debug SA Email: $saEmail"
+
 Write-Host "🔍 プロジェクト: $projectId" -ForegroundColor Cyan
 Write-Host "🔍 サービスアカウント: $saEmail" -ForegroundColor Cyan
 
-# サービスアカウント存在確認
-$exists = gcloud iam service-accounts list --project=$projectId --format="value(email)" | Select-String $saEmail
-if (-not $exists) {
-  Write-Host "🆕 サービスアカウントを新規作成中..." -ForegroundColor Yellow
+# SA存在チェック
+$saList = gcloud iam service-accounts list --project=$projectId --format="value(email)"
+$exists = $saList | Where-Object { $_ -eq $saEmail }
+if ($exists) {
+  Write-Host "✅ サービスアカウントは既に存在します。" -ForegroundColor Green
+} else {
+  Write-Host "🆕 サービスアカウントを作成します..." -ForegroundColor Yellow
   gcloud iam service-accounts create $saName `
     --display-name="Firebase Deploy Service Account" `
     --project=$projectId
-} else {
-  Write-Host "✅ サービスアカウントは既に存在します。" -ForegroundColor Green
 }
 
-# roles/editor をプロジェクトレベルで付与
-Write-Host "🔐 サービスアカウントに roles/editor を付与中..." -ForegroundColor Cyan
-
-gcloud projects add-iam-policy-binding $projectId `
-  --member="serviceAccount:$saEmail" `
-  --role="roles/editor"
-
-# 既存の鍵の削除（すべて）
-Write-Host "🧹 既存の鍵を取得して削除中（使用中の鍵はスキップ）..." -ForegroundColor Yellow
-$keyIds = gcloud iam service-accounts keys list `
+# 既存鍵を削除（安全のため全削除）
+Write-Host "🧹 古い鍵を削除中..." -ForegroundColor Yellow
+$keyNames = gcloud iam service-accounts keys list `
   --iam-account=$saEmail `
   --project=$projectId `
-  --format="value(name.basename())"
+  --format="value(name)"
 
-foreach ($keyId in $keyIds) {
-  Write-Host "   🔻 削除: $keyId" -ForegroundColor DarkYellow
-  try {
-    gcloud iam service-accounts keys delete $keyId `
-      --iam-account=$saEmail `
-      --project=$projectId `
-      --quiet
-  } catch {
-    Write-Host "   ⚠️ 削除スキップ（使用中/ロック中の可能性あり）: $keyId" -ForegroundColor Magenta
-  }
+$keyIds = $keyNames | ForEach-Object {
+  ($_ -split "/")[-1]
 }
 
-# 新しい鍵の作成
-Write-Host "🔐 新しい鍵を作成し、$outputJson に保存中..." -ForegroundColor Cyan
+foreach ($keyId in $ketIds) {
+  Write-Host "   🗑️ 削除: $keyId"
+  gcloud iam service-accounts keys delete $keyId `
+    --iam-account=$saEmail `
+    --project=$projectId `
+    --quiet
+}
 
+# 鍵を再生成
+Write-Host "🔐 新しい鍵を生成中..." -ForegroundColor Cyan
 gcloud iam service-accounts keys create "$outputJson" `
   --iam-account=$saEmail `
   --project=$projectId
 
-# 完了メッセージ
-Write-Host "\n✅ 環境 [$env] 用の共通鍵を作成しました！" -ForegroundColor Yellow
-Write-Host "📌 次の環境変数を設定して使用してください(開発環境の場合):" -ForegroundColor Cyan
-Write-Host "   `$env:GOOGLE_APPLICATION_CREDENTIALS = \"$PWD\$outputJson\"" -ForegroundColor Green
+Write-Host "`n✅ 完了: $outputJson を生成しました。" -ForegroundColor Green
+Write-Host "📌 使用方法: `$env:GOOGLE_APPLICATION_CREDENTIALS = `"$PWD\$outputJson`"" -ForegroundColor Cyan
 
-Write-Host "`n📌 この共通鍵は以下の両方で使用可能です:" -ForegroundColor Cyan
-Write-Host "   - Firebase Functions をデプロイする場合（開発環境）:" -ForegroundSColor DarkCyan
-Write-Host "       firebase deploy --only functions --project=inuichiba-ffdev --config=firebase.ffdev.json --force" -ForegroundColor Green
-Write-Host "   - gcf-artifacts を削除し IAM ロールを再付与する場合（開発環境）:" -ForegroundColor DarkCyan
-Write-Host "       .\reset-artifactregistry.ps1 -projectId ffdev" -ForegroundColor Green

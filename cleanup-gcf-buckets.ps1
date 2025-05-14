@@ -1,5 +1,22 @@
 ﻿# ----------------------------------------------
 # GCF Gen1/Gen2 関連の不要な Cloud Storage バケットと Artifact Registry を削除
+# 
+# ✅ 安全指針（必ず守ってください）
+# 【削除OK】
+# - gcf-v2-sources-*
+# - gcf-v2-uploads-*
+# - gcf-sources-*
+# - staging.$projectId.appspot.com
+# - 明示的追加バケット:
+#     - gcf-v2-uploads-$projectNumber.asia-northeast1.cloudfunctions.appspot.com
+#     - gcf-v2-sources-$projectNumber-asia-northeast1
+# - Artifact Registry: gcf-artifacts（再作成されるため削除OK）
+#
+# 【削除禁止】
+# - $projectId-cloudfunctions（例: inuichiba-ffprod-cloudfunctions）
+#   - Firebase Hosting・Functions Gen2の運用必須バケット
+#   - 一度削除すると手動では再作成できません
+#
 # 使用例:
 #   powershell -ExecutionPolicy Bypass -File .\cleanup-gcf-buckets.ps1 -env ffprod
 #   powershell -ExecutionPolicy Bypass -File .\cleanup-gcf-buckets.ps1 -env ffdev
@@ -33,7 +50,6 @@ $bucketsToDelete = $buckets | Where-Object {
   $_ -like "gcf-v2-uploads*" -or
   $_ -like "gcf-v2-sources*" -or
   $_ -like "gcf-sources*" -or
-  $_ -like "*functions" -or
   $_ -like "staging.$projectId.appspot.com"
 }
 
@@ -80,5 +96,41 @@ if ($repoExists) {
 } else {
   Write-Host "⏭ gcf-artifacts は存在しませんでした。スキップします。" -ForegroundColor Gray
 }
+
+# ----------------------------------------------
+# ✅ 削除禁止バケット確認（必須）
+Write-Host "`n🔍 削除禁止バケット（$projectId-cloudfunctions）が存在するか確認..." -ForegroundColor Cyan
+$mustExistBucket = "$projectId-cloudfunctions"
+$exists = gcloud storage buckets list --project=$projectId --format="value(name)" | Where-Object { $_ -eq $mustExistBucket }
+
+if ($exists) {
+  Write-Host "✅ 削除禁止バケットは正常に存在します: gs://$mustExistBucket" -ForegroundColor Green
+  Write-Host "URL: https://console.cloud.google.com/storage/browser/$mustExistBucket?project=$projectId" -ForegroundColor Gray
+} else {
+  Write-Host "❌ 削除禁止バケットが見つかりません！復旧が必要です！" -ForegroundColor Red
+  Write-Host "URL（存在しないはず）: https://console.cloud.google.com/storage/browser/$mustExistBucket?project=$projectId" -ForegroundColor Red
+}
+
+# ✅ gcf-v2-* 系の削除確認
+Write-Host "`n🔍 不要な gcf-v2-* バケットが残っていないか確認..." -ForegroundColor Cyan
+$remainingV2Buckets = gcloud storage buckets list --project=$projectId --format="value(name)" | Where-Object { $_ -like "gcf-v2-*" }
+
+if ($remainingV2Buckets.Count -eq 0) {
+  Write-Host "✅ gcf-v2-* バケットはすべて削除済みです。" -ForegroundColor Green
+} else {
+  Write-Host "❌ 残っている gcf-v2-* バケット:" -ForegroundColor Red
+  $remainingV2Buckets | ForEach-Object { Write-Host " - gs://$_" -ForegroundColor Red }
+}
+
+# ✅ Artifact Registry の gcf-artifacts 確認
+Write-Host "`n🔍 Artifact Registry の gcf-artifacts が存在するか確認..." -ForegroundColor Cyan
+$repoExists = & gcloud artifacts repositories describe gcf-artifacts --location=asia-northeast1 --project=$projectId 2>$null
+if ($repoExists) {
+  Write-Host "❌ gcf-artifacts がまだ存在します！削除漏れの可能性あり。" -ForegroundColor Red
+  Write-Host "URL: https://console.cloud.google.com/artifacts/docker/$projectId/asia-northeast1/gcf-artifacts?project=$projectId" -ForegroundColor Red
+} else {
+  Write-Host "✅ gcf-artifacts は存在しません（削除済み）" -ForegroundColor Green
+}
+# ----------------------------------------------
 
 Write-Host "`n✅ クリーンアップ完了！" -ForegroundColor Green

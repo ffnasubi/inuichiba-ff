@@ -1,12 +1,14 @@
-﻿<#[
+﻿# 軽量リファクタ版 reset-artifactregistry.ps1（必要なロール付与と冪等性確保）
+
+# 以下コメントは、軽量リファクタ版作成前のものであることに留意すること（必要以上のロールが付与されてる説明有）
+<#[
 # reset-artifactregistry.ps1 
-# 実行方法 (管理者権限で)
-# cd "D:\nasubi\inuichiba_ff"
-# 実行例（管理者として PowerShell 起動後）
-# ffdev環境（デフォルト）
-# .\reset-artifactregistry.ps1
+# 実行方法 (管理者として PowerShell 起動後）
+cd D:\nasubi\inuichiba_ff
+# ffdev環境
+powershell -ExecutionPolicy Bypass -File .\reset-artifactregistry.ps1 -env ffdev
 # ffprod環境
-# .\reset-artifactregistry.ps1 -env ffprod
+powershell -ExecutionPolicy Bypass -File .\reset-artifactregistry.ps1 -env ffprod
 
 🔐 「サービスアカウントの秘密鍵 JSON（例：deployer.ffdev.json）の取得方法」
 ✅ 目的：
@@ -33,9 +35,6 @@ inuichiba-deployer@xxxx.iam.gserviceaccount.com
 環境	ファイル名	配置場所
 ffdev	deployer.ffdev.json	プロジェクトルート
 ffprod	deployer.ffprod.json	プロジェクトルート
-
-これの実行前に次を実行すること(上記jsonファイルを作ってくれる)
-./create-deployer-service-account.ps1 
 
 ※jsonファイルは.gitignore対象だから、gitに含めちゃダメ
 
@@ -95,6 +94,7 @@ ffdev / ffprod に対応（envは "ffdev" または "ffprod" のみ）。
 # 🔍 注意：
 #   これらのロール付与は最小限に見えて実は「Firebase Functionsを100%安定稼働させるための推奨構成」です。
 #   将来的なエラー（イメージ取得失敗、ビルド失敗）を防ぐためにも、本番・開発問わず統一することがベストです。
+# 
 
 param (
   [ValidateSet("ffdev", "ffprod")]
@@ -106,13 +106,14 @@ $projectFullId = "inuichiba-$env"
 $credentialFile = ".\deployer.$env.json"
 $region = "asia-northeast1"
 $repoName = "gcf-artifacts"
-$env:GOOGLE_APPLICATION_CREDENTIALS = "D:\nasubi\inuichiba_ff\deployer.$env.json"
+$env:GOOGLE_APPLICATION_CREDENTIALS = $credentialFile
 
 # 🔐 認証ファイル確認
 if (-not (Test-Path $credentialFile)) {
   Write-Host "❌ 認証ファイルが見つかりません: $credentialFile" -ForegroundColor Red
   exit 1
 }
+
 Write-Host "🔧 GOOGLE_APPLICATION_CREDENTIALS を設定中..." -ForegroundColor Cyan
 $env:GOOGLE_APPLICATION_CREDENTIALS = $credentialFile
 
@@ -121,22 +122,20 @@ Write-Host "🔎 プロジェクト番号を取得中..." -ForegroundColor Cyan
 $projectNumber = (gcloud projects describe $projectFullId --format="value(projectNumber)")
 
 # 必須API有効化
-Write-Host "🔗 必要なAPIを有効化中..." -ForegroundColor Cyan
+Write-Host "🔗 APIを有効化中..." -ForegroundColor Cyan
 gcloud services enable artifactregistry.googleapis.com --project=$projectFullId
 gcloud services enable cloudbuild.googleapis.com --project=$projectFullId
-
-Write-Host "⏳ API反映を安定化させるため待機中..." -ForegroundColor Cyan
-Start-Sleep -Seconds 30
+Start-Sleep -Seconds 10
 
 # 旧リポジトリ削除
-Write-Host "🚮 旧リポジトリ [$repoName] を削除中..." -ForegroundColor Yellow
-gcloud artifacts repositories delete $repoName `
-  --project=$projectFullId `
-  --location=$region `
-  --quiet
+Write-Host "🧹 旧リポジトリ削除..." -ForegroundColor Yellow
+$exists = gcloud artifacts repositories list --project=$projectFullId --location=$region --format="value(name)" | Where-Object { $_ -match $repoName }
+if ($exists) {
+  gcloud artifacts repositories delete $repoName --project=$projectFullId --location=$region --quiet
+}
 
 # 新リポジトリ作成
-Write-Host "✅ 新リポジトリ [$repoName] を作成中..." -ForegroundColor Yellow
+Write-Host "📦 新リポジトリ作成..." -ForegroundColor Green
 gcloud artifacts repositories create $repoName `
   --project=$projectFullId `
   --repository-format=docker `
@@ -144,25 +143,24 @@ gcloud artifacts repositories create $repoName `
   --description="For Firebase Cloud Functions builds"
 
 # 脆弱性スキャン無効化
-Write-Host "🚫 脆弱性スキャンの状態を確認中..." -ForegroundColor Yellow
+Write-Host "🚫 脆弱性スキャンの無効化..." -ForegroundColor Yellow
 $vulnStatus = gcloud artifacts repositories describe $repoName `
   --project=$projectFullId `
   --location=$region `
   --format="value(vulnerabilityScanningConfig.enablementState)"
 
 if ($vulnStatus -eq "SCANNING_ENABLED") {
-  Write-Host "⚠️ SCANNING_ENABLED → 無効化します..." -ForegroundColor Red
   gcloud beta artifacts repositories update $repoName `
     --project=$projectFullId `
     --location=$region `
     --clear-vulnerability-scanning
+  Write-Host "✅ 無効化しました（OK）。" -ForegroundColor Green
 } else {
-  Write-Host "✅ すでに無効（OK）です。" -ForegroundColor Green
+  Write-Host "✅ 既に無効です（OK）。" -ForegroundColor Green
 }
 
-# IAMロール付与（writer + reader）
+#  IAMロール付与（wreiter + reader）
 Write-Host "🔐 IAMロールを付与中..." -ForegroundColor Cyan
-
 $SERVICE_ACCOUNTS = @(
   "service-$projectNumber@serverless-robot-prod.iam.gserviceaccount.com",
   "service-$projectNumber@gcp-sa-cloudbuild.iam.gserviceaccount.com",
@@ -172,20 +170,18 @@ $SERVICE_ACCOUNTS = @(
 foreach ($sa in $SERVICE_ACCOUNTS) {
   Write-Host "➡️ writer: $sa" -ForegroundColor DarkCyan
   gcloud artifacts repositories add-iam-policy-binding $repoName `
-    --project=$projectFullId `
-    --location=$region `
+    --project=$projectFullId --location=$region `
     --member="serviceAccount:$sa" `
     --role="roles/artifactregistry.writer"
 
   Write-Host "➡️ reader: $sa" -ForegroundColor DarkCyan
   gcloud artifacts repositories add-iam-policy-binding $repoName `
-    --project=$projectFullId `
-    --location=$region `
+    --project=$projectFullId --location=$region `
     --member="serviceAccount:$sa" `
     --role="roles/artifactregistry.reader"
 }
 
-# Cloud Build サービスアカウント
+# Cloud Build サービスアカウントに IAM ロールを付与
 $CLOUD_BUILD = "$projectNumber@cloudbuild.gserviceaccount.com"
 Write-Host "📦 Cloud Build SA に IAM ロールを付与中..." -ForegroundColor DarkCyan
 gcloud projects add-iam-policy-binding $projectFullId `
@@ -196,20 +192,18 @@ gcloud projects add-iam-policy-binding $projectFullId `
   --role="roles/artifactregistry.reader"
 
 # GCF管理ロボット → reader
-$GCF_ADMIN_SA = "service-$projectNumber@gcf-admin-robot.iam.gserviceaccount.com"
-Write-Host "👤 GCF 管理SAに reader 権限を付与: $GCF_ADMIN_SA" -ForegroundColor DarkCyan
+$GCF_ADMIN = "service-$projectNumber@gcf-admin-robot.iam.gserviceaccount.com"
+Write-Host "👤 GCF 管理SAに reader 権限を付与: $GCF_ADMIN" -ForegroundColor DarkCyan
 gcloud artifacts repositories add-iam-policy-binding $repoName `
-  --project=$projectFullId `
-  --location=$region `
-  --member="serviceAccount:$GCF_ADMIN_SA" `
+  --project=$projectFullId --location=$region `
+  --member="serviceAccount:$GCF_ADMIN" `
   --role="roles/artifactregistry.reader"
 
 # Cloud Functions 実行用
 $COMPUTE_SA = "$projectNumber-compute@developer.gserviceaccount.com"
 Write-Host "🏃‍♂️ compute@developer に reader 権限: $COMPUTE_SA" -ForegroundColor DarkCyan
 gcloud artifacts repositories add-iam-policy-binding $repoName `
-  --project=$projectFullId `
-  --location=$region `
+  --project=$projectFullId --location=$region `
   --member="serviceAccount:$COMPUTE_SA" `
   --role="roles/artifactregistry.reader"
 
@@ -220,7 +214,8 @@ gcloud artifacts repositories describe $repoName `
   --location=$region `
   --format="value(vulnerabilityScanningConfig.enablementState)"
 
-# ✅ 完了メッセージ（ffdev版）
+ 
+# ✅ 完了メッセージ
 Write-Host "🌟 完了しました！このあと以下のコマンドを実行してください:" -ForegroundColor Cyan
 Write-Host "   Start-Sleep -Seconds 120" -ForegroundColor Green
 Write-Host "  "
