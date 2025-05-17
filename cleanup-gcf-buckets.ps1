@@ -98,17 +98,34 @@ if ($repoExists) {
 }
 
 # ----------------------------------------------
-# ✅ 削除禁止バケット確認（必須）
-Write-Host "`n🔍 削除禁止バケット（$projectId-cloudfunctions）が存在するか確認..." -ForegroundColor Cyan
-$mustExistBucket = "$projectId-cloudfunctions"
-$exists = gcloud storage buckets list --project=$projectId --format="value(name)" | Where-Object { $_ -eq $mustExistBucket }
+# ✅ 削除禁止バケットの存在チェック（ffprod限定）
+# 
+# ▼ なぜ ffprod だけチェックするのか？
+# - ffprod は過去に GCF v1 でデプロイされた歴史がある
+# - GCF v2 に移行した現在も、プロジェクト内部で v1 の遺産（バケット紐付け）が残っている
+# - このバケット（$projectId-cloudfunctions）が存在しないと ffprod はデプロイエラーになる
+# - 実際、Cloudflare Pages へ移行後も、ffprod のデプロイ時に「バケットが無い」とエラーが発生した
+# - そのため「削除禁止」としてわざわざ作成し、今後も保護する方針にしている
+#
+# ▼ 一方、ffdev は初回から GCF v2 世代で作られており、このバケットを必要としない
+# - ffdev はバケットが無くても問題なくデプロイが通る（v2 + Artifact Registryベース）
+# - よって ffdev ではこのチェックは不要（意図的にスキップする）
+# 
+# → ffprod だけチェックするのが、運用方針として適切
+if ($projectId -eq "inuichiba-ffprod") {
+  Write-Host "`n🔍 削除禁止バケット（$projectId-cloudfunctions）が存在するか確認..." -ForegroundColor Cyan
+  $mustExistBucket = "$projectId-cloudfunctions"
+  $exists = gcloud storage buckets list --project=$projectId --format="value(name)" | Where-Object { $_ -eq $mustExistBucket }
 
-if ($exists) {
-  Write-Host "✅ 削除禁止バケットは正常に存在します: gs://$mustExistBucket" -ForegroundColor Green
-  Write-Host "URL: https://console.cloud.google.com/storage/browser/$mustExistBucket?project=$projectId" -ForegroundColor Gray
+  if ($exists) {
+    Write-Host "✅ 削除禁止バケットは正常に存在します: gs://$mustExistBucket" -ForegroundColor Green
+    Write-Host "URL: https://console.cloud.google.com/storage/browser/$mustExistBucket?project=$projectId" -ForegroundColor Gray
+  } else {
+    Write-Host "❌ 削除禁止バケットが見つかりません！復旧が必要です！" -ForegroundColor Red
+    Write-Host "URL（存在しないはず）: https://console.cloud.google.com/storage/browser/$mustExistBucket?project=$projectId" -ForegroundColor Red
+  }
 } else {
-  Write-Host "❌ 削除禁止バケットが見つかりません！復旧が必要です！" -ForegroundColor Red
-  Write-Host "URL（存在しないはず）: https://console.cloud.google.com/storage/browser/$mustExistBucket?project=$projectId" -ForegroundColor Red
+  Write-Host "`n🔍 [$projectId] では削除禁止バケットの存在チェックはスキップします（ffprodのみ実行）" -ForegroundColor Yellow
 }
 
 # ✅ gcf-v2-* 系の削除確認

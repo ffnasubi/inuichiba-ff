@@ -6,7 +6,7 @@
 // ✅ 最初に必要なモジュールを読み込む
 const functions = require("firebase-functions/v2");
 const express = require("express");
-const { webhook } = require("./api/webhook"); 
+// const { webhook } = require("./api/webhook"); 
 const { middleware } = require("@line/bot-sdk");
 const { handleEvent } = require("./handlers/events.js");
 const region = "asia-northeast1";

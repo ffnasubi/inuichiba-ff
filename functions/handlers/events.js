@@ -19,7 +19,7 @@ async function handleEvent(event, ACCESS_TOKEN) {
       break;
 
     case 'postback':
-      await handlePostbackEvent(event, ACCESS_TOKEN);
+      await handlePostbackEvent(event);
       break;
 
     case 'follow':
@@ -168,24 +168,27 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
     messages = mediaMessages[data];
   } else if (textMessages[data]) {
     messages = textMessages[data];
-  } else if (data == "tap_richMenuA2") {
+  } 
+  // フレックスメッセージはテキストとフレックスが配列じゃなく展開されてくるので、
+  // そのままま全部受け取る
+  else if (data == "tap_richMenuA2") {
     carouselFlg = true;
-    [textMessage, flexMessage] = setMannerCarouselMessage();
+    messages = setMannerCarouselMessage();
   } else if (data == "tap_richMenuA4") {
     carouselFlg = true;
-    [textMessage, flexMessage] = setDogRunCarouselMessage();
+    messages = setDogRunCarouselMessage();
   } else if (data == "tap_richMenuA5") {
     carouselFlg = true;
-    [textMessage, flexMessage] = setDogRunCarouselMessage2();
+    messages = setDogRunCarouselMessage2();
   } else if (data == "tap_richMenuA6") {
     carouselFlg = true;
-    [textMessage, flexMessage] = setParkingCarouselMessage();
+    messages = setParkingCarouselMessage();
   } else if (data == "tap_richMenuA7") {
     carouselFlg = true;
-    [textMessage, flexMessage] = setPandRCarouselMessage();
+    messages = setPandRCarouselMessage();
   } else if (data == "tap_richMenuB5") {
     carouselFlg = true;
-    [textMessage, flexMessage] = setMapCarouselMessage();
+    messages = setMapCarouselMessage();
   }
 
   try {
@@ -197,32 +200,37 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
     if (!isProd) console.warn(`⚠️ message 絵文字メッセージの構築失敗: ${error.message}`);
   }
 
-  // 配列で初期化してればいきなり0かと聞いても大丈夫(配列が0個と返すから)
-  if (messages.length > 0 && !isProd) {
-    console.log("Reply Token:", replyToken);
-    console.log("送信メッセージ:", JSON.stringify(messages, null, 2));
+  
+  // カルーセルメッセージか？
+  if (carouselFlg) {
+    // フレックスメッセージ部分だけを入れる
+    const flexMsg = messages.find(m => m.type === "flex");
+
+    if (flexMsg) {
+      if (!isProd) console.log("📦 Flex Message 部分:", JSON.stringify(flexMsg, null, 2));
+    } else {
+      console.error("❌ Flex Message が見つかりません（type:flex がありません）");
+    }
+    if (!isProd) console.log("🚀 送信するメッセージ一覧:", JSON.stringify(messages, null, 2));
+  } else {
+    // 配列で初期化してればいきなり0かと聞いても大丈夫(配列が0個と返すから)
+    if (messages.length > 0 && !isProd) {
+      console.log("Reply Token:", replyToken);
+      console.log("送信メッセージ:", JSON.stringify(messages, null, 2));
+    }
   }
 
-  if (carouselFlg) {
-    await sendReplyMessage(replyToken, [textMessage, flexMessage], ACCESS_TOKEN);
-  } else {
-    await sendReplyMessage(replyToken, messages, ACCESS_TOKEN);
-  }
+
+  // 送信(書き込みは呼び出し側で行う)
+  await sendReplyMessage(replyToken, messages, ACCESS_TOKEN);
 
 }
 
 
 // ///////////////////////////////////////////
 // メニュー切り替え時に通知されるpostback処理を行う
-async function handlePostbackEvent(event, ACCESS_TOKEN) {
-  const userId = event.source?.userId ?? null;
-  const groupId =
-    event.source?.type === "group" ? event.source.groupId :
-    event.source?.type === "room"  ? event.source.roomId :
-    null;
-  const sourceType = event.source?.type ?? null;  // 'user' | 'group' | 'room'
+async function handlePostbackEvent(event) {
   const data = event.postback.data;
-  const eventType = "postback";
 
   const { isProd } = require("../lib/env.js");
     
@@ -322,10 +330,17 @@ function buildEmojiMessage(templateKey, mBody) {
 }
 
 
-
+// ----------- ↓ ここからカルーセルメッセージたち ↓ -----------
 // ///////////////////////////////////////////// 
 // GOOD MANNERSをカルーセルメッセージにする
 function setMannerCarouselMessage() {
+  // ✅【超重要】カルーセル用のテキストを設定するときは必ずコレ！
+  // ・messages.js から取るときは → ✅ messages.msgXXX にすること！
+  // ・❌ msgXXX だけだと100%エラーになります（💥ReferenceError）
+  // ・そのエラー、原因特定が地獄になるよー（経験者は語る）
+  //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
+  // 
+  // ✅ 正しい書き方：messages.msgA61
   const textMessage = {
     type: "text",
     text: messages.msgA2
@@ -462,20 +477,27 @@ function setMannerCarouselMessage() {
     }
   };
 
-  const { isProd } = require("../lib/env.js");
+  
+  // textMessage が配列ならそのまま使う、単体なら配列に包む
+  const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
+  
+  // ✅ テキストの配列を展開して、
+  // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
+  return [...textMessagesArray, flexMessage];
 
-  if (!isProd) {
-    console.log("📦 Flex Message 中身:", JSON.stringify(flexMessage, null, 2));
-    console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
-  }
-
-  return [textMessage, flexMessage];
 }
 
 
 // ///////////////////////////////////////////// 
 // ドッグランの留意事項をカルーセルメッセージにする(テキスト版)
 function setDogRunCarouselMessage() {
+  // ✅【超重要】カルーセル用のテキストを設定するときは必ずコレ！
+  // ・messages.js から取るときは → ✅ messages.msgXXX にすること！
+  // ・❌ msgXXX だけだと100%エラーになります（💥ReferenceError）
+  // ・そのエラー、原因特定が地獄になるよー（経験者は語る）
+  //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
+  // 
+  // ✅ 正しい書き方：messages.msgA61
   const textMessage = {
     type: "text",
     text: messages.msgA4
@@ -930,20 +952,27 @@ function setDogRunCarouselMessage() {
     }
   };
 	
-  const { isProd } = require("../lib/env.js");
+  
+  // textMessage が配列ならそのまま使う、単体なら配列に包む
+  const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
+  
+  // ✅ テキストの配列を展開して、
+  // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
+  return [...textMessagesArray, flexMessage];
 
-  if (!isProd) {
-    console.log("📦 Flex Message 中身:", JSON.stringify(flexMessage, null, 2));
-    console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
-  }
-
-  return [textMessage, flexMessage];
 }
   
 
 // ///////////////////////////////////////////// 
 // ドッグランの留意事項をカルーセルメッセージにして出力する(図を2分割した版)
 function setDogRunCarouselMessage2() {
+  // ✅【超重要】カルーセル用のテキストを設定するときは必ずコレ！
+  // ・messages.js から取るときは → ✅ messages.msgXXX にすること！
+  // ・❌ msgXXX だけだと100%エラーになります（💥ReferenceError）
+  // ・そのエラー、原因特定が地獄になるよー（経験者は語る）
+  //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
+  // 
+  // ✅ 正しい書き方：messages.msgA61
   const textMessage = {
     type: "text",
     text: messages.msgA5
@@ -1140,27 +1169,36 @@ function setDogRunCarouselMessage2() {
       type: "carousel",
       contents: carouselContents
     }
+    
   };
 	
-  const { isProd } = require("../lib/env.js");
+  
+  // textMessage が配列ならそのまま使う、単体なら配列に包む
+  const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
+  
+  // ✅ テキストの配列を展開して、
+  // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
+  return [...textMessagesArray, flexMessage];
 
-  if (!isProd) {
-    console.log("📦 Flex Message 中身:", JSON.stringify(flexMessage, null, 2));
-    console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
-  }
-
-  return [textMessage, flexMessage];
 }
 
 
 // ///////////////////////////////////////////// 
 // PARKING(駐車場及びアクセス方法)をカルーセルメッセージにする
 function setParkingCarouselMessage() {
-  const textMessage = {
-    type: "text", 
-    text: messages.msgA61 + "\n\n\n" + messages.msgA62 + "\n\n\n" + messages.msgA63
-  };
-
+  // ✅【超重要】カルーセル用のテキストを設定するときは必ずコレ！
+  // ・messages.js から取るときは → ✅ messages.msgXXX にすること！
+  // ・❌ msgXXX だけだと100%エラーになります（💥ReferenceError）
+  // ・そのエラー、原因特定が地獄になるよー（経験者は語る）
+  //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
+  // 
+  // ✅ 正しい書き方：messages.msgA61
+  const textMessage =  [
+    { type: "text", text: messages.msgA61 },
+    { type: "text", text: messages.msgA62 },
+    { type: "text", text: messages.msgA63 }
+  ];
+  
   const { baseDir } = require("../lib/env.js");
 
   const flex_message1 = {
@@ -1215,20 +1253,34 @@ function setParkingCarouselMessage() {
     }
   };
 	
-  const { isProd } = require("../lib/env.js");
+  
+  // textMessage は常に [ {type: text, ～}, {type: text, ～} ] (配列)形式で送ってくる
+  // ひとつつのメッセージでもいったん配列形式にする
+  // そして...(スプレッド構文)をつけることで、textMessage(配列)の内容を展開する
+  // 例えばmessages.msga61, messages.msga62, messages.msga63, flexMessage 
+  // のように展開して順番で受け手側に渡すことができる 
+  // 後はLINEがテキストならテキスト処理、カルーセルならカルーセル処理を行うだけ
 
-  if (!isProd) {
-    console.log("📦 Flex Message 中身:", JSON.stringify(flexMessage, null, 2));
-    console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
-  }
+  // textMessage が配列ならそのまま使う、単体なら配列に包む
+  const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
+  
+  // ✅ テキストの配列を展開して、
+  // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
+  return [...textMessagesArray, flexMessage];
 
-  return [textMessage, flexMessage];
 }
 
 
 // ///////////////////////////////////////////// 
 // P&R(パークアンドライド)をカルーセルメッセージにする
 function setPandRCarouselMessage() {
+  // ✅【超重要】カルーセル用のテキストを設定するときは必ずコレ！
+  // ・messages.js から取るときは → ✅ messages.msgXXX にすること！
+  // ・❌ msgXXX だけだと100%エラーになります（💥ReferenceError）
+  // ・そのエラー、原因特定が地獄になるよー（経験者は語る）
+  //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
+  // 
+  // ✅ 正しい書き方：messages.msgA61
   const textMessage = {
     type: "text", 
     text: messages.msgA7
@@ -1388,20 +1440,27 @@ function setPandRCarouselMessage() {
     }
   };
 	
-  const { isProd } = require("../lib/env.js");
+  
+  // textMessage が配列ならそのまま使う、単体なら配列に包む
+  const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
+  
+  // ✅ テキストの配列を展開して、
+  // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
+  return [...textMessagesArray, flexMessage];
 
-  if (!isProd) {
-    console.log("📦 Flex Message 中身:", JSON.stringify(flexMessage, null, 2));
-    console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
-  }
-
-  return [textMessage, flexMessage];
 }
 
 
 // ///////////////////////////////////////////// 
 // MAP(会場マップ/ショップリスト)をカルーセルメッセージにする
 function setMapCarouselMessage() {
+  // ✅【超重要】カルーセル用のテキストを設定するときは必ずコレ！
+  // ・messages.js から取るときは → ✅ messages.msgXXX にすること！
+  // ・❌ msgXXX だけだと100%エラーになります（💥ReferenceError）
+  // ・そのエラー、原因特定が地獄になるよー（経験者は語る）
+  //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
+  // 
+  // ✅ 正しい書き方：messages.msgA61
   const textMessage = {
     type: "text",
     text: messages.msgB5
@@ -1501,14 +1560,14 @@ function setMapCarouselMessage() {
     }
   };
 	
-  const { isProd } = require("../lib/env.js");
+  
+  // textMessage が配列ならそのまま使う、単体なら配列に包む
+  const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
+  
+  // ✅ テキストの配列を展開して、
+  // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
+  return [...textMessagesArray, flexMessage];
 
-  if (!isProd) {
-    console.log("📦 Flex Message 中身:", JSON.stringify(flexMessage, null, 2));
-    console.log("🚀 実際に送るメッセージ:", [textMessage, flexMessage]);
-  }
-
-  return [textMessage, flexMessage];
 }
 
 
