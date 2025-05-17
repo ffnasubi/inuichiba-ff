@@ -10,7 +10,6 @@
       "SUPABASE_SERVICE_ROLE_KEY_DEV",
       "SUPABASE_TABLE_NAME_DEV"
     ]
-
   },
   "hosting": {
     "public": "public",
@@ -23,26 +22,6 @@
       {
         "source": "/api/**",
         "function": "webhook"
-      }
-    ],
-    "headers": [
-      {
-        "source": "**/*.@(jpg|jpeg|png|gif|webp)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public,max-age=5184000,immutable"
-          }
-        ]
-      },
-      {
-        "source": "**/*.@(json|js)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public,max-age=604800"
-          }
-        ]
       }
     ]
   }
