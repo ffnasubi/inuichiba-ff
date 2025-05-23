@@ -12,7 +12,7 @@ jobs:
       - name: Ping Supabase tables
         run: |
           echo "🔁 Supabase 複数テーブルの ping を開始します..."
-          for table in healthcheck_view users_ffprod users_ffdev users_prod; do
+          for table in users_ffprod users_ffdev users_prod; do
             echo ""
             echo "🔸 $table を ping 中..."
             status=$(curl -s -o /dev/null -w "%{http_code}" \
