@@ -1,0 +1,18 @@
+name: Monthly Supabase Ping
+
+on:
+  schedule:
+    - cron: '0 3 1 * *'  # 毎月1日 日本時間12:00（JST）に実行
+  workflow_dispatch:       # 手動でも実行できるように
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase healthcheck_view
+        run: |
+          echo "🔁 Supabase ping 実行中..."
+          curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            "${{ secrets.SUPABASE_PROJECT_URL }}/rest/v1/healthcheck_view"
+
