@@ -1,39 +1,34 @@
-﻿# .env.set_secrets.ps1 - Secrets 登録＋Firebase Deploy＋古いバージョン削除（確認付き）＋状態一覧出力
+﻿# .env.set_secrets.ps1（環境依存Secrets + 共通Secrets対応版）
+# ✅ .env.secrets.ff*.txt から環境別キー（_PROD / _DEV）を登録
+# ✅ SUPABASE_SERVICE_ROLE_KEY など共通キーは環境にかかわらず常に登録
+
+# .env.set_secrets.ps1 - Secrets 登録＋古いバージョン削除（確認付き）＋状態一覧出力
 # .env.secrets.ffprod.txt/.env.secrets.ffdev.txt を読み込んで Firebase Secrets に一括登録
-# secrets登録先を間違えてautomaticにして、課金対象にならないように
-# gcloud secrets create に --replication-policy=user-managed --locations=asia-northeast1 に変更
+# secrets登録先を間違えてautomaticにして、課金対象にならないようにする(正しくは以下)
+# gcloud secrets create を --replication-policy=user-managed --locations=asia-northeast1 に変更
 
 # .ps1のファイル形式は UTF-8(BOM付き) であること
-# ただしNODE_ENVは手入力で入れることが推奨されているためここには含まれない
-# 値の確認は最後にできるのでそこで確認すること(定義し忘れるなよー)
 
-# 実行方法(管理者権限で)
-# firebase login
-# cd "D:\nasubi\inuichiba_ff"
-# 開発環境(ffdev)に Secrets を登録（既定値）して古いバージョンも削除（課金されないため、オススメはこちら）
-# powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -deleteOldVersions
-# 本番環境(ffprod)に登録
-# powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -env ffprod
-# 本番環境に登録して古いバージョンも削除（課金されないため、オススメはこちら）
-# powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -env ffprod -deleteOldVersions
+# 課金はプロジェクト単位ではなく、クレジットカード単位と思うこと(ffprod/ffdev含めて10個まで無料)
+# しかもバージョン毎に課金される
+# だからできるだけバージョンは1にとどめ、2以降になっちゃったら以前のものはすぐdestroyすること(disabledじゃダメ)
 
 # 環境ごとの設定
 # .env.set_secrets.ps1
-# 指定した環境（ffdev / ffprod）に対応する Secrets を Firebase Secret Manager に登録し、
-# 必要に応じて Firebase Functions を --deleteOldVersions 付きでデプロイ。
-# 実行例：
-#   powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -Env ffdev -deleteOldVersions
+# 指定した環境（ffdev / ffprod）に対応する Secrets を Firebase Secret Manager に登録し、複数登録は
+# 以前のものを削除すること
 
-# .env.set_secrets.ps1 - Secrets 登録＋Firebase Deploy＋古いバージョン削除（確認付き）＋状態一覧出力
+# .env.set_secrets.ps1 - Secrets 登録+古いバージョン削除（確認付き）＋状態一覧出力
 # ========================================================================
-# ✅ 使い方：
-# powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -Env ffdev -deleteOldVersions
-# -Env: ffdev または ffprod を指定（省略可／既定値 ffdev）
-# -deleteOldVersions: deploy 後に古い Secrets バージョンを確認付きで削除（省略可）
+# ✅ 使い方(管理者権限で)：
+# powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -Env ffdev  -deleteOldVersions
+# powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -Env ffprod -deleteOldVersions
+# -deleteOldVersions: 古い Secrets バージョンを確認付きで削除（省略可だけど省略しないでね）
 #
-# 🔐 Secrets 定義ファイルは以下の形式で用意してください：
+# 🔐 Secrets 定義ファイルは以下の形式でルートに用意してください：
 # .env.secrets.ffdev.txt / .env.secrets.ffprod.txt
-#   例: CHANNEL_SECRET_DEV=abc123
+#   内容例: CHANNEL_SECRET_DEV=abc123 	← =の前後にはスペース不可
+#   内容例: # CHANNEL_SECRET_DEV=abc123 ← 1列目に# を入れればコメントとみなされる
 # ========================================================================
 
 param(
@@ -57,12 +52,6 @@ if (-not (Test-Path $envPath)) {
   Write-Host "❌ Secretsファイルが見つかりません。: $envPath" -ForegroundColor Red
   exit 1 
 }
-
-# Secret Manager API を有効化（初回のみ）
-Write-Host "🚀 [$Env] Secrets 再登録処理開始..." -ForegroundColor Cyan
-& gcloud services enable secretmanager.googleapis.com --project=$projectId | Out-Null
-
-# Secretsファイルの存在確認
 if (-not (Test-Path $envPath)) {
   Write-Host "❌ Secretsファイルが見つかりません: $envPath" -ForegroundColor Red
   exit 1
@@ -72,6 +61,18 @@ if (-not (Test-Path $envPath)) {
 Write-Host "📋 登録前の Secrets 一覧:" -ForegroundColor Yellow
 Invoke-Expression "gcloud secrets list --project=$projectId --format='table(name, replication.policy)'"
 
+# Secret Manager API を有効化（初回のみ）
+Write-Host "🚀 [$Env] Secrets の登録を開始します（.envファイル準拠）..." -ForegroundColor Cyan
+& gcloud services enable secretmanager.googleapis.com --project=$projectId | Out-Null
+
+# 登録対象の prefix を判定（例: _PROD または _DEV）
+if ($Env -eq "ffprod") {
+  $envSuffix = "_PROD"
+} else {
+  $envSuffix = "_DEV"
+}
+$commonKeys = @("SUPABASE_SERVICE_ROLE_KEY")
+
 # Secrets の登録処理開始
 $lines = Get-Content $envPath -Encoding UTF8
 
@@ -80,12 +81,18 @@ foreach ($line in $lines) {
 
   $parts = $line -split "=", 2
   if ($parts.Count -ne 2) {
-    Write-Host "⚠️ 無効な形式の行: $line" -ForegroundColor Yellow
+    Write-Host "⚠️ 無効な形式の行のためスキップします: $line" -ForegroundColor Yellow
     continue
   }
 
   $key = $parts[0].Trim()
   $value = $parts[1].Trim()
+
+  # 共通キーは常に登録、それ以外は _PROD または _DEV のみ登録
+  if (-not ($commonKeys.Contains($key) -or $key -like "*$envSuffix")) {
+    Write-Host "⏭ 無視: $key はこの環境の登録対象外のためスキップ" -ForegroundColor Gray
+    continue
+  }
 
   $exists = & gcloud secrets describe $key --project=$projectId 2>$null
   if ($exists) {
@@ -220,14 +227,14 @@ foreach ($secret in $allSecrets) {
 # 使い方ヒントを表示
 Write-Host "`n💡 補足：バージョン操作の参考コマンド" -ForegroundColor Cyan
 Write-Host "🔸 特定バージョンを削除する場合：" -ForegroundColor Yellow
-Write-Host "    gcloud secrets versions destroy VERSION_NUMBER(1とか2とか) --secret=SECRET_NAME --project=$projectId --quiet"
+Write-Host "    gcloud secrets versions destroy VERSION_NUMBER(1or2or..) --secret=SECRET_NAME --project=$projectId --quiet"
 Write-Host "🔸 特定バージョンを ENABLED に戻す場合：" -ForegroundColor Yellow
 Write-Host "    gcloud secrets versions enable VERSION_NUMBER --secret=SECRET_NAME --project=$projectId"
-Write-Host "🔸 特定バージョンを DISABLED に変更する場合：" -ForegroundColor Yellow
+Write-Host "🔸 特定バージョンを DISABLED に変更する場合(通常使わない)：" -ForegroundColor Cyan
 Write-Host "    gcloud secrets versions disable VERSION_NUMBER --secret=SECRET_NAME --project=$projectId"
 
 
 # 完了メッセージ
-Write-Host "`n🌟 [$Env] Secrets 登録がすべて完了しました！PowerShellを閉じて大丈夫です。" -ForegroundColor Green
+Write-Host "`n🌟 [$Env] Secrets 登録がすべて完了しました！" -ForegroundColor Green
 exit 0
 

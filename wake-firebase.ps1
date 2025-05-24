@@ -18,7 +18,7 @@ $envKeys = @("ffprod", "ffdev")
 # $projectIdMap = @{ ffprod = "inuichiba-ffprod"; ffdev = "inuichiba-ffdev" }
 # $configFileMap = @{ ffprod = "firebase.ffprod.json"; ffdev = "firebase.ffdev.json" }
 # $credentialsMap = @{
-#     ffprod = "D:\nasubi\inuichiba_ff\deployer.ffprod.json"
+#    ffprod = "D:\nasubi\inuichiba_ff\deployer.ffprod.json"
 #    ffdev  = "D:\nasubi\inuichiba_ff\deployer.ffdev.json"
 # }
   
@@ -27,7 +27,7 @@ foreach ($envKey in $envKeys) {
 #   $configFile = $configFileMap[$envKey]
     $env:GOOGLE_APPLICATION_CREDENTIALS = "D:\nasubi\inuichiba_ff\deployer.$envKey.json"
 
-    Write-Host "`n🚀 [$envKey] Secrets 再登録処理開始..." -ForegroundColor Cyan
+    Write-Host "`n🚀 [$envKey] Secrets 登録処理開始..." -ForegroundColor Cyan
 
     # Secretsの再登録（us-central1回避用に別スクリプトを呼ぶ）
     powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -Env $envKey -deleteOldVersions

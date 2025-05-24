@@ -13,12 +13,10 @@ param (
 switch ($env) {
   "ffprod" {
     $projectId = "inuichiba-ffprod"
-    $configFile = "firebase.ffprod.json"
     $env:GOOGLE_APPLICATION_CREDENTIALS = "D:\nasubi\inuichiba_ff\deployer.ffprod.json"
   }
   "ffdev" {
     $projectId = "inuichiba-ffdev"
-    $configFile = "firebase.ffdev.json"
     $env:GOOGLE_APPLICATION_CREDENTIALS = "D:\nasubi\inuichiba_ff\deployer.ffdev.json"
   }
   default {
@@ -30,7 +28,7 @@ switch ($env) {
 Write-Host "`n🚀 デプロイを開始します（環境: $env）..." -ForegroundColor Cyan
 gcloud config set project $projectId | Out-Null
 
-firebase deploy --only functions --project=$projectId --config=$configFile --force
+firebase deploy --only functions --project=$env --force
 
 if ($LASTEXITCODE -ne 0) {
   Write-Host "❌ Firebase Functions のデプロイに失敗しました。クリーンアップを中止します。" -ForegroundColor Red

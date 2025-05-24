@@ -1,194 +1,160 @@
 // lib/env.js
-// ================================
-// Firebase Functions 向けの環境変数設定ファイル
-// ✅ Firebase Functions で使用する Secrets を環境ごとに切り替えて提供
-// 🔐 NODE_ENV によって "production" → 本番 / その他 → 開発と判定
+// =======================================
+// ✅ Firebase Functions 向け 環境変数定義ファイル
+// ---------------------------------------
+// 💡 本ファイルは Secrets や定数の安全かつ柔軟な管理を目的としています。
+// 🔐 機密性の高い値（アクセストークンやAPIキーなど）は、Secretsとして Firebase に登録しておき、
+//    ここでは projectId（GCLOUD_PROJECT）を元に、環境（本番 / 開発）を自動判定して出し分けます。
 // -------------------------------
 // ✅ ポイント：変数定義 → 条件分岐 → ログ出力 の順序を厳守！
 // Firebaseでは Secrets が非同期で反映されることがあるため、
 // 順番を間違えると「undefined」「未定義のままログ出力」になりやすい
-// ================================
+// =======================================
 
 
-// 1. NODE_ENV のデフォルト設定（明示的に）
-process.env.NODE_ENV = process.env.NODE_ENV || "production";
+// =======================================
+// 🔹 ステップ 1：環境判定
+// ---------------------------------------
+// Firebase Functions 環境では、デプロイ時に GCLOUD_PROJECT が自動で注入されます。
+// これを元に、本番環境か開発環境かを判断します。
+// つまり GCLOUD_PROJECT は Firebase Functions v2 では自動的に設定されます
+// 本番/開発の判定にはこの値を使用します（Secrets不要）
+// ただしローカル(リッチメニュー作成など)での直接実行（node単体）では undefined になるので
+// .env.secrets.ff*.txt を直接読み込むなど工夫が必要です
+// =======================================
+
+const projectId = process.env.GCLOUD_PROJECT || ""; // ← 明示的に fallback を指定して安全性確保
+const isProd = projectId === "inuichiba-ffprod";    // ← 本番プロジェクトIDと一致すれば本番環境
+const isDev = !isProd;                              // ← 本番でなければ開発環境とみなす
+const isPreview = false;                            // ← Firebase Hosting には preview 概念なし
 
 
-// 2. プロジェクトIDによる本番／開発判定
-// Firebase Functions では GCLOUD_PROJECT が自動的にセットされる
-// ローカル開発環境では未定義なので、この判定はSecretsでセットされた値が前提
-const projectId = process.env.GCLOUD_PROJECT || "";
-const isProd = projectId === "inuichiba-ffprod";
-const isDev = !isProd;
-const isPreview = false; // Firebase では preview 環境の概念はなし
+// =======================================
+// 🔹 ステップ 2：Secretsから読み込む値（APIキーなど）
+// ---------------------------------------
+// ※ Secrets に登録された値は `process.env.XXX` で参照できます。
+//    ただし Firebase Functions v2 では反映が非同期になることがあるため、
+//    ログ出力前に .trim() や BOM 除去処理を必ず行うこと。
+// =======================================
 
-// NODE_ENVベース(補助的)の環境名判定
-const rawEnv = (process.env.NODE_ENV || 'production').trim().toLowerCase();
+let channelAccessToken = process.env[
+  isProd ? "CHANNEL_ACCESS_TOKEN_PROD" : "CHANNEL_ACCESS_TOKEN_DEV"
+];
+channelAccessToken = sanitizeEnvVar(channelAccessToken);
+
+let channelSecret = process.env[
+  isProd ? "CHANNEL_SECRET_PROD" : "CHANNEL_SECRET_DEV"
+];
+channelSecret = sanitizeEnvVar(channelSecret);
+
+let supabaseKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]; // ← 本番/開発で共通のため固定
+supabaseKey = sanitizeEnvVar(supabaseKey);
 
 
-// 3. 環境変数の取得（isProd に応じて）
-// それぞれに trim(), BOM削除など安全処理を施している
-let channelAccessToken = isProd
-  ? process.env.CHANNEL_ACCESS_TOKEN_PROD
-  : process.env.CHANNEL_ACCESS_TOKEN_DEV;
-// もし両端にスペースや改行が入ってた時の対処
-let envToken = channelAccessToken;
-if (typeof envToken === "string") {
-  if (envToken.charAt(0) === "\uFEFF" && envToken.length > 0) {
-    envToken = envToken.slice(1);   // BOM削除
-  }
-  channelAccessToken = envToken.trim();
-}
+// =======================================
+// 🔹 ステップ 3：Secretsではなく定数でよい値（URL, テーブル名）
+// ---------------------------------------
+// Supabase の URL や テーブル名は Secrets にしなくても安全です。
+// なぜなら URL は公開前提であり、テーブル名はセキュリティとは無関係な定義情報だからです。
+// =======================================
 
-// チャネルシークレット(LINEの秘匿コード)
-let channelSecret = isProd
-  ? process.env.CHANNEL_SECRET_PROD
-  : process.env.CHANNEL_SECRET_DEV;
-// もし両端にスペースや改行が入ってた時の対処
-let envSecret = channelSecret;
-if (typeof envSecret === "string" && envSecret.length > 0) {
-  if (envSecret.charAt(0) === "\uFEFF") {
-    envSecret = envSecret.slice(1); // BOM削除
-  }
-  channelSecret = envSecret.trim();
-}
+const supabaseUrl = "https://ollbklkdnzonbxopfwqk.supabase.co";
+const usersTable = isProd ? "users_ffprod" : "users_ffdev";
 
-// 使用する Supabase テーブル名
-let usersTable = isProd
-  ? process.env.SUPABASE_TABLE_NAME_PROD
-  : process.env.SUPABASE_TABLE_NAME_DEV;
-// もし両端にスペースや改行が入ってた時の対処
-let envTable = usersTable;
-if (typeof envTable === "string" && envTable.length > 0) {
-  if (envTable.charAt(0) === "\uFEFF") {
-    envTable = envTable.slice(1); // BOM削除
-  }
-  usersTable = envTable.trim();
-}
 
-let supabaseKey = isProd
-  ? process.env.SUPABASE_SERVICE_ROLE_KEY_PROD
-  : process.env.SUPABASE_SERVICE_ROLE_KEY_DEV;
-// もし両端にスペースや改行が入ってた時の対処
-let envKey = supabaseKey;
-if (typeof envKey === "string" && envKey.length > 0) {
-  if (envKey.charAt(0) === "\uFEFF") {
-    envKey = envKey.slice(1); // BOM削除
-  }
-  supabaseKey = envKey.trim();
-}
-
-let supabaseUrl = process.env.SUPABASE_URL;
-// もし両端にスペースや改行が入ってた時の対処
-let envUrl = supabaseUrl;
-if (typeof envUrl === "string" && envUrl.length > 0) {
-  if (envUrl.charAt(0) === "\uFEFF") {
-    envUrl = envUrl.slice(1); // BOM削除
-  }
-  supabaseUrl = envUrl.trim();
-}
-
-// コンテンツの Cloudflaire Pages の URL（画像とカルーセルメッセージのベースパス）
-// URLとしてLINEへの通知用(isProdに関わらずどちらも同じ)
+// =======================================
+// 🔹 ステップ 4：LINE画像・カルーセルメッセージ用の共通URLやパス
+// ---------------------------------------
+// Cloudflare Pages にアップした画像を参照するURLです。
+// 現在はどちらの環境でも共通で問題ない設計です。
+// =======================================
+// 実体は D:\nasubi\inuichiba-ffimages\public 配下にある
 const baseDir = "https://inuichiba-ffimages.pages.dev/";
 
-// コンテンツの相対パス(ファイルとして読み込むとき。今はリッチメニューだけだね)
+// コンテンツの相対パス(画像をファイルとして読み込むとき。今はリッチメニューだけ)
+// 実体は D:\nasubi\inuichiba_ff\functions\richmenu-manager\data 配下にある 
 const path = require("path");
 const imageDir = path.resolve(__dirname, "../richmenu-manager/data/");
 
-// 未使用：メニュー名：メニューキャッシュクリアや更新確認に使用(ローカルテスト用)
-// .env.*だけに定義を残して他は.backupへ移すかコメントにしてる
-// なお使用するときは末尾のexports定義も忘れずに行うこと
-// let targetMenuName = process.env.TARGET_MENU_NAME;
-// let envName = targetMenuName;
-// if (typeof envName === "string" && envName.length > 0) {
-//  if (envName.charAt(0) === "\uFEFF") {
-//    envName = envName.slice(1); // BOM削除
-//  }
-//  targetMenuName = envName.trim();
-// }
 
+// =======================================
+// 🔹 ステップ 5：Secrets名一覧（functions/index.js から参照される）
+// ---------------------------------------
+// deploy 時、ここで指定された Secrets 名だけが Firebase Functions にバインドされます。
+// 無駄なバージョン増加を防ぐため、最低限に抑えています。
+// =======================================
 
-// 4. 環境名の最後の定義(ログ出力)
-// ✅ 最後に定義！ ← これが正解
-// (まだ envName が未初期化の状態で使われてしまうとクラッシュする)
-const envName = rawEnv;
-
-
-// 5. Firebase Functions の secrets バインドに使う一覧（index.js から参照）
-// 必要に応じて secrets を追加するだけで管理できる
 const secretNames = isProd
   ? [
-      "NODE_ENV",
       "CHANNEL_ACCESS_TOKEN_PROD",
       "CHANNEL_SECRET_PROD",
-      "SUPABASE_SERVICE_ROLE_KEY_PROD",
-      "SUPABASE_TABLE_NAME_PROD",
-      "SUPABASE_URL"
+      "SUPABASE_SERVICE_ROLE_KEY"
     ]
   : [
-      "NODE_ENV",
       "CHANNEL_ACCESS_TOKEN_DEV",
       "CHANNEL_SECRET_DEV",
-      "SUPABASE_SERVICE_ROLE_KEY_DEV",
-      "SUPABASE_TABLE_NAME_DEV",
-      "SUPABASE_URL"
+      "SUPABASE_SERVICE_ROLE_KEY"
     ];
 
 
-// ✅ ログ出力（使うのは最後の最後！）
-// console.*() は定義後に！それ以前に使うと未初期化になる
+// =======================================
+// 🔹 ステップ 6：全Secrets読み込み箇所に BOM & trim()など安全処理を施す
+// ---------------------------------------
+// スクリプト側で BOM を除去しても「完全には防げない」ため
+// .ps1 などでSecrets登録前に改行やBOMを除去していても、
+// gcloud CLIやローカルエディタのクセで BOM が入るケースは完全には防げません。
+// そのため、「アプリ側で安全処理」を入れておくのは
+// 実運用における二重セーフティとしてとても優れた設計です。
+// =======================================
 
-// FF環境ではこの時点で初期化は間に合ってないのでログ出しても読み込みエラーになる
-// なのでコンソールログを抑制する
-// ログは PowerShell で以下のコマンドで確認すること
-// gcloud functions logs read webhook --region=asia-northeast1 --project=inuichiba-ffprod
-/** 
-  console.log("🧪 NODE_ENVは本番環境反映済?(process.env.FUNCTION_TARGET):", process.env.FUNCTION_TARGET || "(not set)");
-  console.log("✅ NODE_ENV(process.env.NODE_ENV):", process.env.NODE_ENV);
-	logSecretSafe("channelSecret(process.env.CHANNEL_SECRET_PROD):", process.env.CHANNEL_SECRET_PROD);
-  logSecretSafe("channelAccessToken(process.env.CHANNEL_ACCESS_TOKEN_PROD)", process.env.CHANNEL_ACCESS_TOKEN_PROD);
-  console.log("📦 Supabase URL(process.env.SUPABASE_URL):", process.env.SUPABASE_URL);
-  console.log("📦 Supabase Table PROD（process.env.SUPABASE_TABLE_NAME_PROD）:", process.env.SUPABASE_TABLE_NAME_PROD || "❌ undefined");
-  console.log("📦 Supabase Key PROD（process.env.SUPABASE_SERVICE_ROLE_KEY_PROD読込）:", process.env.SUPABASE_SERVICE_ROLE_KEY_PROD ? "✅ OK" : "❌ NG");
-*/
-
-// ✅ すべての環境変数の読み込みと加工が終わった直後
-// つまり、module.exports の前 or 直前！
-if (!isProd) {
-  console.log("🐾 環境判定された envName:", envName);
-  console.log("🐾 プロジェクトID(GCLOUD_PROJECT):", projectId || "(未定義)");
-  console.log("🐾 isProd:", isProd);
-	logSecretSafe("channelSecret:", channelSecret);
-  logSecretSafe("channelAccessToken", channelAccessToken);
-  console.log("📦 Supabase URL:", supabaseUrl);
-  console.log("📦 Supabase Table(usersTable):", usersTable);
-  console.log("📦 supabaseKey:", supabaseKey ? "✅ OK" : "❌ NG");
+function sanitizeEnvVar(value) {
+  if (typeof value !== "string") return value;
+  let v = value;
+  if (v.charAt(0) === "\uFEFF") v = v.slice(1); // BOM削除
+  return v.trim();
 }
 
 
-// 🔒 ログに機密情報を出さないための安全な関数
+// =======================================
+// 🔹 ステップ 7：安全なログ出力（console.logで機密を出さない工夫）
+// ---------------------------------------
+// Secretsの値は出力しないよう、「長さ」「先頭文字列」などに制限して確認します。
+// 呼び出したらisProd/!isProdにかかわらず表示しますので注意しましょうね
+// =======================================
+
 function logSecretSafe(label, value) {
   if (typeof value === "string") {
     if (value.length > 0) {
-      if (!isProd) {
         console.log(`🔐 ${label} の長さ: ${value.length}`);
         console.log(`🔐 ${label} の先頭5文字: ${value.slice(0, 5)}...`);
-        // console.log(`🔐 ${label} の末尾5文字: ${value.slice(-5)}`);
-            }
     } else {
-      if (!isProd) console.warn(`⚠️ ${label} は空文字列です`);
+      console.warn(`⚠️ ${label} は空文字列です`);
     }
   } else {
-    if (!isProd) console.warn(`⚠️ ${label} が未定義または null です（値: ${value}）`);
+    console.warn(`⚠️ ${label} が未定義または null です（値: ${value}）`);
   }
-  
+}
+
+// ローカルテスト時やffdev環境時にだけログを出す
+if (!isProd) {
+  console.log("🐾 環境判定された projectId(GCLOUD_PROJECT):", projectId || "(未定義)");
+  console.log("🐾 isProd:", isProd);
+  logSecretSafe("channelSecret", channelSecret);
+  logSecretSafe("channelAccessToken", channelAccessToken);
+  console.log("📦 Supabase URL:", supabaseUrl);
+  console.log("📦 Supabase Table(usersTable):", usersTable);
+  console.log("📦 Supabase Key:", supabaseKey ? "✅ OK" : "❌ NG");
 }
 
 
-// エクスポート（CommonJS形式）
+// =======================================
+// 🔹 ステップ 7：外部にエクスポートする値一覧
+// ---------------------------------------
+// Firebase Functions 内で共通して参照される変数たちです。
+// ここに追加すれば、他のJSファイルで require して使えます。
+// =======================================
+
 module.exports = {
-  envName,
   isProd,
   isDev,
   isPreview,
@@ -201,4 +167,3 @@ module.exports = {
   imageDir,
   secretNames
 };
-

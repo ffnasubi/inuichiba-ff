@@ -47,10 +47,10 @@ gcloud config set project $projectId | Out-Null
 Write-Host "`n🔍 不要なバケットを検索中..." -ForegroundColor Cyan
 $buckets = gcloud storage buckets list --project=$projectId --format="value(name)"
 $bucketsToDelete = $buckets | Where-Object {
-  $_ -like "gcf-v2-uploads*" -or
-  $_ -like "gcf-v2-sources*" -or
-  $_ -like "gcf-sources*" -or
-  $_ -like "staging.$projectId.appspot.com"
+  $_ -match "^gcf-v2-uploads" -or
+  $_ -match "^gcf-v2-sources" -or
+  $_ -match "^gcf-sources" -or
+  $_ -eq "staging.$projectId.appspot.com"
 }
 
 # 🔎 プロジェクト番号を取得して動的にバケット名を構築
@@ -128,8 +128,29 @@ if ($projectId -eq "inuichiba-ffprod") {
   Write-Host "`n🔍 [$projectId] では削除禁止バケットの存在チェックはスキップします（ffprodのみ実行）" -ForegroundColor Yellow
 }
 
+# ✅ ⚠️ ゴーストバケット表示について
+# - Cloud Console 上に gcf-v2-uploads-* や gcf-v2-sources-* が表示されることがあります
+# - しかし、gcloud storage buckets delete で 404 が返る場合は実体はすでに消えています
+# - この状態は「UIキャッシュやインデックスラグ」による見た目の残骸です
+# - 機能に影響はなく、操作上は放置して問題ありません
+# - ※気になるなら gcloud storage buckets delete で手動確認した記録を残すこと(404ならGCP上には存在しない)
+#   → gcloud storage buckets delete "gs://gcf-v2-uploads-757611015224-asia-northeast1" --quiet
+#   → gcloud storage buckets delete "gs://gcf-v2-sources-757611015224-asia-northeast1" --quiet
+#   → gcloud storage buckets delete "gs://gcf-v2-uploads-412413670174-asia-northeast1" --quiet
+#   → gcloud storage buckets delete "gs://gcf-v2-sources-412413670174-asia-northeast1" --quiet
+
+# - この後以下を実行して0ならホントに存在しない
+#   → gcloud storage buckets list --project=inuichiba-ffprod --filter="name:gcf-v2-uploads-757611015224-asia-northeast1"
+#   → gcloud storage buckets list --project=inuichiba-ffprod --filter="name:gcf-v2-sources-757611015224-asia-northeast1"
+#   → gcloud storage buckets list --project=inuichiba-ffdev  --filter="name:gcf-v2-uploads-412413670174-asia-northeast1"
+#   → gcloud storage buckets list --project=inuichiba-ffdev  --filter="name:gcf-v2-sources-412413670174-asia-northeast1"
+
 # ✅ gcf-v2-* 系の削除確認
 Write-Host "`n🔍 不要な gcf-v2-* バケットが残っていないか確認..." -ForegroundColor Cyan
+# ✅ ⚠️ ffdev はバケットが完全に0の場合、filterに対してWARNINGが出ます
+# - 実害はなく「nameフィールドがないからfilterが効かない」と言ってるだけ
+# - Listed 0 items が出ていれば正常動作
+# - ビビらなくてOK
 $remainingV2Buckets = gcloud storage buckets list --project=$projectId --format="value(name)" | Where-Object { $_ -like "gcf-v2-*" }
 
 if ($remainingV2Buckets.Count -eq 0) {
@@ -149,5 +170,9 @@ if ($repoExists) {
   Write-Host "✅ gcf-artifacts は存在しません（削除済み）" -ForegroundColor Green
 }
 # ----------------------------------------------
+
+# 🔎 Ghost Bucket注意
+Write-Host "`n⚠️ バケットが404エラーで消えない場合、Cloud Consoleにゴーストとして表示されることがあります。" -ForegroundColor Yellow
+Write-Host "→ APIやgcloudが404なら実体は存在していません。機能に影響はありません。" -ForegroundColor Yellow
 
 Write-Host "`n✅ クリーンアップ完了！" -ForegroundColor Green
