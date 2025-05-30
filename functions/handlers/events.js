@@ -81,7 +81,7 @@ async function handleFollowEvent(event, ACCESS_TOKEN) {
     const emojiTextMessage = buildEmojiMessage("msgFollow", mBody);
     message = emojiTextMessage;
   } catch (error) {
-    if (!isProd) console.warn(`⚠️ follow絵文字メッセージの構築失敗: ${error.message}`);
+    if (!isProd) console.warn(`⚠️ follow 絵文字メッセージの構築失敗: ${error.message}`);
     message = { type: "text", text: "エラーが発生しました。" };
   }
 
@@ -158,11 +158,6 @@ async function handleMessageEvent(event, ACCESS_TOKEN) {
 async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
   let messages = [];
   let carouselFlg = false;
-  let textMessage, flexMessage;
-
-  const { isProd } = require("../lib/env.js");
-  
-  if (!isProd) console.log("🔍 message data:", data, "（型:", typeof data, "）");
 
   if (mediaMessages[data]) {
     messages = mediaMessages[data];
@@ -171,25 +166,29 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
   } 
   // フレックスメッセージはテキストとフレックスが配列じゃなく展開されてくるので、
   // そのままま全部受け取る
-  else if (data == "tap_richMenuA2") {
+  else if (data == "tap_richMenuA2" || data == "tap_richMenuB2") {
     carouselFlg = true;
     messages = setMannerCarouselMessage();
-  } else if (data == "tap_richMenuA4") {
-    carouselFlg = true;
-    messages = setDogRunCarouselMessage();
-  } else if (data == "tap_richMenuA5") {
-    carouselFlg = true;
-    messages = setDogRunCarouselMessage2();
-  } else if (data == "tap_richMenuA6") {
-    carouselFlg = true;
-    messages = setParkingCarouselMessage();
-  } else if (data == "tap_richMenuA7") {
+  } 
+  else if (data == "tap_richMenuA3" || data == "tap_richMenuB4") {
     carouselFlg = true;
     messages = setPandRCarouselMessage();
-  } else if (data == "tap_richMenuB5") {
+  } 
+  else if (data == "tap_richMenuA5") {
+    carouselFlg = true;
+    messages = setDogRunCarouselMessage();
+  } 
+  else if (data == "tap_richMenuA6" || data == "tap_richMenuB5") {
     carouselFlg = true;
     messages = setMapCarouselMessage();
+  } 
+  else if (data == "tap_richMenuA7" || data == "tap_richMenuB6") {
+    carouselFlg = true;
+    messages = setParkingCarouselMessage();
   }
+
+  
+  const { isProd } = require("../lib/env.js");
 
   try {
     if (textTemplates[data]) {
@@ -343,7 +342,7 @@ function setMannerCarouselMessage() {
   // ✅ 正しい書き方：messages.msgA61
   const textMessage = {
     type: "text",
-    text: messages.msgA2
+    text: messages.msgA20
   };
   
   const { baseDir } = require("../lib/env.js");
@@ -500,7 +499,7 @@ function setDogRunCarouselMessage() {
   // ✅ 正しい書き方：messages.msgA61
   const textMessage = {
     type: "text",
-    text: messages.msgA4
+    text: messages.msgA50
   };
 
   const { baseDir } = require("../lib/env.js");
@@ -577,7 +576,7 @@ function setDogRunCarouselMessage() {
         },
         {
           type: "text",
-          text: messages.msgA41,
+          text: messages.msgA51,
           size: "md",
           wrap: true
         },
@@ -618,7 +617,7 @@ function setDogRunCarouselMessage() {
         },
         {
           type: "text",
-          text: messages.msgA42,
+          text: messages.msgA52,
           size: "md",
           color: "#FF0000",
           wrap: true
@@ -660,7 +659,7 @@ function setDogRunCarouselMessage() {
         },
         {
           type: "text",
-          text: messages.msgA43,
+          text: messages.msgA53,
           size: "md",
           color: "#FF0000",
           wrap: true
@@ -702,7 +701,7 @@ function setDogRunCarouselMessage() {
         },
         {
           type: "text",
-          text: messages.msgA44,
+          text: messages.msgA54,
           size: "md",
           wrap: true
         },
@@ -743,14 +742,14 @@ function setDogRunCarouselMessage() {
         },
         {
           type: "text",
-          text: messages.msgA45,
+          text: messages.msgA55,
           color: "#FF0000",
           size: "md",
           wrap: true
         },
         {
           type: "text",
-          text: messages.msgA46,
+          text: messages.msgA56,
           size: "md",
           wrap: true
         },
@@ -791,7 +790,7 @@ function setDogRunCarouselMessage() {
         },
         {
           type: "text",
-          text: messages.msgA47,
+          text: messages.msgA57,
           size: "md",
           wrap: true
         },
@@ -832,7 +831,7 @@ function setDogRunCarouselMessage() {
         },
         {
           type: "image",
-          url: `${baseDir}carousel/dogRun2.jpg`,
+          url: `${baseDir}dogrun/dogRun.jpg`,
           size: "full",
           aspectMode: "fit",
           margin: "md"
@@ -842,7 +841,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}carousel/dogRun2.jpg`
+            uri: `${baseDir}dogrun/dogRun.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -874,7 +873,7 @@ function setDogRunCarouselMessage() {
         },
         {
           type: "text",
-          text: messages.msgA48,
+          text: messages.msgA58,
           size: "sm",
           wrap: true
         },
@@ -915,7 +914,7 @@ function setDogRunCarouselMessage() {
         },
         {
           type: "text",
-          text: messages.msgA49,
+          text: messages.msgA59,
           size: "sm",
           wrap: true
         },
@@ -964,226 +963,6 @@ function setDogRunCarouselMessage() {
   
 
 // ///////////////////////////////////////////// 
-// ドッグランの留意事項をカルーセルメッセージにして出力する(図を2分割した版)
-function setDogRunCarouselMessage2() {
-  // ✅【超重要】カルーセル用のテキストを設定するときは必ずコレ！
-  // ・messages.js から取るときは → ✅ messages.msgXXX にすること！
-  // ・❌ msgXXX だけだと100%エラーになります（💥ReferenceError）
-  // ・そのエラー、原因特定が地獄になるよー（経験者は語る）
-  //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
-  // 
-  // ✅ 正しい書き方：messages.msgA61
-  const textMessage = {
-    type: "text",
-    text: messages.msgA5
-  };
-
-  const { baseDir } = require("../lib/env.js");
-
-  const flex_message1 = {
-    type: "bubble",
-    body: {
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "image",
-          url: `${baseDir}carousel/dogRun11.jpg`,
-          size: "full",
-          aspectRatio: "1:1",
-          aspectMode: "fit",
-          action: {
-            type: "uri",
-            uri: `${baseDir}carousel/dogRun11.jpg`
-          }
-        },
-        {
-          type:  "button",
-          style: "primary",
-          color: "#A5D6A7",
-          action: {
-            type: "uri",
-            label: "拡大版はこちら🔎",
-            uri: `${baseDir}carousel/dogRun11.jpg`
-          }
-        }
-      ]
-    },
-    styles: {
-      body: {
-        backgroundColor: "#FFFFFF"
-      }
-    }
-  };
-
-  const flex_message2 = {
-    type: "bubble",
-    body: {
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "image",
-          url: `${baseDir}carousel/dogRun12.jpg`,
-          size: "full",
-          aspectRatio: "1:1",
-          aspectMode: "fit",
-          action: {
-            type: "uri",
-            uri: `${baseDir}carousel/dogRun12.jpg`
-          }
-        },
-        {
-          type:  "button",
-          style: "primary",
-          color: "#A5D6A7",
-          action: {
-            type: "uri",
-            label: "拡大版はこちら🔎",
-            uri: `${baseDir}carousel/dogRun12.jpg`
-          }
-        }
-      ]
-    },
-    styles: {
-      body: {
-        backgroundColor: "#FFFFFF"
-      }
-    }
-  };
-
-  const flex_message3 = {
-    type: "bubble",
-    body: {
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "image",
-          url: `${baseDir}carousel/dogRun2.jpg`,
-          size: "full",
-          aspectRatio: "1:1",
-          aspectMode: "fit",
-          action: {
-            type: "uri",
-            uri: `${baseDir}carousel/dogRun2.jpg`
-          }
-        },
-        {
-          type:  "button",
-          style: "primary",
-          color: "#A5D6A7",
-          action: {
-            type: "uri",
-            label: "拡大版はこちら🔎",
-            uri: `${baseDir}carousel/dogRun2.jpg`
-          }
-        }
-      ]
-    },
-    styles: {
-      body: {
-        backgroundColor: "#FFFFFF"
-      }
-    }
-  };
-
-  const flex_message4 = {
-    type: "bubble",
-    body: {
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "image",
-          url: `${baseDir}carousel/dogRun31.jpg`,
-          size: "full",
-          aspectRatio: "1:1",
-          aspectMode: "fit",
-          action: {
-            type: "uri",
-            uri: `${baseDir}carousel/dogRun31.jpg`
-          }
-        },
-        {
-          type:  "button",
-          style: "primary",
-          color: "#A5D6A7",
-          action: {
-            type: "uri",
-            label: "拡大版はこちら🔎",
-            uri: `${baseDir}carousel/dogRun31.jpg`
-          }
-        }
-      ]
-    },
-    styles: {
-      body: {
-        backgroundColor: "#FFFFFF"
-      }
-    }
-  };
-
-  const flex_message5 = {
-    type: "bubble",
-    body: {
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "image",
-          url: `${baseDir}carousel/dogRun32.jpg`,
-          size: "full",
-          aspectRatio: "1:1",
-          aspectMode: "fit",
-          action: {
-            type: "uri",
-            uri: `${baseDir}carousel/dogRun32.jpg`
-          }
-        },
-        {
-          type:  "button",
-          style: "primary",
-          color: "#A5D6A7",
-          action: {
-            type: "uri",
-            label: "拡大版はこちら🔎",
-            uri: `${baseDir}carousel/dogRun32.jpg`
-          }
-        }
-      ]
-    },
-    styles: {
-      body: {
-        backgroundColor: "#FFFFFF"
-      }
-    }
-  };
-
-  const carouselContents = [flex_message1, flex_message2, flex_message3, flex_message4, flex_message5];
-
-  const flexMessage = {
-    type: "flex",
-    altText: "ドッグラン", 
-    contents: {
-      type: "carousel",
-      contents: carouselContents
-    }
-    
-  };
-	
-  
-  // textMessage が配列ならそのまま使う、単体なら配列に包む
-  const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
-  
-  // ✅ テキストの配列を展開して、
-  // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
-  return [...textMessagesArray, flexMessage];
-
-}
-
-
-// ///////////////////////////////////////////// 
 // PARKING(駐車場及びアクセス方法)をカルーセルメッセージにする
 function setParkingCarouselMessage() {
   // ✅【超重要】カルーセル用のテキストを設定するときは必ずコレ！
@@ -1194,9 +973,9 @@ function setParkingCarouselMessage() {
   // 
   // ✅ 正しい書き方：messages.msgA61
   const textMessage =  [
-    { type: "text", text: messages.msgA61 },
-    { type: "text", text: messages.msgA62 },
-    { type: "text", text: messages.msgA63 }
+    { type: "text", text: messages.msgA70 },
+    { type: "text", text: messages.msgA71 },
+    { type: "text", text: messages.msgA72 }
   ];
   
   const { baseDir } = require("../lib/env.js");
@@ -1255,7 +1034,7 @@ function setParkingCarouselMessage() {
 	
   
   // textMessage は常に [ {type: text, ～}, {type: text, ～} ] (配列)形式で送ってくる
-  // ひとつつのメッセージでもいったん配列形式にする
+  // ひとつのメッセージでもいったん配列形式にする
   // そして...(スプレッド構文)をつけることで、textMessage(配列)の内容を展開する
   // 例えばmessages.msga61, messages.msga62, messages.msga63, flexMessage 
   // のように展開して順番で受け手側に渡すことができる 
@@ -1283,7 +1062,7 @@ function setPandRCarouselMessage() {
   // ✅ 正しい書き方：messages.msgA61
   const textMessage = {
     type: "text", 
-    text: messages.msgA7
+    text: messages.msgA3
   };
 
   const { baseDir } = require("../lib/env.js");
@@ -1463,7 +1242,7 @@ function setMapCarouselMessage() {
   // ✅ 正しい書き方：messages.msgA61
   const textMessage = {
     type: "text",
-    text: messages.msgB5
+    text: messages.msgA6
   };
 
   const { baseDir } = require("../lib/env.js");

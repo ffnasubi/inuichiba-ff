@@ -97,7 +97,7 @@ async function aCreateRichMenu() {
           bounds: { x: wItem, y: hTab, width: wItem, height: hItem },
           action: { type: "message", text: "会場におけるマナーのお願い" }
         },
-      // A7
+      // A3
         {
           bounds: { x:wItem*2, y: hTab, width: wItem, height: hItem },
           action: { type: "message", text: "パークアンドライド(P&R)" }
@@ -108,22 +108,22 @@ async function aCreateRichMenu() {
           action: { type: "uri", uri: "https://inuichiba.com/index.html" }
         },
 	      
-  	  // A3
+  	  // B4
         {
           bounds: { x: 0, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "アクティビティに関するご案内" }
         },
-	    // A4
+	    // A5
         {
           bounds: { x: wItem, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "ドッグランに関するご案内" }
         },
-	    // A5
+	    // A6
         {
           bounds: { x: wItem*2, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "会場マップ\nショップリスト" }
         },
-	    // A6
+	    // A7
         {
           bounds: { x:wItem*3, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "駐車場及びアクセス方法" }
@@ -185,7 +185,7 @@ async function bCreateRichMenu() {
           bounds: { x: 0, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "アクティビティに関するご案内について" }
         },
-	    // B4
+	    // B3
         {
           bounds: { x: wItem, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "アクティビティに関するご案内について" }
@@ -236,28 +236,27 @@ async function bYoichiCreateRichMenu() {
           bounds: { x: wTab, y: 0, width: wTab, height: hTab },
           action: { type: "richmenuswitch", richMenuAliasId: "switch-to-b", data: "change to B" }
         },
-        // B1
+        // B7
         {
           bounds: { x: 0, y: hTab, width: wItem, height: hItem },
-          action: { type: "message", text: "開催情報について" }
+          action: { type: "message", text: "画像ファイル表示速度について" }
         },
-        // B2
+        // B8
         {
           bounds: { x: wItem, y: hTab, width: wItem, height: hItem },
-          action: { type: "message", text: "会場におけるマナーのお願いについて" }
+          action: { type: "message", text: "絵文字の表示について" }
         },
       	// 指定されたurlを開く
         {
           bounds: { x: wItem*2, y: hTab, width: wItem*2, height: hItem },
           action: { type: "uri", uri: "https://inuichiba.com/index.html" }
         },
-	      
   	    // B3
         {
           bounds: { x: 0, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "アクティビティに関するご案内について" }
         },
-	      // B4(空いてるところに入れた)
+	      // B4
         {
           bounds: { x: wItem, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "パークアンドライド(P&R)について" }
