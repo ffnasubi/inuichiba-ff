@@ -2,8 +2,8 @@ name: Monthly Supabase Ping
 
 on:
   schedule:
-    - cron: '0 3 1 * *'  # 毎月1日 日本時間12:00（JST）に実行
-  workflow_dispatch:       # 手動でも実行できるように
+    - cron: '0 0 1,5,10,15,20,25,30 * *'  # 毎月の 1・5・10・15・20・25・30 日の日本時間9:00(JST) に対応するUTC 0:00 に実行
+  workflow_dispatch:                      # 手動でも実行できるように
 
 jobs:
   ping-supabase:
