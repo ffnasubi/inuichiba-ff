@@ -26,7 +26,7 @@
 const projectId = process.env.GCLOUD_PROJECT || ""; // ← 明示的に fallback を指定して安全性確保
 const isProd = projectId === "inuichiba-ffprod";    // ← 本番プロジェクトIDと一致すれば本番環境
 const isDev = !isProd;                              // ← 本番でなければ開発環境とみなす
-const isPreview = false;                            // ← Firebase Hosting には preview 概念なし
+const isPreview = false;                            // ← Firebase には preview 概念なし
 
 
 // =======================================

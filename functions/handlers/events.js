@@ -340,10 +340,9 @@ function setMannerCarouselMessage() {
   //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
   // 
   // ✅ 正しい書き方：messages.msgA61
-  const textMessage = {
-    type: "text",
-    text: messages.msgA20
-  };
+  const textMessage = [
+    { type: "text", text: messages.msgA20 }
+  ];
   
   const { baseDir } = require("../lib/env.js");
 
@@ -477,12 +476,12 @@ function setMannerCarouselMessage() {
   };
 
   
-  // textMessage が配列ならそのまま使う、単体なら配列に包む
-  const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
+  // textMessage が配列ならそのまま使う、単体なら配列に包む(今は全部配列なので不要)  
+  // const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
   
   // ✅ テキストの配列を展開して、
   // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
-  return [...textMessagesArray, flexMessage];
+  return [...textMessage, flexMessage];
 
 }
 
@@ -497,10 +496,9 @@ function setDogRunCarouselMessage() {
   //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
   // 
   // ✅ 正しい書き方：messages.msgA61
-  const textMessage = {
-    type: "text",
-    text: messages.msgA50
-  };
+  const textMessage = [
+    { type: "text", text: messages.msgA50 }
+  ];
 
   const { baseDir } = require("../lib/env.js");
 
@@ -831,7 +829,7 @@ function setDogRunCarouselMessage() {
         },
         {
           type: "image",
-          url: `${baseDir}dogrun/dogRun.jpg`,
+          url: `${baseDir}dogrun/view_dogrun5.jpg`,
           size: "full",
           aspectMode: "fit",
           margin: "md"
@@ -841,7 +839,7 @@ function setDogRunCarouselMessage() {
           action: {
             type: "uri",
             label: "拡大版はこちら",
-            uri: `${baseDir}dogrun/dogRun.jpg`
+            uri: `${baseDir}dogrun/view_dogrun5.jpg`
           },
           style: "secondary",
           color: "#C8E6C9",
@@ -952,12 +950,12 @@ function setDogRunCarouselMessage() {
   };
 	
   
-  // textMessage が配列ならそのまま使う、単体なら配列に包む
-  const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
+  // textMessage が配列ならそのまま使う、単体なら配列に包む(今は全部配列なので不要)  
+  // const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
   
   // ✅ テキストの配列を展開して、
   // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
-  return [...textMessagesArray, flexMessage];
+  return [...textMessage, flexMessage];
 
 }
   
@@ -1041,11 +1039,11 @@ function setParkingCarouselMessage() {
   // 後はLINEがテキストならテキスト処理、カルーセルならカルーセル処理を行うだけ
 
   // textMessage が配列ならそのまま使う、単体なら配列に包む
-  const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
+  // const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
   
   // ✅ テキストの配列を展開して、
   // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
-  return [...textMessagesArray, flexMessage];
+  return [...textMessage, flexMessage];
 
 }
 
@@ -1060,10 +1058,9 @@ function setPandRCarouselMessage() {
   //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
   // 
   // ✅ 正しい書き方：messages.msgA61
-  const textMessage = {
-    type: "text", 
-    text: messages.msgA3
-  };
+  const textMessage = [
+    { type: "text", text: messages.msgA3 }
+  ];
 
   const { baseDir } = require("../lib/env.js");
 
@@ -1220,12 +1217,12 @@ function setPandRCarouselMessage() {
   };
 	
   
-  // textMessage が配列ならそのまま使う、単体なら配列に包む
-  const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
+  // textMessage が配列ならそのまま使う、単体なら配列に包む(今は全部配列なので不要)  
+  // const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
   
   // ✅ テキストの配列を展開して、
   // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
-  return [...textMessagesArray, flexMessage];
+  return [...textMessage, flexMessage];
 
 }
 
@@ -1240,10 +1237,9 @@ function setMapCarouselMessage() {
   //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
   // 
   // ✅ 正しい書き方：messages.msgA61
-  const textMessage = {
-    type: "text",
-    text: messages.msgA6
-  };
+  const textMessage = [
+    { type: "text", text: messages.msgA6 }
+  ];
 
   const { baseDir } = require("../lib/env.js");
 
@@ -1282,7 +1278,7 @@ function setMapCarouselMessage() {
     },
     styles: {
       body: {
-        backgroundColor: "#FFFFFF"
+        backgroundColor: "#E3EEF4"
       }
     }
   };
@@ -1302,7 +1298,7 @@ function setMapCarouselMessage() {
     },
     styles: {
       body: {
-        backgroundColor: "#FFFFFF"
+        backgroundColor: "#E3EEF4"
       }
     }
   };
@@ -1322,7 +1318,7 @@ function setMapCarouselMessage() {
     },
     styles: {
       body: {
-        backgroundColor: "#FFFFFF"
+        backgroundColor: "#E3EEF4"
       }
     }
   };
@@ -1340,12 +1336,12 @@ function setMapCarouselMessage() {
   };
 	
   
-  // textMessage が配列ならそのまま使う、単体なら配列に包む
-  const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
+  // textMessage が配列ならそのまま使う、単体なら配列に包む(今は全部配列なので不要)  
+  // const textMessagesArray = Array.isArray(textMessage) ? textMessage : [textMessage];
   
   // ✅ テキストの配列を展開して、
   // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
-  return [...textMessagesArray, flexMessage];
+  return [...textMessage, flexMessage];
 
 }
 
