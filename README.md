@@ -2,127 +2,88 @@
 LINE bot for Inuichiba
 # redeploy trigger
  
-📝 プロジェクト構成とファイル命名ルール（inuichiba_ff）
-
-このドキュメントは、プロジェクト inuichiba_ff のローカル構成と命名規則、運用ルールを整理したものです。将来の自分のために書いています。
-
-📁 ディレクトリ構成（主要）
-
+📝 プロジェクト構�Eとファイル命名ルール�E�Enuichiba_ff�E�E
+こ�Eドキュメント�E、�EロジェクチEinuichiba_ff のローカル構�Eと命名規則、E��用ルールを整琁E��たものです。封E��の自刁E�Eために書ぁE��ぁE��す、E
+📁 チE��レクトリ構�E�E�主要E��E
 inuichiba_ff/
-├── functions/              # Firebase Functions 本体
-├── public/                 # Firebase Hosting 公開用ディレクトリ（画像など）
-├── .backup/                # 自動・手動バックアップ格納用
-├── .github/                # GitHub Actions用設定
-├── .gitignore              # Git管理除外ファイル定義
-├── firebase.*.json         # Firebase設定
-├── eslint.config.js        # ESLint設定（使用中！）
-
-📂 環境変数とSecretsファイル
+├── functions/              # Firebase Functions 本佁E├── public/                 # Firebase Hosting 公開用チE��レクトリ�E�画像など�E�E├── .backup/                # 自動�E手動バックアチE�E格納用
+├── .github/                # GitHub Actions用設宁E├── .gitignore              # Git管琁E��外ファイル定義
+├── firebase.*.json         # Firebase設宁E├── eslint.config.js        # ESLint設定（使用中�E�E��E
+📂 環墁E��数とSecretsファイル
 
 🔐 .env.secrets.*.txt
 
-ファイル名
-
-用途
-
+ファイル吁E
+用送E
 .env.secrets.ffdev.txt
 
-ffdev環境のSecrets一括定義
+ffdev環墁E�ESecrets一括定義
 
 .env.secrets.ffprod.txt
 
-ffprod環境のSecrets一括定義
+ffprod環墁E�ESecrets一括定義
 
-※ Secrets は Git 管理されないよう .gitignore で除外済み。
-
-⚙️ スクリプト類（PowerShell）
-
+※ Secrets は Git 管琁E��れなぁE��ぁE.gitignore で除外済み、E
+⚙︁Eスクリプト類！EowerShell�E�E
 📌 Secrets設定用
 
-ファイル名
-
-説明
-
+ファイル吁E
+説昁E
 env.set_secrets.ps1
 
--ProjectId に応じてSecretsを設定（本番/開発共通）
-
-※ ファイル名は .env. 付きで残しているが、明確さ優先で env.set_secrets.deploy.ps1 にリネーム検討中。
-
+-ProjectId に応じてSecretsを設定（本番/開発共通！E
+※ ファイル名�E .env. 付きで残してぁE��が、�E確さ優先で env.set_secrets.deploy.ps1 にリネ�Eム検討中、E
 📌 Artifact Registry 初期化用
 
-ファイル名
-
-対象環境
-
-説明
-
+ファイル吁E
+対象環墁E
+説昁E
 reset-artifactregistry.ffdev.ps1
 
 ffdev
 
-Firebase Functions用の初期化スクリプト（色つき＆コメント満載）
-
+Firebase Functions用の初期化スクリプト�E�色つき！E��メント満載！E
 reset-artifactregistry.ffprod.ps1
 
 ffprod
 
-同上、ffprod版
+同上、ffprod牁E
+⏳ reset-artifactregistry 実行�Eリシー
 
-⏳ reset-artifactregistry 実行ポリシー
-
-通常の firebase deploy では実行不要
-
-以下のような場合のみ使用：
-
-GCF deploy エラー（Precondition failed など）
-
-Artifact Registry 構成の初期化／再作成が必要なとき
-
-運用が安定していれば、月1程度の定期実行でも十分
-
-🔑 鍵ファイル（Service Account JSON）
-
-ファイル名
-
-説明
-
+通常の firebase deploy では実行不要E
+以下�Eような場合�Eみ使用�E�E
+GCF deploy エラー�E�Erecondition failed など�E�E
+Artifact Registry 構�Eの初期化／�E作�Eが忁E��なとぁE
+運用が安定してぁE��ば、月1程度の定期実行でも十刁E
+🔑 鍵ファイル�E�Eervice Account.json�E�E
+ファイル吁E
+説昁E
 deployer.ffdev.json
 
-ffdev用 GitHub Action / PS用認証キー（1個のみ）
-
+ffdev用 GitHub Action / PS用認証キー�E�E個�Eみ�E�E
 deployer.ffprod.json
 
-ffprod用 同上
+ffprod用 同丁E
+※ 使ぁE�Eは吁E��墁E��1つだけ。他�E鍵�E�Edminsdk, appspotなど�E��E削除済、E
+✁E命名ルールの基本方釁E
+.env. ↁESecretsめE��定ファイル�E�中身が環墁E��数系�E�E
+reset- ↁE環墁E�E初期化系
 
-※ 使うのは各環境で1つだけ。他の鍵（adminsdk, appspotなど）は削除済。
+deployer.*.json ↁE環墁E��との認証用SA鍵
 
-✅ 命名ルールの基本方針
-
-.env. → Secretsや設定ファイル（中身が環境変数系）
-
-reset- → 環境の初期化系
-
-deployer.*.json → 環境ごとの認証用SA鍵
-
-環境名（ffdev, ffprod）はファイル末尾につけて区別
+環墁E���E�Efdev, ffprod�E��Eファイル末尾につけて区別
 
 .ps1 はWindows専用、ローカル用
 
-🧹 その他
+🧹 そ�E仁E
+policy-backup.ffprod.json は Supabase RLSポリシーなどのバックアチE�E
 
-policy-backup.ffprod.json は Supabase RLSポリシーなどのバックアップ
+fldummy.txt はVSCodeの空チE��レクトリ防止用
 
-fldummy.txt はVSCodeの空ディレクトリ防止用
-
-🗒️ 今後の予定（メモ）
-
-env.set_secrets.ps1 → env.set_secrets.deploy.ps1 にリネームするか？
-
-Mac/Linux 開発者が増えたら .sh 版も作成予定
-
-.README.md は自分しか読まなくてもちゃんと書く（未来の自分のため）
-
+🗒�E�E今後�E予定（メモ�E�E
+env.set_secrets.ps1 ↁEenv.set_secrets.deploy.ps1 にリネ�Eムするか！E
+Mac/Linux 開発老E��増えたら .sh 版も作�E予宁E
+.README.md は自刁E��か読まなくてもちめE��と書く（未来の自刁E�Eため�E�E
 
 
 

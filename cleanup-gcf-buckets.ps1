@@ -58,6 +58,33 @@ Write-Host "`n===========================================" -ForegroundColor Yell
 Write-Host "🧹 [$projectId] の GCF 残骸を削除中..." -ForegroundColor Yellow
 Write-Host   "===========================================" -ForegroundColor Yellow
 
+# GCR build images 削除（Firebase Functions V2 残骸）
+Write-Host "`n🧱 GCR build イメージの gcf 残骸を削除中..." -ForegroundColor Cyan
+$gcrImagePath = "gcr.io/$projectId/gcf"
+
+try {
+  $digests = gcloud container images list-tags $gcrImagePath `
+      --project=$projectId `
+      --format="value(digest)"
+
+  if (-not $digests) {
+    Write-Host "✅ GCR に残っている gcf build イメージはありません。" -ForegroundColor Green
+  } else {
+    foreach ($digest in $digests) {
+      Write-Host "🗑 digest $($digest.Substring(0, 12))... を削除中 (build image)..." -ForegroundColor DarkCyan
+      gcloud container images delete "$imagePath@$digest" `
+          --project=$projectId `
+          --quiet `
+          --force-delete-tags
+    }
+    Write-Host "✅ [$projectId] の GCR の gcf build イメージをすべて削除しました。" -ForegroundColor Green
+  }
+}
+catch {
+  Write-Host "❌ [$projectId] のGCR build イメージ削除中にエラーが発生しました: $_" -ForegroundColor Red
+}
+
+
 # 不要バケット一覧を取得
 Write-Host "`n🔍 不要なバケットを検索中..." -ForegroundColor Cyan
 $buckets = gcloud storage buckets list --project=$projectId --format="value(name)"
@@ -67,6 +94,7 @@ $bucketsToDelete = $buckets | Where-Object {
   $_ -match "^gcf-sources" -or
   $_ -eq "staging.$projectId.appspot.com"
 }
+
 
 # 🔎 プロジェクト番号を取得して動的に明示バケットを追加
 Write-Host "🔎 プロジェクト番号を取得中..." -ForegroundColor Cyan
@@ -113,33 +141,6 @@ if ($repoExists) {
   Write-Host "✅ gcf-artifacts を削除しました。" -ForegroundColor Green
 } else {
   Write-Host "⏭ gcf-artifacts は存在しませんでした。スキップします。" -ForegroundColor Gray
-}
-
-
-# 🧱 GCR の gcf イメージ削除
-$imagePath = "gcr.io/$projectId/gcf"
-Write-Host "`n🧱 Container Registry (GCR) の gcf イメージを確認中..." -ForegroundColor Cyan
-
-try {
-  $digests = gcloud container images list-tags $imagePath `
-      --project=$projectId `
-      --format="value(digest)"
-
-  if (-not $digests) {
-    Write-Host "✅ GCR に残っている gcf イメージはありません。" -ForegroundColor Green
-  } else {
-    foreach ($digest in $digests) {
-      Write-Host "🗑 digest $($digest.Substring(0, 12))... を削除中..." -ForegroundColor DarkCyan
-      gcloud container images delete "$imagePath@$digest" `
-          --project=$projectId `
-          --quiet `
-          --force-delete-tags
-    }
-    Write-Host "✅ [$projectId] のGCR の gcf イメージをすべて削除しました。" -ForegroundColor Green
-  }
-}
-catch {
-  Write-Host "❌ [$projectId] のGCR イメージ削除中にエラーが発生しました: $_" -ForegroundColor Red
 }
 
 
@@ -209,7 +210,7 @@ if ($remainingV2Buckets.Count -eq 0) {
 }
 
 
-# 🏺 Artifact Registry の gcf-artifacts 確認
+# 🏺 Artifact Registry の gcf-artifacts 存在チェック（削除後確認）
 Write-Host "`n🔍 Artifact Registry の gcf-artifacts が存在するか確認..." -ForegroundColor Cyan
 $repoExists = & gcloud artifacts repositories describe gcf-artifacts --location=asia-northeast1 --project=$projectId 2>$null
 if ($repoExists) {
@@ -219,6 +220,7 @@ if ($repoExists) {
   Write-Host "✅ gcf-artifacts は存在しません（削除済み）(OK)" -ForegroundColor Green
 }
 
+
 # ----------------------------------------------
 
 # 🔎 Ghost Bucket注意
@@ -227,4 +229,5 @@ Write-Host "→ APIやgcloudが404なら実体は存在していません。機�
 
 Write-Host "`n=====================================================" -ForegroundColor Cyan
 Write-Host "✅ [$projectId] の GCF 残骸削除が完了しました！" -ForegroundColor Cyan
+Write-Host "⚠️ check-gcf-status.html をタップして確認！" -ForegroundColor Red
 Write-Host   "=====================================================" -ForegroundColor Cyan

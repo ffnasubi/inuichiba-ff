@@ -108,7 +108,7 @@ foreach ($line in $lines) {
   Remove-Item $tempFile
 
   if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ [$key] 登録完了！" -ForegroundColor Green
+    Write-Host "✅ [$key] 登録完了！" -ForegroundColor Cyan
   } else {
     Write-Host "❌ [$key] 登録に失敗しました" -ForegroundColor Red
   }
@@ -129,7 +129,7 @@ foreach ($secret in $allSecrets) {
     Write-Host "⚠️ $secret は asia-northeast1 に複製されていません！（→ $replication）" -ForegroundColor Red
     $badReplicas += $secret
   } else {
-    Write-Host "✅ $secret は正しく asia-northeast1 に複製されています。" -ForegroundColor Green
+    Write-Host "✅ $secret は正しく asia-northeast1 に複製されています。" -ForegroundColor Cyan
   }
 }
 
@@ -146,19 +146,12 @@ if ($badReplicas.Count -eq 0) {
 
 
 # 登録後の Secrets 一覧
-Write-Host "`n📋 登録後の Secrets 一覧:" -ForegroundColor Yellow
+Write-Host "`n📋 登録後の Secrets 一覧:" -ForegroundColor Green
 Invoke-Expression "gcloud secrets list --project=$projectId --format='table(name, replication.policy)'"
 
-# Firebase Deploy と古い Secrets の削除（対話付き）
+# Secrets の削除（対話付き）
 if ($deleteOldVersions) {
-  Write-Host "`n🚀 Firebase Deploy を実行中... ($projectId)" -ForegroundColor Cyan
   Write-Host "⚠️ この操作では古い Secret のバージョン削除確認が表示されます。削除する場合は 'y' を入力してください。" -ForegroundColor Yellow
-
-  if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ Firebase Deploy 完了！" -ForegroundColor Green
-  } else {
-    Write-Host "❌ Firebase Deploy に失敗しました" -ForegroundColor Red
-  }
 
   # バージョン削除（1件ずつ確認付き）
   Write-Host "`n🧹 Secrets の古いバージョン削除（1件ずつ確認付き）を開始します..." -ForegroundColor Cyan
@@ -230,7 +223,7 @@ Write-Host "🔸 特定バージョンを削除する場合：" -ForegroundColor
 Write-Host "    gcloud secrets versions destroy VERSION_NUMBER(1or2or..) --secret=SECRET_NAME --project=$projectId --quiet"
 Write-Host "🔸 特定バージョンを ENABLED に戻す場合：" -ForegroundColor Yellow
 Write-Host "    gcloud secrets versions enable VERSION_NUMBER --secret=SECRET_NAME --project=$projectId"
-Write-Host "🔸 特定バージョンを DISABLED に変更する場合(通常使わない)：" -ForegroundColor Cyan
+Write-Host "🔸 特定バージョンを DISABLED に変更する場合(通常使わない)："
 Write-Host "    gcloud secrets versions disable VERSION_NUMBER --secret=SECRET_NAME --project=$projectId"
 
 
