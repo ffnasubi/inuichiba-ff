@@ -31,10 +31,10 @@ jobs:
   ping-firebase:
     runs-on: ubuntu-latest
     steps:
-      - name: 🚀 Wake Firebase Function (via Cloudflare Pages)
+      - name: 🚀 Daily(半日に一度) Firebase Ping (for ffprod only)
         run: |
           echo "🚀 Firebase Function に ping を送信しています..."
-          status=$(curl -s -o /dev/null -w "%{http_code}" https://inuichiba-ffimages.pages.dev/api/webhook)
+          status=$(curl -s -o /dev/null -w "%{http_code}" https://inuichiba-ffimages.pages.dev/api/ping)
 
           echo "✅ Firebase webhook ステータスコード: $status"
 
