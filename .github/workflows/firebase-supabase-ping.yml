@@ -34,7 +34,8 @@ jobs:
       - name: 🚀 Daily(半日に一度) Firebase Ping (for ffprod only)
         run: |
           echo "🚀 Firebase Function に ping を送信しています..."
-          status=$(curl -s -o /dev/null -w "%{http_code}" https://inuichiba-ffimages.pages.dev/api/ping)
+          status=$(curl -s -o /dev/null -w "%{http_code}" https://asia-northeast1-inuichiba-ffprod.cloudfunctions.net/ping)
+
 
           echo "✅ Firebase webhook ステータスコード: $status"
 
