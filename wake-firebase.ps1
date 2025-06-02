@@ -49,3 +49,14 @@ Write-Host "`n【inuichiba-ffdev】" -ForegroundColor Cyan
 Write-Host "powershell -ExecutionPolicy Bypass -File .\deploy-and-cleanup.ps1 -env ffdev" -ForegroundColor Green
 
 Write-Host "`n👆 上記コマンドをコピペして再試行してください。" -ForegroundColor Cyan
+
+# HTMLファイルを既定のブラウザで開く
+$reportPath = "check-gcf-status.html"
+if (Test-Path $reportPath) {
+    Start-Process $reportPath
+    Write-Host "`n正常終了したら..." -ForegroundColor Red
+    Write-Host "🔴 「GCF 残骸チェック用リンク」をブラウザで開いています。確認してください。" -ForegroundColor Red
+} else {
+    Write-Host "⚠️ 確認HP $reportPath が見つかりませんでした。" -ForegroundColor Yellow
+}
+

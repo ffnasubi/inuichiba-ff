@@ -229,5 +229,4 @@ Write-Host "→ APIやgcloudが404なら実体は存在していません。機�
 
 Write-Host "`n=====================================================" -ForegroundColor Cyan
 Write-Host "✅ [$projectId] の GCF 残骸削除が完了しました！" -ForegroundColor Cyan
-Write-Host "⚠️ check-gcf-status.html をタップして確認！" -ForegroundColor Red
 Write-Host   "=====================================================" -ForegroundColor Cyan

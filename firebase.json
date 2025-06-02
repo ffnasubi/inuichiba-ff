@@ -12,10 +12,8 @@
       "**/node_modules/**"
     ],
     "rewrites": [
-      {
-        "source": "/api/**",
-        "function": "webhook"
-      }
+      { "source": "/api/**",   "function": "webhook" },
+      { "source": "/api/ping", "function": "ping" }
     ]
   }
 }

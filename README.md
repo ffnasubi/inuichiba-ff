@@ -2,14 +2,14 @@
 LINE bot for Inuichiba
 # redeploy trigger
  
-📝 プロジェクト構�Eとファイル命名ルール�E�Enuichiba_ff�E�E
-こ�Eドキュメント�E、�EロジェクチEinuichiba_ff のローカル構�Eと命名規則、E��用ルールを整琁E��たものです。封E��の自刁E�Eために書ぁE��ぁE��す、E
-📁 チE��レクトリ構�E�E�主要E��E
+📝 プロジェクト構�Eとファイル命名ルール�E�Enuichiba_ff�E�E
+こ�Eドキュメント�E、�EロジェクチEinuichiba_ff のローカル構�Eと命名規則、E��用ルールを整琁E��たものです。封E��の自刁E�Eために書ぁE��ぁE��す、E
+📁 チE��レクトリ構�E�E�主要E��E
 inuichiba_ff/
-├── functions/              # Firebase Functions 本佁E├── public/                 # Firebase Hosting 公開用チE��レクトリ�E�画像など�E�E├── .backup/                # 自動�E手動バックアチE�E格納用
-├── .github/                # GitHub Actions用設宁E├── .gitignore              # Git管琁E��外ファイル定義
-├── firebase.*.json         # Firebase設宁E├── eslint.config.js        # ESLint設定（使用中�E�E��E
-📂 環墁E��数とSecretsファイル
+├── functions/              # Firebase Functions 本佁E├── public/                 # Firebase Hosting 公開用チE��レクトリ�E�画像など�E�E├── .backup/                # 自動�E手動バックアチE�E格納用
+├── .github/                # GitHub Actions用設宁E├── .gitignore              # Git管琁E��外ファイル定義
+├── firebase.*.json         # Firebase設宁E├── eslint.config.js        # ESLint設定（使用中�E�E��E
+📂 環墁E��数とSecretsファイル
 
 🔐 .env.secrets.*.txt
 
@@ -17,14 +17,14 @@ inuichiba_ff/
 用送E
 .env.secrets.ffdev.txt
 
-ffdev環墁E�ESecrets一括定義
+ffdev環墁E�ESecrets一括定義
 
 .env.secrets.ffprod.txt
 
-ffprod環墁E�ESecrets一括定義
+ffprod環墁E�ESecrets一括定義
 
-※ Secrets は Git 管琁E��れなぁE��ぁE.gitignore で除外済み、E
-⚙︁Eスクリプト類！EowerShell�E�E
+※ Secrets は Git 管琁E��れなぁE��ぁE.gitignore で除外済み、E
+⚙︁Eスクリプト類！EowerShell�E�E
 📌 Secrets設定用
 
 ファイル吁E
@@ -32,7 +32,7 @@ ffprod環墁E�ESecrets一括定義
 env.set_secrets.ps1
 
 -ProjectId に応じてSecretsを設定（本番/開発共通！E
-※ ファイル名�E .env. 付きで残してぁE��が、�E確さ優先で env.set_secrets.deploy.ps1 にリネ�Eム検討中、E
+※ ファイル名�E .env. 付きで残してぁE��が、�E確さ優先で env.set_secrets.deploy.ps1 にリネ�Eム検討中、E
 📌 Artifact Registry 初期化用
 
 ファイル吁E
@@ -42,48 +42,48 @@ reset-artifactregistry.ffdev.ps1
 
 ffdev
 
-Firebase Functions用の初期化スクリプト�E�色つき！E��メント満載！E
+Firebase Functions用の初期化スクリプト�E�色つき！E��メント満載！E
 reset-artifactregistry.ffprod.ps1
 
 ffprod
 
 同上、ffprod牁E
-⏳ reset-artifactregistry 実行�Eリシー
+⏳ reset-artifactregistry 実行�Eリシー
 
 通常の firebase deploy では実行不要E
-以下�Eような場合�Eみ使用�E�E
-GCF deploy エラー�E�Erecondition failed など�E�E
-Artifact Registry 構�Eの初期化／�E作�Eが忁E��なとぁE
-運用が安定してぁE��ば、月1程度の定期実行でも十刁E
-🔑 鍵ファイル�E�Eervice Account.json�E�E
+以下�Eような場合�Eみ使用�E�E
+GCF deploy エラー�E�Erecondition failed など�E�E
+Artifact Registry 構�Eの初期化／�E作�Eが忁E��なとぁE
+運用が安定してぁE��ば、月1程度の定期実行でも十刁E
+🔑 鍵ファイル�E�Eervice Account.json�E�E
 ファイル吁E
 説昁E
 deployer.ffdev.json
 
-ffdev用 GitHub Action / PS用認証キー�E�E個�Eみ�E�E
+ffdev用 GitHub Action / PS用認証キー�E�E個�Eみ�E�E
 deployer.ffprod.json
 
 ffprod用 同丁E
-※ 使ぁE�Eは吁E��墁E��1つだけ。他�E鍵�E�Edminsdk, appspotなど�E��E削除済、E
+※ 使ぁE�Eは吁E��墁E��1つだけ。他�E鍵�E�Edminsdk, appspotなど�E��E削除済、E
 ✁E命名ルールの基本方釁E
-.env. ↁESecretsめE��定ファイル�E�中身が環墁E��数系�E�E
-reset- ↁE環墁E�E初期化系
+.env. ↁESecretsめE��定ファイル�E�中身が環墁E��数系�E�E
+reset- ↁE環墁E�E初期化系
 
-deployer.*.json ↁE環墁E��との認証用SA鍵
+deployer.*.json ↁE環墁E��との認証用SA鍵
 
-環墁E���E�Efdev, ffprod�E��Eファイル末尾につけて区別
+環墁E���E�Efdev, ffprod�E��Eファイル末尾につけて区別
 
 .ps1 はWindows専用、ローカル用
 
-🧹 そ�E仁E
-policy-backup.ffprod.json は Supabase RLSポリシーなどのバックアチE�E
+🧹 そ�E仁E
+policy-backup.ffprod.json は Supabase RLSポリシーなどのバックアチE�E
 
-fldummy.txt はVSCodeの空チE��レクトリ防止用
+fldummy.txt はVSCodeの空チE��レクトリ防止用
 
-🗒�E�E今後�E予定（メモ�E�E
-env.set_secrets.ps1 ↁEenv.set_secrets.deploy.ps1 にリネ�Eムするか！E
-Mac/Linux 開発老E��増えたら .sh 版も作�E予宁E
-.README.md は自刁E��か読まなくてもちめE��と書く（未来の自刁E�Eため�E�E
+🗒�E�E今後�E予定（メモ�E�E
+env.set_secrets.ps1 ↁEenv.set_secrets.deploy.ps1 にリネ�Eムするか！E
+Mac/Linux 開発老E��増えたら .sh 版も作�E予宁E
+.README.md は自刁E��か読まなくてもちめE��と書く（未来の自刁E�Eため�E�E
 
 
 

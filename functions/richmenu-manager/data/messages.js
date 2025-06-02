@@ -258,7 +258,7 @@ module.exports = {
   emojiMap,
   msgA20,msgA21,msgA22,msgA23,
   msgA3,
-  msgA50, msgA51,msgA52,msgA53,msgA54,msgA55,msgA56,msgA57,msgA58,msgA59,
+  msgA50,msgA51,msgA52,msgA53,msgA54,msgA55,msgA56,msgA57,msgA58,msgA59,
   msgA6,
   msgA70,msgA71,msgA72,
   msgB1,

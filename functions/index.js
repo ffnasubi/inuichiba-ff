@@ -92,6 +92,13 @@ exports.webhook = functions
   .https
   .onRequest({ region: region, secrets: secretNames }, app);
 
+// ✅ functions/api/ping.js を読み込んで関数として登録
+// 半日に一度pingを叩いてffmainを起こす
+exports.ping = functions
+  .https
+  .onRequest({ region: region, secrets: secretNames }, require("./api/ping"));
+
+
 // exports.helloWorld = require("./helloWorld").helloWorld;
 
 

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>pause_firebase 休眠チェック用リンク</title>
+  <style>
+    body { font-family: sans-serif; background-color: #f9f9f9; padding: 2em; }
+    h2 { color: green; }
+    h3 { color: #0055aa; margin-top: 1.5em; }
+    a { display: inline-block; margin: 0.2em 0; color: #0066cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .section { margin-bottom: 2em; }
+    .note { color: #444; font-size: 0.9em; margin-top: 0.3em; }
+  </style>
+</head>
+<body>
+  <h2>✅ pause_firebase 休眠チェック用リンク</h2>
+
+  <div class="section">
+    <h3>🧠 Firebase Functions (GEN2)</h3>
+    <a href="https://console.cloud.google.com/functions/list?project=inuichiba-ffprod" target="_blank">ffprod: Firebase Functions</a><br>
+    <a href="https://console.cloud.google.com/functions/list?project=inuichiba-ffdev" target="_blank">ffdev: Firebase Functions</a>
+  </div>
+
+  <div class="section">
+    <h3>🔐 Firebase Secrets (Secret Manager)</h3>
+    <a href="https://console.cloud.google.com/security/secret-manager?project=inuichiba-ffprod" target="_blank">ffprod: Secret Manager</a><br>
+    <a href="https://console.cloud.google.com/security/secret-manager?project=inuichiba-ffdev" target="_blank">ffdev: Secret Manager</a>
+  </div>
+
+  <div class="section">
+    <h3>📦 Artifact Registry: gcf-artifacts <span style="font-weight:normal">[GCRの後継]</span></h3>
+    <a href="https://console.cloud.google.com/artifacts/docker/inuichiba-ffprod/asia-northeast1/gcf-artifacts?project=inuichiba-ffprod" target="_blank">ffprod: gcf-artifacts</a><br>
+    <a href="https://console.cloud.google.com/artifacts/docker/inuichiba-ffdev/asia-northeast1/gcf-artifacts?project=inuichiba-ffdev" target="_blank">ffdev: gcf-artifacts</a>
+  </div>
+
+  <div class="section">
+    <h3>🖼 GCR（旧: Google Container Registry）</h3>
+    <a href="https://console.cloud.google.com/artifacts?project=inuichiba-ffprod" target="_blank">ffprod: GCR</a><br>
+    <a href="https://console.cloud.google.com/artifacts?project=inuichiba-ffdev" target="_blank">ffdev: GCR</a>
+  </div>
+
+  <div class="section">
+    <h3>🪣 Cloud Storage バケット（ffprodのみ削除禁止）</h3>
+    <a href="https://console.cloud.google.com/storage/browser/inuichiba-ffprod-cloudfunctions?project=inuichiba-ffprod" target="_blank">ffprod: cloudfunctions バケット</a><br>
+    <a href="https://console.cloud.google.com/storage/browser/?project=inuichiba-ffdev" target="_blank">ffdev: 存在しない</a>
+    <div class="note">💡 ffprod のみ ffprod-cloudfunctions バケットが存在すること。ffdevは何も存在しないこと</div>
+  </div>
+
+  <div class="section">
+    <h3>🏗 Cloud Build（ビルド履歴とアーティファクト）</h3>
+    <a href="https://console.cloud.google.com/cloud-build/builds?project=inuichiba-ffprod" target="_blank">ffprod: Cloud Build</a><br>
+    <a href="https://console.cloud.google.com/cloud-build/builds?project=inuichiba-ffdev" target="_blank">ffdev: Cloud Build</a>
+		<div class="note">💡 対策: ビルド頻度を抑える。<br>
+  		💡 アーティファクトを残す運用をする場合は、GCSバケットに「1日で削除」ライフサイクル設定推奨<br>
+			💡 削除禁止バケット以外は、デプロイ直後に削除することをもっと推奨<br>
+  		🔗 <a href="https://console.cloud.google.com/storage/browser" target="_blank">バケット一覧・ライフサイクル設定はこちら（※バケットが存在する場合）</a>
+		</div>
+	</div>
+
+  <div class="section">
+    <h3>📊 Cloud Logging（ログ課金）</h3>
+    <a href="https://console.cloud.google.com/logs/storage?project=inuichiba-ffprod" target="_blank">ffprod: Cloud Logging 保存期間</a><br>
+    <a href="https://console.cloud.google.com/logs/storage?project=inuichiba-ffdev" target="_blank">ffdev: Cloud Logging 保存期間</a>
+      💡 対策: ログ保持期間を 1日に変更（<strong>UIからのみ設定可能</strong>）<br>
+      🔗 <a href="https://console.cloud.google.com/logs/storage" target="_blank">ログストレージ</a><br>
+      📌 _default の右端の縦3点リーダーの[バケットを編集]-[保持期間の設定]を1にして[バケットを更新]ボタンを押下<br>
+			📌 少なくとも毎週確認を推奨
+  </div>
+
+  <div class="section">
+    <h3>📨 Cloud Pub/Sub</h3>
+    <a href="https://console.cloud.google.com/cloudpubsub/topic/list?project=inuichiba-ffprod" target="_blank">ffprod: Topics</a><br>
+    <a href="https://console.cloud.google.com/cloudpubsub/topic/list?project=inuichiba-ffdev" target="_blank">ffdev: Topics</a><br>
+    <a href="https://console.cloud.google.com/cloudpubsub/subscription/list?project=inuichiba-ffprod" target="_blank">ffprod: Subscriptions</a>
+    <a href="https://console.cloud.google.com/cloudpubsub/subscription/list?project=inuichiba-ffdev" target="_blank">ffdev: Subscriptions</a>
+    <div class="note">💡 対策: 未使用であれば削除してOK</div>
+  </div>
+
+  <div class="section">
+    <h3>🛡 脆弱性スキャン設定</h3>
+    <a href="https://console.cloud.google.com/artifacts/settings?project=inuichiba-ffprod" target="_blank">ffprod: 設定画面を開く</a><br>
+    <a href="https://console.cloud.google.com/artifacts/settings?project=inuichiba-ffdev" target="_blank">ffdev: 設定画面を開く</a>
+    <div class="note">💡 対策: 「脆弱性スキャン: オフ」であることを確認([有効にする]ボタンを押しちゃ駄目)</div>
+  </div>
+
+  <div class="section">
+    <h3>💰 GCM 課金 Firebase</h3>
+    <a href="https://console.cloud.google.com/billing/0146CD-F1B1EC-543173?inv=1&invt=AbzB5w" target="_blank">GCM 課金 (Firebase)</a>
+  </div>
+
+</body>
+</html>

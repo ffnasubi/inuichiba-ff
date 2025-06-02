@@ -185,17 +185,17 @@ async function bCreateRichMenu() {
           bounds: { x: 0, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "アクティビティに関するご案内について" }
         },
-	    // B3
+	      // B3
         {
           bounds: { x: wItem, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "アクティビティに関するご案内について" }
         },
-	    // B5
+	      // B5
         {
           bounds: { x: wItem*2, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "会場マップ\nショップリストについて" }
         },
-	    // B6
+	      // B6
         {
           bounds: { x:wItem*3, y:(hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "駐車場及びアクセス方法について" }

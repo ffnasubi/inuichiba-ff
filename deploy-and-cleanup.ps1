@@ -36,8 +36,13 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 
-Write-Host "`n🧹 GCFバケットとArtifact Registryのクリーンアップを実行します..." -ForegroundColor Cyan
+Write-Host "`n🧹 GCFバケットとArtifact Registry などのクリーンアップを実行します..." -ForegroundColor Cyan
 powershell -ExecutionPolicy Bypass -File .\cleanup-gcf-buckets.ps1 -env $env
+
+
+Write-Host "`n🧹 Cloud Build / PubSub の課金源を削除/抑制します..." -ForegroundColor Cyan
+powershell -ExecutionPolicy Bypass -File .\cleanup-postdeploy-extra.ps1 -env $env
+Write-Host "Cloud Logging は "pause_firebase 休眠チェック用リンク(pause-firebase-check.html)" から確認してください" -ForegroundColor Red
 
 
 Write-Host "`n✅ デプロイ & クリーンアップ完了！" -ForegroundColor Green
