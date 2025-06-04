@@ -108,7 +108,7 @@ async function aCreateRichMenu() {
           action: { type: "uri", uri: "https://inuichiba.com/index.html" }
         },
 	      
-  	  // B4
+  	  // A4
         {
           bounds: { x: 0, y: (hTab+hItem), width: wItem, height: hItem },
           action: { type: "message", text: "アクティビティに関するご案内" }

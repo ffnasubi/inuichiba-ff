@@ -43,8 +43,10 @@ foreach ($project in $projectIds) {
     }
   }  
 
-  Write-Host "🧹 [$project] cleanup-gcf-buckets.ps1 による GCF バケットと Artifact Registry 等の削除..." -ForegroundColor Green
-  powershell -ExecutionPolicy Bypass -File .\cleanup-gcf-buckets.ps1 -env $envName
+
+  Write-Host "🧹 [$project] cleanup-remains.ps1 による GCF バケットと Artifact Registry 等の削除..." -ForegroundColor Green
+  powershell -ExecutionPolicy Bypass -File .\cleanup-remains.ps1 -env $envName
+
 
   Write-Host "🌙 [$project] Firebase Functions 削除開始..." -ForegroundColor Green
     foreach ($fn in $functions) {
@@ -75,6 +77,7 @@ foreach ($project in $projectIds) {
     Write-Host "🗑 Cloud Run Service [$svc] を削除中..." -ForegroundColor DarkCyan
     gcloud run services delete $svc --platform=managed --region=$region --project=$project --quiet
   }
+
 }
   
 Write-Host "`n✅ すべての削除処理が完了しました。これで課金対象は一時停止状態になりました。" -ForegroundColor Cyan
@@ -83,7 +86,8 @@ Write-Host "`n✅ すべての削除処理が完了しました。これで課�
 $reportPath = "pause_firebase_check.html"
 if (Test-Path $reportPath) {
     Start-Process $reportPath
-    Write-Host "🔴 「pause_firebase 休眠チェック用リンク」をブラウザで開いています。内容を確認してください。" -ForegroundColor Red
+    Write-Host "🔴 「pause_firebase 休眠チェック用リンク($reportPath)」をブラウザで開きました" -ForegroundColor Red 
+    Write-Host "🔴 知らない間に課金されてないかしっかりチェックしてください" -ForegroundColor Red 
 
 } else {
     Write-Host "⚠️ $reportPath が見つかりませんでした。" -ForegroundColor Yellow

@@ -4,7 +4,6 @@ on:
   schedule:
     - cron: '0 0 1,5,10,15,20,25,30 * *'  # 📆 Supabase ping（JST 9:00）
     - cron: '0 0 * * *'                  # ☀️ Firebase ping（毎朝 JST 9:00）
-    - cron: '0 12 * * *'                 # 🌙 Firebase ping（毎晩 JST 21:00）
   workflow_dispatch:
 
 jobs:
