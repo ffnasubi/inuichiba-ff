@@ -41,10 +41,11 @@
   </div>
 
   <div class="section">
-    <h3>🪣 Cloud Storage バケット（ffprodのみ削除禁止）</h3>
-    <a href="https://console.cloud.google.com/storage/browser/inuichiba-ffprod-cloudfunctions?project=inuichiba-ffprod" target="_blank">ffprod: cloudfunctions バケット</a><br>
+    <h3>🪣 Storage バケット（ffprodのみ削除禁止）</h3>
+    <a href="https://console.cloud.google.com/storage/browser?inv=1&invt=Abzexw&project=inuichiba-ffprod" target="_blank">ffprod: cloudfunctions/firebasestorage.app バケット</a><br>
     <a href="https://console.cloud.google.com/storage/browser/?project=inuichiba-ffdev" target="_blank">ffdev: 存在しない</a>
-    <div class="note">💡 ffprod のみ ffprod-cloudfunctions バケットが存在すること。ffdevは何も存在しないこと</div>
+    <div class="note">💡 ffprod は ffprod-cloudfunctions(asia-northeast1)/ffprod.firebasestorage.app(us-central1)バケットが存在すること<br>
+      💡 ffdevは何も存在しないこと</div>
   </div>
 
   <div class="section">
@@ -53,7 +54,7 @@
     <a href="https://console.cloud.google.com/cloud-build/builds?project=inuichiba-ffdev" target="_blank">ffdev: Cloud Build</a>
 		<div class="note">💡 対策: ビルド頻度を抑える。<br>
   		💡 アーティファクトを残す運用をする場合は、GCSバケットに「1日で削除」ライフサイクル設定推奨<br>
-			💡 削除禁止バケット以外は、デプロイ直後に削除することをもっと推奨<br>
+			💡 削除禁止バケット以外は、デプロイ直後に削除することを沢山推奨<br>
   		🔗 <a href="https://console.cloud.google.com/storage/browser" target="_blank">バケット一覧・ライフサイクル設定はこちら（※バケットが存在する場合）</a>
 		</div>
 	</div>

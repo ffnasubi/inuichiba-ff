@@ -218,8 +218,3 @@ gcloud artifacts repositories describe $repoName `
 # ✅ 完了メッセージ
 Write-Host "🌟 完了しました！このあと以下のコマンドを実行してください:" -ForegroundColor Cyan
 Write-Host "   Start-Sleep -Seconds 120" -ForegroundColor Green
-Write-Host "  "
-Write-Host "   ✅ 開発環境へのデプロイ"  -ForegroundColor DarkCyan
-Write-Host "   powershell -ExecutionPolicy Bypass -File .\deploy-and-cleanup.ps1 -env ffdev" -ForegroundColor Green
-Write-Host "   ✅ 本番環境へのデプロイ"  -ForegroundColor DarkCyan
-Write-Host "   powershell -ExecutionPolicy Bypass -File .\deploy-and-cleanup.ps1 -env ffprod" -ForegroundColor Green

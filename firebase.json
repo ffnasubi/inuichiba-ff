@@ -3,17 +3,5 @@
     "source": "functions",
     "runtime": "nodejs20",
     "region": "asia-northeast1"
-  },
-  "hosting": {
-    "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      { "source": "/api/**",   "function": "webhook" },
-      { "source": "/api/ping", "function": "ping" }
-    ]
   }
 }

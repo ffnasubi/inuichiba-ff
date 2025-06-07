@@ -1,37 +1,47 @@
 ﻿# ----------------------------------------------
 # cleanup-remains.ps1
 # GCF Gen1/Gen2 関連の不要なりソ-ス (Cloud Storage バケットと Artifact Registry、GCR 残骸) や 
-# 課金対象の一掃スクリプト
+# 課金対象を一掃
+# Firebase Functions のデプロイ後や長期休眠時の後片付け用途
 # 
 # ★ 安全指針（必ず守ってください）
-# ✅削除OK
-#  ✅ gcf-sources / gcf-uploads / staging バケット
-# - gcf-v2-sources-*
-# - gcf-v2-uploads-*
-# - gcf-sources-*
-# - staging.$projectId.appspot.com
-# ✅ Artifact Registry: gcf-artifacts
-# - 明示的追加バケット:
+# ✅ 主な削除対象（再作成されるため削除OK）
+# - Cloud Storage バケット
+#     - gcf-sources-*
+#     - gcf-v2-sources-*
+#     - gcf-v2-uploads-*
+#     - staging.$projectId.appspot.com
 #     - gcf-v2-uploads-$projectNumber.asia-northeast1.cloudfunctions.appspot.com
 #     - gcf-v2-sources-$projectNumber-asia-northeast1
-# - Artifact Registry: gcf-artifacts（再作成されるため削除OK）
-# ✅ GCR (Container Registry): gcr.io/$projectId/gcf（旧GCF v1の残骸）
+# - Artifact Registry: 
+#     - gcf-artifacts（functions デプロイ時に再作成）
+# - GCR (Container Registry)
+#     - asia.gcr.io/$projectId/*（旧GCF v1の残骸）
 # 
-# ★注意事項
-# ⚠️ 削除禁止(ffprodのみ保護)
-# - $projectId-cloudfunctions（例: inuichiba-ffprod-cloudfunctions）
-#   - Firebase Hosting・Functions Gen2の運用必須バケット
-#   - 一度削除すると手動では再作成できません
-# ⚠️ GCRについて
-#   - Firebase Functions の残骸（特に GCR）は課金対象になる可能性があるため削除推奨
-#
-# ★実行方法
+# ⚠️ 削除禁止（特に ffprod は要注意）
+# - Cloud Storage:
+#     - $projectId-cloudfunctions（例: inuichiba-ffprod-cloudfunctions）
+#       - Firebase Functions Gen2 の本番運用に必要な専用バケット
+#       - 一度削除すると手動での復旧は不可能
+# - 保護対象の Cloud Storage バケット:
+#     - $projectId.firebasestorage.app（例: inuichiba-ffprod.firebasestorage.app）
+#       - Firebase Hosting に直接は使っていなくても、
+#         Cloudflare・LINE Bot 等からの画像配信で参照されることがあります
+#       - 🔥 削除すると画像配信が停止し、重大な影響を与えるため削除禁止
+# ❗ 安全のため、`ffprod` 環境では保護対象のバケットは除外して処理されます
+# 
+# - GCR（Google Container Registry）について:
+#     - Firebase Functions（特に Gen1）では、内部的に GCR（asia.gcr.io/$projectId）に Docker イメージが残る場合があります
+#     - これらは手動で削除しない限り永続的に残り、**ストレージ課金の対象となる可能性があります**
+#     - Firebase CLI や Cloud Build の処理では自動削除されないため、**明示的な削除が推奨されます**
+#     - GCR は今後 Artifact Registry に移行される予定のため、なるべく GCR を使わない構成へ
+# ----------------------------------------------
 #   powershell -ExecutionPolicy Bypass -File .\cleanup-remains.ps1 -env ffprod
 #   powershell -ExecutionPolicy Bypass -File .\cleanup-remains.ps1 -env ffdev
 # ----------------------------------------------
 
 param (
-  [string]$env = "ffprod"
+  [string]$env = "ffprod",
 )
 
 
@@ -50,6 +60,7 @@ switch ($env) {
     exit 1
   }
 }
+
 
 # プロジェクト設定を gcloud に反映
 gcloud config set project $projectId | Out-Null
@@ -147,18 +158,19 @@ if ($repoExists) {
 # ----------------------------------------------
 # ✅ 削除禁止バケットの存在チェック（ffprod限定）
 # 
-# ▼ なぜ ffprod だけチェックするのか？
-# - ffprod は過去に GCF v1 でデプロイされた歴史がある
-# - GCF v2 に移行した現在も、プロジェクト内部で v1 の遺産（バケット紐付け）が残っている
-# - このバケット（$projectId-cloudfunctions）が存在しないと ffprod はデプロイエラーになる
-# - 実際、Cloudflare Pages へ移行後も、ffprod のデプロイ時に「バケットが無い」とエラーが発生した
-# - そのため「削除禁止」としてわざわざ作成し、今後も保護する方針にしている
+# ✅ 削除禁止バケット [$projectId-cloudfunctions] の存在チェック（ffprodのみ）
 #
-# ▼ 一方、ffdev は初回から GCF v2 世代で作られており、このバケットを必要としない
-# - ffdev はバケットが無くても問題なくデプロイが通る（v2 + Artifact Registryベース）
-# - よって ffdev ではこのチェックは不要（意図的にスキップする）
-# 
-# → ffprod だけチェックするのが、運用方針として適切
+# 🔸 このバケットは Firebase Functions (Gen2) において、
+#     デプロイ中の内部的な処理で使用される場合があります（GCPの仕様は非公開）
+#
+# 🔸 実際、ffprod 環境ではこのバケットが存在しないとデプロイ時にエラーとなりました
+#     - 「バケットが存在しない」と明示され、デプロイ失敗
+#
+# 🔸 一方、ffdev 環境ではこのバケットがなくても問題なく動作することが確認されています
+#     - おそらく GCP の構成・世代・初期状態によって挙動が異なります
+#
+# 🔒 そのため、ffprod においては「保険として削除禁止」とし、
+#     ffdev ではバケットが無ければそのままスキップする方針です
 
 # 🛡️ 削除禁止バケットチェック（ffprodのみ）
 if ($projectId -eq "inuichiba-ffprod") {
@@ -167,11 +179,22 @@ if ($projectId -eq "inuichiba-ffprod") {
   $exists = gcloud storage buckets list --project=$projectId --format="value(name)" | Where-Object { $_ -eq $mustExistBucket }
 
   if ($exists) {
-    Write-Host "✅ 削除禁止バケットは正常に存在します: gs://$mustExistBucket" -ForegroundColor Green
+    Write-Host "✅ 削除禁止バケット(1/2)は正常に存在します: gs://$mustExistBucket" -ForegroundColor Green
     Write-Host "URL: https://console.cloud.google.com/storage/browser/$mustExistBucket?project=$projectId" -ForegroundColor Green
   } else {
-    Write-Host "❌ 削除禁止バケットが見つかりません！復旧が必要です！" -ForegroundColor Red
+    Write-Host "❌ 削除禁止バケット(1/2)が見つかりません！復旧が必要です！" -ForegroundColor Red
     Write-Host "URL（存在しないはず）: https://console.cloud.google.com/storage/browser/$mustExistBucket?project=$projectId" -ForegroundColor Red
+  }
+
+  # 🔍 firebasestorage.app バケットの保護確認
+  $mustExistBucket2 = "$projectId.firebasestorage.app"
+  $exists2 = gcloud storage buckets list --project=$projectId --format="value(name)" | Where-Object { $_ -eq $mustExistBucket2 }
+
+  if ($exists2) {
+    Write-Host "✅ 削除禁止バケット(2/2)は正常に存在します: gs://$mustExistBucket2" -ForegroundColor Green
+    Write-Host "URL: https://console.cloud.google.com/storage/browser/$mustExistBucket2?project=$projectId" -ForegroundColor Green
+  } else {
+    Write-Host "❌ firebasestorage.app バケットが見つかりません！削除済み or 利用不可状態の可能性あり" -ForegroundColor Red
   }
 } else {
   Write-Host "`n🔍 [$projectId] では削除禁止バケットの存在チェックはスキップします（ffprodのみ実行）" -ForegroundColor DarkCyan
@@ -236,15 +259,14 @@ Write-Host "`n以下の処理は休眠処理(pause-firebase.ps1)には不要だ�
 
 <#
 ===============================================================
-✅ Cloud Build / Cloud Logging / PubSub の課金抑制用スクリプト
+✅ Cloud Build / Cloud Logging / PubSub の課金抑制
 ---------------------------------------------------------------
 このスクリプトは、Cloud Functions のデプロイ後に呼び出して、
 以下の「見落としがちな課金源」を自動的に削除・初期化します。
-()
 
 🔸 削除対象リスト：
 - Cloud Build によって作られるビルドアーティファクトのバケット
-- Logging により保存されたログ保持ポリシー確認（削除はUIから）
+- Logging により保存されたログ保持ポリシー確認（削除はUIからのみ実行可能）
   -- "pause_firebase 休眠チェック用リンク(pause-firebase-check.html)" から確認のこと
 - Pub/Sub に自動生成された Topic / Subscription の削除
 
