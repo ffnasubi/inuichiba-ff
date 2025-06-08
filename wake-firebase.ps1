@@ -3,8 +3,7 @@
 #
 # ✅ 実行順:
 #   1. reset-artifactregistry.ps1 を呼び出し、gcf-artifacts を初期化
-#   2. secrets を登録（.env.set_secrets.ps1）
-#   3. deploy-and-cleanup.ps1 を実行し、Functions を再デプロイ
+#   2. deploy-and-cleanup.ps1 を実行し、Functions を再デプロイ
 #
 # ✅ 目的:
 #   - GCF Gen2 環境を正しく初期化
@@ -40,9 +39,9 @@ foreach ($envKey in $envKeys) {
 		Write-Host "`n🚀 [$envKey] IAM ロールの付与処理開始..." -ForegroundColor Cyan
     powershell -ExecutionPolicy Bypass -File .\reset-artifactregistry.ps1 -env $envKey
 						
-		Write-Host "`n🚀 [$envKey] Secrets 登録処理開始..." -ForegroundColor Cyan
+		# Write-Host "`n🚀 [$envKey] Secrets 登録処理開始..." -ForegroundColor Cyan
     # Secretsの再登録（us-central1回避用に別スクリプトを呼ぶ）
-    powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -Env $envKey -deleteOldVersions
+    # powershell -ExecutionPolicy Bypass -File .\.env.set_secrets.ps1 -Env $envKey -deleteOldVersions
 
     Write-Host "`n🧩 [$envKey] Firebase Functions をデプロイ中..." -ForegroundColor Cyan
 		powershell -ExecutionPolicy Bypass -File .\deploy-and-cleanup.ps1 -env $envKey

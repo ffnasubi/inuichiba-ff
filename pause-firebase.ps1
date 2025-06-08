@@ -54,6 +54,7 @@ foreach ($project in $projectIds) {
       firebase functions:delete $fn --region $region --force --project=$project
     }
   
+<#    
   Write-Host "🔐 [$project] Secret Manager の全 Secret を取得中..." -ForegroundColor Cyan
   $secrets = gcloud secrets list --project=$project --format="value(name)"
 
@@ -70,6 +71,8 @@ foreach ($project in $projectIds) {
       }
     }
   }
+#>
+
 
   Write-Host "🧹 [$project] Cloud Run Functions を削除中（保険的措置）..." -ForegroundColor Green
   $runServices = gcloud run services list --platform=managed --region=$region --project=$project --format="value(metadata.name)"

@@ -41,7 +41,7 @@
 # ----------------------------------------------
 
 param (
-  [string]$env = "ffprod",
+  [string]$env = "ffprod"
 )
 
 

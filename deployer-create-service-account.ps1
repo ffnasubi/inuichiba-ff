@@ -1,16 +1,19 @@
 ﻿<#
+deployer-create-service-account.ps1
 .SYNOPSIS
-Firebase Functions デプロイ用サービスアカウントを作成または確認し、鍵を再生成。
+Firebase Functions デプロイ用サービスアカウントを作成または確認し、必要なIAMロールを付与。
+鍵を安全に再生成。
 
 .DESCRIPTION
 - ffdev / ffprod 用の SA を作成（または確認）
 - 既存の鍵は削除
 - 新しい鍵を deployer.{env}.json として保存
+- IAMロールを付与
 
 .PARAMETER env
 ffdev または ffprod（既定値は ffdev）
 
-.PARAMETER Method of Execution
+.EXECUTION EXAMPLE
 cd d:\nasubi\inuichiba_ff
 #ffprod
 powershell -ExecutionPolicy Bypass -File .\deployer-create-service-account.ps1 -env ffprod
@@ -19,8 +22,11 @@ powershell -ExecutionPolicy Bypass -File .\deployer-create-service-account.ps1 -
 
 .NOTES
 - この鍵ファイルは Git 管理外にしてください（.gitignore）
+- ロールは Cloud Functions + Firebase + Cloud Build に必要な最小構成のみ
 - 鍵漏洩対策のため定期的に rotate 推奨(最低でも月1回、重要なら1日1回も可)
-
+- 鍵を再作成したら、GitHubの Secrets and variables > Actions > Repository secretsに
+  FIREBASE_SERVICE_ACCOUNT_INUICHIBA_FF* と言う名前で、json(鍵)の中身を登録し直すこと
+- Secret Manager を使わない構成（課金ゼロ構成対応）
 #>
 
 # ─────────────────────────────
@@ -53,17 +59,29 @@ param (
   [string]$env="ffdev"
 )
 
+# ─────────────────────────────
+# 初期設定
+# ─────────────────────────────
 $projectId = "inuichiba-$env"
 $saName = "$env-inuichiba-deployer"
 $saEmail = "$saName@$projectId.iam.gserviceaccount.com"
 $outputJson = "deployer.$env.json"
 
-Write-Host "✅ Debug SA Email: $saEmail"
-
-Write-Host "🔍 プロジェクト: $projectId" -ForegroundColor Cyan
+Write-Host "🔍 対象プロジェクト: $projectId" -ForegroundColor Cyan
 Write-Host "🔍 サービスアカウント: $saEmail" -ForegroundColor Cyan
 
-# SA存在チェック
+# ─────────────────────────────
+# 認証チェック
+# ─────────────────────────────
+$currentAccount = gcloud auth list --filter=status:ACTIVE --format="value(account)"
+if (-not $currentAccount) {
+  Write-Host "❌ gcloud CLI にログインしていません。まず `gcloud auth login` を実行してください。" -ForegroundColor Red
+  exit 1
+}
+
+# ─────────────────────────────
+# サービスアカウントの作成確認
+# ─────────────────────────────
 $saList = gcloud iam service-accounts list --project=$projectId --format="value(email)"
 $exists = $saList | Where-Object { $_ -eq $saEmail }
 if ($exists) {
@@ -71,11 +89,31 @@ if ($exists) {
 } else {
   Write-Host "🆕 サービスアカウントを作成します..." -ForegroundColor Yellow
   gcloud iam service-accounts create $saName `
-    --display-name="Firebase Deploy Service Account" `
+    --display-name="Firebase Deploy Service Account ($env)" `
     --project=$projectId
 }
 
-# 既存鍵を削除（安全のため全削除）
+# ─────────────────────────────
+# IAMロール付与（必要最小限）
+# ─────────────────────────────
+$roles = @(
+  "roles/cloudfunctions.developer",
+  "roles/firebase.admin",
+  "roles/cloudbuild.builds.editor",
+  "roles/iam.serviceAccountUser"
+)
+
+foreach ($role in $roles) {
+  Write-Host "🔐 IAMロール付与: $role"
+  gcloud projects add-iam-policy-binding $projectId `
+    --member="serviceAccount:$saEmail" `
+    --role=$role `
+    --quiet
+}
+
+# ─────────────────────────────
+# 古い鍵を削除（全削除）
+# ─────────────────────────────
 Write-Host "🧹 古い鍵を削除中..." -ForegroundColor Yellow
 $keyNames = gcloud iam service-accounts keys list `
   --iam-account=$saEmail `
@@ -94,12 +132,15 @@ foreach ($keyId in $ketIds) {
     --quiet
 }
 
-# 鍵を再生成
+# ─────────────────────────────
+# 新しい鍵を生成
+# ─────────────────────────────
 Write-Host "🔐 新しい鍵を生成中..." -ForegroundColor Cyan
 gcloud iam service-accounts keys create "$outputJson" `
   --iam-account=$saEmail `
   --project=$projectId
 
-Write-Host "`n✅ 完了: $outputJson を生成しました。" -ForegroundColor Green
-Write-Host "📌 使用方法: `$env:GOOGLE_APPLICATION_CREDENTIALS = `"$PWD\$outputJson`"" -ForegroundColor Cyan
-
+Write-Host "`n✅ 完了: $outputJson を生成しました" -ForegroundColor Green
+Write-Host "📌 GitHub Secrets に以下の名前でこの JSON(鍵) の中身を登録しなおしてください" -ForegroundColor Cyan
+Write-Host "   GitHub Secret名: FIREBASE_SERVICE_ACCOUNT_INUICHIBA_$($env.ToUpper())" -ForegroundColor Cyan
+Write-Host "🛡 使用後は `$env:GOOGLE_APPLICATION_CREDENTIALS = `"$PWD\$outputJson`"" -ForegroundColor Gray

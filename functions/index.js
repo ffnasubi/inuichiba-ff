@@ -85,18 +85,17 @@ app.get("/api/webhook", function(req, res) {
   res.status(200).send("OK (GET from webhook)");
 });
 
-const { secretNames } = require("./lib/env.js");
 
-// ✅ Firebase Functions v2 としてエクスポート（Secretsを列挙）
+// ✅ Firebase Functions v2 としてエクスポート
 exports.webhook = functions
   .https
-  .onRequest({ region: region, secrets: secretNames }, app);
+  .onRequest({ region: region }, app);
 
 // ✅ functions/api/ping.js を読み込んで関数として登録
-// 半日に一度pingを叩いてffmainを起こす
+// 一日に一度pingを叩いてffmainを起こす
 exports.ping = functions
   .https
-  .onRequest({ region: region, secrets: secretNames }, require("./api/ping"));
+  .onRequest({ region: region }, require("./api/ping"));
 
 
 // exports.helloWorld = require("./helloWorld").helloWorld;

@@ -7,13 +7,14 @@
 # 
 # 特に2の前に1は必ず必要。でないと GCR が作られて Gen1 でデプロイされてしまう
 # (Gen2 移行を推奨されている)
+# ⚠️ ffprodは必ずこのスクリプトでデプロイすること！
 # ----------------------------------------------
 #   powershell -ExecutionPolicy Bypass -File .\deploy-and-cleanup.ps1 -env ffprod
 #   powershell -ExecutionPolicy Bypass -File .\deploy-and-cleanup.ps1 -env ffdev
 # ----------------------------------------------
 
 param (
-  [string]$env = "ffdev",
+  [string]$env = "ffdev"
 )
 
 switch ($env) {
@@ -62,7 +63,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 
-Write-Host "`n🕒 gcf-artifacts などの残骸ファイルを削除する前に120秒待ちます" -ForegroundColor Yellow
+Write-Host "`n🕒 gcf-artifacts などの残骸ファイルを削除する前に120秒待ちます(デプロイ完了が安定するまで待つ)" -ForegroundColor Yellow
 Write-Host "⏳ 中止したい場合は [Ctrl + C] を押してください(残骸ファイルは削除されません)..." -ForegroundColor Yellow
 
 for ($i = 120; $i -ge 1; $i--) {

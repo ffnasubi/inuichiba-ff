@@ -30,24 +30,31 @@ const isPreview = false;                            // ← Firebase には previ
 
 
 // =======================================
-// 🔹 ステップ 2：Secretsから読み込む値（APIキーなど）
+// 🔹 ステップ 2：GitHub Secretsから読み込む値（Firebase Config経由）
 // ---------------------------------------
-// ※ Secrets に登録された値は `process.env.XXX` で参照できます。
-//    ただし Firebase Functions v2 では反映が非同期になることがあるため、
-//    ログ出力前に .trim() や BOM 除去処理を必ず行うこと。
+// ※ GitHub の Settings > Secrets and variables > Actions に登録された値は、
+//    GitHub Actions 内で firebase functions:config:set により
+//    Firebase Functions に注入されます。
+//
+//    config().xxx で参照可能ですが、Functions v2 では
+//    デプロイ直後に反映遅延が起きることがあるため、
+//    取得した値はログ出力前に .trim() や BOM 除去などのサニタイズを推奨します。
 // =======================================
 
-let channelAccessToken = process.env[
-  isProd ? "CHANNEL_ACCESS_TOKEN_PROD" : "CHANNEL_ACCESS_TOKEN_DEV"
-];
+import { config } from "firebase-functions";
+
+let channelAccessToken = isProd
+  ? config().line.token.prod
+  : config().line.token.dev;
 channelAccessToken = sanitizeEnvVar(channelAccessToken);
 
-let channelSecret = process.env[
-  isProd ? "CHANNEL_SECRET_PROD" : "CHANNEL_SECRET_DEV"
-];
+let channelSecret = isProd
+  ? config().line.secret.prod
+  : config().line.secret.dev;
 channelSecret = sanitizeEnvVar(channelSecret);
 
-let supabaseKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]; // ← 本番/開発で共通のため固定
+// 本番/開発共通の Supabase サービスキー
+let supabaseKey = config().supabase.roll.key; 
 supabaseKey = sanitizeEnvVar(supabaseKey);
 
 
@@ -76,7 +83,7 @@ const baseDir = "https://inuichiba-ffimages.pages.dev/";
 const path = require("path");
 const imageDir = path.resolve(__dirname, "../richmenu-manager/data/");
 
-
+/** 
 // =======================================
 // 🔹 ステップ 5：Secrets名一覧（functions/index.js から参照される）
 // ---------------------------------------
@@ -84,7 +91,7 @@ const imageDir = path.resolve(__dirname, "../richmenu-manager/data/");
 // 無駄なバージョン増加を防ぐため、最低限に抑えています。
 // =======================================
 
-const secretNames = isProd
+ const secretNames = isProd
   ? [
       "CHANNEL_ACCESS_TOKEN_PROD",
       "CHANNEL_SECRET_PROD",
@@ -95,7 +102,7 @@ const secretNames = isProd
       "CHANNEL_SECRET_DEV",
       "SUPABASE_SERVICE_ROLE_KEY"
     ];
-
+*/
 
 // =======================================
 // 🔹 ステップ 6：全Secrets読み込み箇所に BOM & trim()など安全処理を施す
