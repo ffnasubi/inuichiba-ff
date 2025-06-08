@@ -1,0 +1,46 @@
+name: Deploy to Firebase (multi-env)
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'Deploy target (ffprod or ffdev)'
+        required: true
+        default: 'ffprod'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Firebase CLI
+      run: npm install -g firebase-tools
+
+    - name: Set Firebase Config and Deploy
+      run: |
+        if [ "${{ github.event.inputs.env }}" = "ffprod" ]; then
+          echo "🚀 Deploying to FFPROD"
+          firebase functions:config:set line.token.prod="${{ secrets.CHANNEL_ACCESS_TOKEN_PROD }}" \ 
+                                        line.secret.prod="${{ secrets.CHANNEL_SECRET_PROD }}" \
+                                        supabase.roll.key="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+          firebase deploy --only functions --project=inuichiba-ffprod --force
+        elif [ "${{ github.event.inputs.env }}" = "ffdev" ]; then
+          echo "🚀 Deploying to FFDEV"
+          firebase functions:config:set line.token.dev="${{ secrets.CHANNEL_ACCESS_TOKEN_DEV }}" \
+                                        line.secret.dev="${{ secrets.CHANNEL_SECRET_DEV }}" \
+                                        supabase.roll.key="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+          firebase deploy --only functions --project=inuichiba-ffdev --force
+        else
+          echo "❌ Unknown environment: ${{ github.event.inputs.env }}"
+          exit 1
+        fi
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
