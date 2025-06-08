@@ -30,7 +30,25 @@ const isPreview = false;                            // ← Firebase には previ
 
 
 // =======================================
-// 🔹 ステップ 2：GitHub Secretsから読み込む値（Firebase Config経由）
+// 🔹 ステップ 2：全Secrets読み込み箇所に BOM & trim()など安全処理を施す
+// ---------------------------------------
+// スクリプト側で BOM を除去しても「完全には防げない」ため
+// .ps1 などでSecrets登録前に改行やBOMを除去していても、
+// gcloud CLIやローカルエディタのクセで BOM が入るケースは完全には防げません。
+// そのため、「アプリ側で安全処理」を入れておくのは
+// 実運用における二重セーフティとしてとても優れた設計です。
+// =======================================
+
+function sanitizeEnvVar(value) {
+  if (typeof value !== "string") return value;
+  let v = value;
+  if (v.charAt(0) === "\uFEFF") v = v.slice(1); // BOM削除
+  return v.trim();
+}
+
+
+// =======================================
+// 🔹 ステップ 3：GitHub Secretsから読み込む値（Firebase Config経由）
 // ---------------------------------------
 // ※ GitHub の Settings > Secrets and variables > Actions に登録された値は、
 //    GitHub Actions 内で firebase functions:config:set により
@@ -41,29 +59,27 @@ const isPreview = false;                            // ← Firebase には previ
 //    取得した値はログ出力前に .trim() や BOM 除去などのサニタイズを推奨します。
 // =======================================
 
-const { config } = require("firebase-functions");
+const { config } = require("firebase-functions/v2");
 
-const cfg = config();
-const line = cfg.line || { token: {}, secret: {} };
-const supabase = cfg.supabase || { roll: { key: "" } };
-
-let channelAccessToken = isProd
-  ? config().line.token.ffprod
-  : config().line.token.ffdev;
+let channelAccessToken =
+  process.env.GCLOUD_PROJECT?.includes("ffprod")
+    ? cfg?.line?.token?.ffprod || ""
+    : cfg?.line?.token?.ffdev || "";
 channelAccessToken = sanitizeEnvVar(channelAccessToken);
 
-let channelSecret = isProd
-  ? config().line.secret.ffprod
-  : config().line.secret.ffdev;
+let channelSecret =
+  process.env.GCLOUD_PROJECT?.includes("ffprod")
+    ? cfg?.line?.secret?.ffprod || ""
+    : cfg?.line?.secret?.ffdev || "";
 channelSecret = sanitizeEnvVar(channelSecret);
 
 // 本番/開発共通の Supabase サービスキー
-let supabaseKey = config().supabase.roll.key; 
+let supabaseKey = cfg?.supabase?.roll?.key || ""; 
 supabaseKey = sanitizeEnvVar(supabaseKey);
 
 
 // =======================================
-// 🔹 ステップ 3：Secretsではなく定数でよい値（URL, テーブル名）
+// 🔹 ステップ 4：Secretsではなく定数でよい値（URL, テーブル名）
 // ---------------------------------------
 // Supabase の URL や テーブル名は Secrets にしなくても安全です。
 // なぜなら URL は公開前提であり、テーブル名はセキュリティとは無関係な定義情報だからです。
@@ -74,7 +90,7 @@ const usersTable = isProd ? "users_ffprod" : "users_ffdev";
 
 
 // =======================================
-// 🔹 ステップ 4：LINE画像・カルーセルメッセージ用の共通URLやパス
+// 🔹 ステップ 5：LINE画像・カルーセルメッセージ用の共通URLやパス
 // ---------------------------------------
 // Cloudflare Pages にアップした画像を参照するURLです。
 // 現在はどちらの環境でも共通で問題ない設計です。
@@ -109,25 +125,7 @@ const imageDir = path.resolve(__dirname, "../richmenu-manager/data/");
 */
 
 // =======================================
-// 🔹 ステップ 6：全Secrets読み込み箇所に BOM & trim()など安全処理を施す
-// ---------------------------------------
-// スクリプト側で BOM を除去しても「完全には防げない」ため
-// .ps1 などでSecrets登録前に改行やBOMを除去していても、
-// gcloud CLIやローカルエディタのクセで BOM が入るケースは完全には防げません。
-// そのため、「アプリ側で安全処理」を入れておくのは
-// 実運用における二重セーフティとしてとても優れた設計です。
-// =======================================
-
-function sanitizeEnvVar(value) {
-  if (typeof value !== "string") return value;
-  let v = value;
-  if (v.charAt(0) === "\uFEFF") v = v.slice(1); // BOM削除
-  return v.trim();
-}
-
-
-// =======================================
-// 🔹 ステップ 7：安全なログ出力（console.logで機密を出さない工夫）
+// 🔹 ステップ 6：安全なログ出力（console.logで機密を出さない工夫）
 // ---------------------------------------
 // Secretsの値は出力しないよう、「長さ」「先頭文字列」などに制限して確認します。
 // 呼び出したらisProd/!isProdにかかわらず表示しますので注意しましょうね
