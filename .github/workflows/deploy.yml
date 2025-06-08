@@ -1,10 +1,10 @@
-name: Deploy to Firebase (multi-env)
+name: Deploy to Firebase (ffprod / ffdev)
 
 on:
   workflow_dispatch:
     inputs:
       env:
-        description: 'Deploy target (ffprod or ffdev)'
+        description: 'Environment to deploy (ffprod or ffdev)'
         required: true
         default: 'ffprod'
 
@@ -16,7 +16,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
+    - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -24,11 +24,25 @@ jobs:
     - name: Install Firebase CLI
       run: npm install -g firebase-tools
 
-    - name: Setup credentials for Firebase
-      run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_INUICHIBA_FFDEV }}' > ${HOME}/gcloud.json
-    
+    - name: Setup service account key (FFPROD)
+      if: github.event.inputs.env == 'ffprod'
+      run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_INUICHIBA_FFPROD }}' > $HOME/gcloud.json
+
+    - name: Setup service account key (FFDEV)
+      if: github.event.inputs.env == 'ffdev'
+      run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_INUICHIBA_FFDEV }}' > $HOME/gcloud.json
+
     - name: Set GOOGLE_APPLICATION_CREDENTIALS
-      run: echo "GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud.json" >> $GITHUB_ENV
+      run: echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcloud.json" >> $GITHUB_ENV
+
+    - name: Set Firebase Config (FFPROD)
+      if: github.event.inputs.env == 'ffprod'
+      run: |
+        firebase functions:config:set \
+          line.token.ffprod="${{ secrets.CHANNEL_ACCESS_TOKEN_PROD }}" \
+          line.secret.ffprod="${{ secrets.CHANNEL_SECRET_PROD }}" \
+          supabase.roll.key="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+          --project=inuichiba-ffprod
 
     - name: Set Firebase Config (FFDEV)
       if: github.event.inputs.env == 'ffdev'
@@ -39,14 +53,6 @@ jobs:
           supabase.roll.key="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
           --project=inuichiba-ffdev
 
-    - name: Deploy to Firebase (FFDEV)
-      if: github.event.inputs.env == 'ffdev'
-      run: |
-        firebase deploy \
-          --only functions \
-          --project=inuichiba-ffdev \
-          --force 
-    
     - name: Deploy to Firebase (FFPROD)
       if: github.event.inputs.env == 'ffprod'
       run: |
@@ -54,10 +60,11 @@ jobs:
           --only functions \
           --project=inuichiba-ffprod \
           --force
-    
-        else
-          echo "❌ Unknown environment: ${{ github.event.inputs.env }}"
-          exit 1
-        fi
-      env:
-        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+    - name: Deploy to Firebase (FFDEV)
+      if: github.event.inputs.env == 'ffdev'
+      run: |
+        firebase deploy \
+          --only functions \
+          --project=inuichiba-ffdev \
+          --force
