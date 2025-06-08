@@ -43,6 +43,10 @@ const isPreview = false;                            // ← Firebase には previ
 
 const { config } = require("firebase-functions");
 
+const cfg = config();
+const line = cfg.line || { token: {}, secret: {} };
+const supabase = cfg.supabase || { roll: { key: "" } };
+
 let channelAccessToken = isProd
   ? config().line.token.ffprod
   : config().line.token.ffdev;
