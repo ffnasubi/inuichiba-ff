@@ -53,6 +53,11 @@ jobs:
           supabase.roll.key="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
           --project=inuichiba-ffprod
 
+    - name: Deploy to Firebase (FFPROD)
+      if: github.event.inputs.env == 'ffprod'
+      run: |
+        firebase deploy --only functions --project=inuichiba-ffprod --config=firebase.json --force
+
     - name: Set Firebase Config (FFDEV)
       if: github.event.inputs.env == 'ffdev'
       run: |
@@ -62,18 +67,9 @@ jobs:
           supabase.roll.key="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
           --project=inuichiba-ffdev
 
-    - name: Deploy to Firebase (FFPROD)
-      if: github.event.inputs.env == 'ffprod'
-      run: |
-        firebase deploy \
-          --only functions \
-          --project=inuichiba-ffprod \
-          --force
-
     - name: Deploy to Firebase (FFDEV)
       if: github.event.inputs.env == 'ffdev'
       run: |
-        firebase deploy \
-          --only functions \
-          --project=inuichiba-ffdev \
-          --force
+        firebase deploy --only functions --project=inuichiba-ffdev --config=firebase.json --force
+
+        

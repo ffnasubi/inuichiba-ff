@@ -149,6 +149,11 @@ function logSecretSafe(label, value) {
   }
 }
 
+// テスト中のみ！終わったら削除！！
+logSecretSafe("channelSecret", channelSecret);
+logSecretSafe("channelAccessToken", channelAccessToken);
+
+
 // ローカルテスト時やffdev環境時にだけログを出す
 if (!isProd) {
   console.log("🐾 環境判定された projectId(GCLOUD_PROJECT):", projectId || "(未定義)");

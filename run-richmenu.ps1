@@ -1,8 +1,4 @@
-﻿param(
-  [string]$env = "ffdev"
-)
-
-# PowerShell スクリプト: run-richmenu.ps1
+﻿# PowerShell スクリプト: run-richmenu.ps1
 # -----------------------------------------
 # 環境を指定してリッチメニューを再作成する（ffdev / ffprod）
 # 実行例:
@@ -10,6 +6,10 @@
 #   .\run-richmenu.ps1 -env ffdev(既定値)	--- 開発環境用
 #   .\run-richmenu.ps1 -env ffprod			 --- 本番環境用
 # -----------------------------------------
+
+param(
+  [string]$env = "ffdev"
+)
 
 $envPath = ".env.secrets.$env.txt"
 if (-not (Test-Path $envPath)) {

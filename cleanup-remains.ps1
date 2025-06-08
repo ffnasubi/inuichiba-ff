@@ -191,7 +191,7 @@ if ($projectId -eq "inuichiba-ffprod") {
   $exists2 = gcloud storage buckets list --project=$projectId --format="value(name)" | Where-Object { $_ -eq $mustExistBucket2 }
 
   if ($exists2) {
-    Write-Host "✅ 削除禁止バケット(2/2)は正常に存在します: gs://$mustExistBucket2" -ForegroundColor Green
+    Write-Host "`n✅ 削除禁止バケット(2/2)は正常に存在します: gs://$mustExistBucket2" -ForegroundColor Green
     Write-Host "URL: https://console.cloud.google.com/storage/browser/$mustExistBucket2?project=$projectId" -ForegroundColor Green
   } else {
     Write-Host "❌ firebasestorage.app バケットが見つかりません！削除済み or 利用不可状態の可能性あり" -ForegroundColor Red
