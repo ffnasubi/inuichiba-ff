@@ -41,16 +41,16 @@ const isPreview = false;                            // ← Firebase には previ
 //    取得した値はログ出力前に .trim() や BOM 除去などのサニタイズを推奨します。
 // =======================================
 
-import { config } from "firebase-functions";
+const { config } = require("firebase-functions");
 
 let channelAccessToken = isProd
-  ? config().line.token.prod
-  : config().line.token.dev;
+  ? config().line.token.ffprod
+  : config().line.token.ffdev;
 channelAccessToken = sanitizeEnvVar(channelAccessToken);
 
 let channelSecret = isProd
-  ? config().line.secret.prod
-  : config().line.secret.dev;
+  ? config().line.secret.ffprod
+  : config().line.secret.ffdev;
 channelSecret = sanitizeEnvVar(channelSecret);
 
 // 本番/開発共通の Supabase サービスキー

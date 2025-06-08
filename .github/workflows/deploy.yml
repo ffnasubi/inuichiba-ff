@@ -28,14 +28,14 @@ jobs:
       run: |
         if [ "${{ github.event.inputs.env }}" = "ffprod" ]; then
           echo "🚀 Deploying to FFPROD"
-          firebase functions:config:set line.token.prod="${{ secrets.CHANNEL_ACCESS_TOKEN_PROD }}" \ 
-                                        line.secret.prod="${{ secrets.CHANNEL_SECRET_PROD }}" \
+          firebase functions:config:set line.token.ffprod="${{ secrets.CHANNEL_ACCESS_TOKEN_PROD }}" \ 
+                                        line.secret.ffprod="${{ secrets.CHANNEL_SECRET_PROD }}" \
                                         supabase.roll.key="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
           firebase deploy --only functions --project=inuichiba-ffprod --force
         elif [ "${{ github.event.inputs.env }}" = "ffdev" ]; then
           echo "🚀 Deploying to FFDEV"
-          firebase functions:config:set line.token.dev="${{ secrets.CHANNEL_ACCESS_TOKEN_DEV }}" \
-                                        line.secret.dev="${{ secrets.CHANNEL_SECRET_DEV }}" \
+          firebase functions:config:set line.token.ffdev="${{ secrets.CHANNEL_ACCESS_TOKEN_DEV }}" \
+                                        line.secret.ffdev="${{ secrets.CHANNEL_SECRET_DEV }}" \
                                         supabase.roll.key="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
           firebase deploy --only functions --project=inuichiba-ffdev --force
         else
