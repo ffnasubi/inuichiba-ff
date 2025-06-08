@@ -2,7 +2,7 @@
 
 # npm install で再生成される依存(node & firebase)
 functions/node_modules/
-functions/package-lock.json
+!functions/package-lock.json
 
 # ❌ git対象にすべき！重要なコードが除外されてしまう
 # functions/lib/
