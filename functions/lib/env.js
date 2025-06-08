@@ -175,6 +175,5 @@ module.exports = {
   supabaseUrl,
   usersTable,
   baseDir,
-  imageDir,
-  secretNames
+  imageDir
 };
