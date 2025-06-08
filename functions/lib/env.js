@@ -37,6 +37,7 @@ const isPreview = false;                            // ← Firebase には previ
 // gcloud CLIやローカルエディタのクセで BOM が入るケースは完全には防げません。
 // そのため、「アプリ側で安全処理」を入れておくのは
 // 実運用における二重セーフティとしてとても優れた設計です。
+// ステップ 3 で使います。
 // =======================================
 
 function sanitizeEnvVar(value) {
@@ -61,21 +62,26 @@ function sanitizeEnvVar(value) {
 
 const { config } = require("firebase-functions/v2");
 
-let channelAccessToken =
-  process.env.GCLOUD_PROJECT?.includes("ffprod")
-    ? cfg?.line?.token?.ffprod || ""
-    : cfg?.line?.token?.ffdev || "";
-channelAccessToken = sanitizeEnvVar(channelAccessToken);
+let cfg = {};
+try {
+  cfg = config(); // 👈 必ず定義する！
+} catch (e) {
+  console.warn("⚠️ config() 初期化前（Cloud Runなど）");
+  cfg = {};
+}
 
-let channelSecret =
-  process.env.GCLOUD_PROJECT?.includes("ffprod")
-    ? cfg?.line?.secret?.ffprod || ""
-    : cfg?.line?.secret?.ffdev || "";
-channelSecret = sanitizeEnvVar(channelSecret);
+let accessToken =  
+    isProd ? cfg?.line?.token?.ffprod || "" : cfg?.line?.token?.ffdev || "";
+const channelAccessToken = sanitizeEnvVar(accessToken);
+
+let secret =
+  isProprocess.env.GCLOUD_PROJECT?.includes("ffprod")
+  isProd ? cfg?.line?.secret?.ffprod || "" : cfg?.line?.secret?.ffdev || "";
+const channelSecret = sanitizeEnvVar(secret);
 
 // 本番/開発共通の Supabase サービスキー
-let supabaseKey = cfg?.supabase?.roll?.key || ""; 
-supabaseKey = sanitizeEnvVar(supabaseKey);
+let key = cfg?.supabase?.roll?.key || ""; 
+const supabaseKey = sanitizeEnvVar(key);
 
 
 // =======================================
