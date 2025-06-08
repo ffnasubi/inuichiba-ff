@@ -71,11 +71,10 @@ try {
 }
 
 let accessToken =  
-    isProd ? cfg?.line?.token?.ffprod || "" : cfg?.line?.token?.ffdev || "";
+  isProd ? cfg?.line?.token?.ffprod || "" : cfg?.line?.token?.ffdev || "";
 const channelAccessToken = sanitizeEnvVar(accessToken);
 
 let secret =
-  isProprocess.env.GCLOUD_PROJECT?.includes("ffprod")
   isProd ? cfg?.line?.secret?.ffprod || "" : cfg?.line?.secret?.ffdev || "";
 const channelSecret = sanitizeEnvVar(secret);
 
