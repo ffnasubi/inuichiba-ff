@@ -24,6 +24,10 @@ jobs:
     - name: Install Firebase CLI
       run: npm install -g firebase-tools
 
+    - name: Check for lockfile (debug)
+      run: |
+        ls functions/package-lock.json || echo "Lockfile not found"
+
     - name: Install dependencies in functions/
       run: |
         cd functions
