@@ -9,9 +9,8 @@ const express = require("express");
 // const { webhook } = require("./api/webhook"); 
 const { middleware } = require("@line/bot-sdk");
 const { handleEvent } = require("./handlers/events.js");
-
 const region = "asia-northeast1";
-
+ 
 // ✅ Expressアプリを作成
 const app = express();
 
@@ -22,81 +21,83 @@ app.use(express.json({
   }
 }));
 
-// 初期化用のミドルウェア変数
-let lineMiddleware = null;
+// ✅ Secretsからの読み込みは関数の中で行う（未定義エラー防止のため）
+let lineMiddleware;
 
-// Webhook POSTエンドポイント
-app.post("/api/webhook", function (req, res) {
-  var env = require("./lib/env.js");
-  var channelAccessToken = env.channelAccessToken;
-  var channelSecret = env.channelSecret;
-  var isProd = env.isProd;
+try {
+  const { channelAccessToken, channelSecret, isProd } = require("./lib/env.js");
 
   if (!channelAccessToken || !channelSecret) {
-    console.error("🔐 channelAccessToken または channelSecret が未定義です");
-    res.status(500).send("LINE設定が未定義です");
-    return;
+    if (!isProd) console.warn("🔐 LINE設定が未定義です（Secretsの設定不足または読み込みタイミングの問題）");
   }
 
-  if (!lineMiddleware) {
-    lineMiddleware = line.middleware({
-      channelAccessToken: channelAccessToken,
-      channelSecret: channelSecret
-    });
-    if (!isProd) {
-      console.log("✅ LINEミドルウェア初期化完了");
-    }
-  }
+  lineMiddleware = middleware({ channelAccessToken: channelAccessToken, channelSecret: channelSecret });
+  if (!isProd) console.log("✅ LINEミドルウェア初期化完了");
+} catch (err) {
+  const { isProd } = require("./lib/env.js");
+  console.error("💥 LINE設定の初期化エラー:", err);
+}
 
-
+// ✅ Webhookエンドポイント（/api/webhook で待ち受け）
+app.post("/api/webhook", function(req, res) {
+  const { isProd } = require("./lib/env.js");
+  if (!isProd) console.log("✅ POST /api/webhook に到達しました！");
   try {
-    lineMiddleware(req, res, function () {
-      var events = req.body && req.body.events;
-      if (!events || !(events instanceof Array) || events.length === 0) {
-        if (!isProd) {
-          console.warn("⚠️ 無効なイベントです:", req.body);
-        }
-        res.status(200).send("No events");
-        return;
+    if (!lineMiddleware) {
+      throw new Error("🔐 LINEミドルウェアが初期化されていません。");
+    }
+
+    lineMiddleware(req, res, async function() {
+      const { isProd } = require("./lib/env.js");
+      
+      const events = req.body && req.body.events;
+      if (!events || !(events instanceof Array)) {
+        if (!isProd) console.warn("⚠️ イベント配列が不正です:", req.body);
+        return res.status(200).send("No events");
       }
 
-      var i = 0;
-
-      function processNextEvent(index) {
+      let i = 0;
+      async function processNextEvent(index) {
         if (index >= events.length) {
-          res.status(200).send("OK from webhook");
-          return;
+          return res.status(200).send("OK from webhook");
         }
-
+        
         try {
-          eventsHandler.handleEvent(events[index], channelAccessToken)
-            .then(function () {
-              processNextEvent(index + 1);
-            })
-            .catch(function (err) {
-              console.error("💥 handleEvent エラー:", err);
-              res.status(500).send("Internal Server Error");
-            });
-        } catch (e) {
-          console.error("💥 イベント処理中の例外:", e);
+          const { channelAccessToken } = require("./lib/env.js");
+          await handleEvent(events[index], channelAccessToken);
+          await processNextEvent(index + 1);
+        } catch (err) {
+          console.error("💥 handleEvent エラー:", err);
           res.status(500).send("Internal Server Error");
         }
       }
 
-      processNextEvent(i);
+      await processNextEvent(i);
     });
-  } catch (e) {
-    console.error("💥 Webhook全体のエラー:", e);
+  } catch (err) {
+    console.error("💥 Webhookハンドラーエラー:", err);
     res.status(500).send("Internal Server Error");
   }
 });
 
-// Webhook GET確認用
-app.get("/api/webhook", function (req, res) {
+// FF構成で webhook GET を処理する
+app.get("/api/webhook", function(req, res) {
   res.status(200).send("OK (GET from webhook)");
 });
 
-// Functionsエクスポート
-exports.webhook = functions.https.onRequest({ region: region }, app);
-exports.ping = functions.https.onRequest({ region: region }, require("./api/ping"));
+
+// ✅ Firebase Functions v2 としてエクスポート
+exports.webhook = functions
+  .https
+  .onRequest({ region: region }, app);
+
+// ✅ functions/api/ping.js を読み込んで関数として登録
+// 一日に一度pingを叩いてffmainを起こす
+exports.ping = functions
+  .https
+  .onRequest({ region: region }, require("./api/ping"));
+
+
+// exports.helloWorld = require("./helloWorld").helloWorld;
+
 
