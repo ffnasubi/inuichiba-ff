@@ -1,3 +1,11 @@
+
+// functions/richmenu-manager/data/messages.js（再構築版）
+// ✅ Gen2互換、安全なenv.js呼び出し形式に変換済
+
+// 🔹 必要に応じて環境情報を受け取る関数スタイルに変更
+function createMessages(env) {
+  const { isProd, baseDir } = env;
+
 // ////////////////////////////////////////////////
 // 出力メッセージ定義
 const msgA1 = "犬市場 in OKAZAKI 2025 Springの詳細です！\n\n開催概要\n◆開催日 / 5月17日(土)18日(日)少雨決行\n※荒天・台風など不測の場合を除き雨天でも開催いたします。" + 
@@ -140,41 +148,27 @@ const msgPostpone = "メッセージありがとうございます！\n申し訳
 // //////////////////////////////////////////////////
 // リッチメニューと旧postback dataとの関連付け
 // 共通部分
-const baseKeywordMap = {
-    "開催情報":                   "tap_richMenuA1",
+const keywordMap = {
+    "開催情報":                   "tap_richMenuA1", // 共通(画面A)
     "会場におけるマナーのお願い":   "tap_richMenuA2",
     "パークアンドライド(P&R)":     "tap_richMenuA3",
     "アクティビティに関するご案内": "tap_richMenuA4",
     "ドッグランに関するご案内":     "tap_richMenuA5",
     "会場マップ\nショップリスト":   "tap_richMenuA6",
     "駐車場及びアクセス方法":       "tap_richMenuA7",
-    "アクティビティに関するご案内について":   "tap_richMenuB3",
+    "アクティビティに関するご案内について":   "tap_richMenuB3", // 共通(画面B)
     "会場マップ\nショップリストについて":     "tap_richMenuB5",
     "駐車場及びアクセス方法について":         "tap_richMenuB6",
+
+    ...(isProd ? {
+    "開催情報について":                     "tap_richMenuB1", // 本番環境のみ
+    "会場におけるマナーのお願いについて":     "tap_richMenuB2", // 本番環境のみ
+    } : {
+    "パークアンドライド(P&R)について":      "tap_richMenuB4", // 開発環境のみ
+    "画像ファイル表示速度について":         "tap_richMenuB7", // 開発環境のみ
+    "絵文字の表示について":                "tap_richMenuB8", // 開発環境のみ
+    })
 };
-
-// 差分(本番環境)
-const prodKeywordOverrides = {
-    "開催情報について":                     "tap_richMenuB1",
-    "会場におけるマナーのお願いについて":     "tap_richMenuB2",
-};
-
-// 差分(開発環境)
-const devKeywordOverrides = {
-    "パークアンドライド(P&R)について":      "tap_richMenuB4",
-    "画像ファイル表示速度について":         "tap_richMenuB7",
-    "絵文字の表示について":                "tap_richMenuB8",
-};
-
-
-const { isProd } = require("../../lib/env.js");
-
-// 🎯 最終的なマージ（スプレッド構文で合成）
-const keywordMap = {
-  ...baseKeywordMap,
-  ...(isProd ? prodKeywordOverrides : devKeywordOverrides)
-};
-
 
 
 // //////////////////////////////////////////////////
@@ -194,7 +188,6 @@ const textMessages = {
                     ]
 };
 
-const { baseDir } = require("../../lib/env.js");
 
 // 画像メッセージ
 // 動画(videos)は有償になりかねないので出さない。動画はYouTubeで出すこと
@@ -213,19 +206,13 @@ const mediaMessages = {
 // "QRコード"、"友だち追加"が入力されたときのmessage
 // 現状自動応答メッセージがメッセージだけ出しているので、
 // Botはメッセージは抑制してQRコードだけ表示する
-let lineQRcode;
-if (isProd) {
-  lineQRcode = "lineQRcode_ffprod.jpg";
-} else {
-  lineQRcode = "lineQRcode_ffdev.jpg";
-}
 const lineQRMessages = [
-    // { type: "text", text: lineQRtext },
-    {
-      type: "image",
-      originalContentUrl: `${baseDir}images/${lineQRcode}`,
-      previewImageUrl:    `${baseDir}images/${lineQRcode}`
-    }
+  // { type: "text", text: lineQRtext },
+  {
+    type: "image",
+    originalContentUrl: `${baseDir}images/` + (isProd ? "lineQRcode_ffprod.jpg" : "lineQRcode_ffdev.jpg"),
+    previewImageUrl:    `${baseDir}images/` + (isProd ? "lineQRcode_ffprod.jpg" : "lineQRcode_ffdev.jpg")
+  }
 ];
 
 
@@ -246,10 +233,9 @@ const emojiMap = {
   ]
 };
 
-
 // //////////////////////////////////////////////////
-// エクスポート（外部から使われる値のみ）
-module.exports = {
+// リターン値（外部から使われる値のみ）
+return {
   keywordMap,
   textMessages,
   mediaMessages,
@@ -271,3 +257,7 @@ module.exports = {
   msgY,
   msgPostpone
 };
+} // createMessages()の終了
+
+
+module.exports = { createMessages };

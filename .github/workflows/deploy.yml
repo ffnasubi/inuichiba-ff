@@ -55,21 +55,30 @@ jobs:
 
     - name: Deploy to Firebase (FFPROD)
       if: github.event.inputs.env == 'ffprod'
-      run: |
-        firebase deploy --only functions --project=inuichiba-ffprod --config=firebase.json --force
-
-    - name: Set Firebase Config (FFDEV)
-      if: github.event.inputs.env == 'ffdev'
-      run: |
-        firebase functions:config:set \
-          line.token.ffdev="${{ secrets.CHANNEL_ACCESS_TOKEN_DEV }}" \
-          line.secret.ffdev="${{ secrets.CHANNEL_SECRET_DEV }}" \
-          supabase.roll.key="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
-          --project=inuichiba-ffdev
+       gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
+        gcloud config set project $GCP_PROJECT
+        gcloud functions deploy webhook \
+          --gen2 \
+          --region=asia-northeast1 \
+          --runtime=nodejs20 \
+          --trigger-http \
+          --allow-unauthenticated \
+          --set-env-vars="CHANNEL_ACCESS_TOKEN=${{ secrets.CHANNEL_ACCESS_TOKEN_PROD }},CHANNEL_SECRET=${{ secrets.CHANNEL_SECRET_PROD }},SUPABASE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+          -source=functions
 
     - name: Deploy to Firebase (FFDEV)
       if: github.event.inputs.env == 'ffdev'
       run: |
-        firebase deploy --only functions --project=inuichiba-ffdev --config=firebase.json --force
+        gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
+        gcloud config set project $GCP_PROJECT
+        gcloud functions deploy webhook \
+          --gen2 \
+          --region=asia-northeast1 \
+          --runtime=nodejs20 \
+          --trigger-http \
+          --allow-unauthenticated \
+          --set-env-vars="CHANNEL_ACCESS_TOKEN=${{ secrets.CHANNEL_ACCESS_TOKEN_DEV }},CHANNEL_SECRET=${{ secrets.CHANNEL_SECRET_DEV }},SUPABASE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+          --source=functions \
+          --project=inuichiba-ffprod
 
-        
+

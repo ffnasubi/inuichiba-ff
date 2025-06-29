@@ -131,11 +131,25 @@ if ($bucketsToDelete.Count -eq 0) {
   Write-Host "✅ 削除対象バケットは見つかりませんでした。" -ForegroundColor Green
 } else {
   foreach ($bucket in $bucketsToDelete) {
-    Write-Host "🧹 バケットの中身を削除中: $bucket" -ForegroundColor Cyan
-    gsutil -m rm -r "gs://$bucket/**" 2>$null
+    # バケット削除中メッセージ表示後に一呼吸置く
+    Start-Sleep -Seconds 5
 
+    $bucketUrl = "gs://$bucket"
+    Write-Host "🧹 実際に削除するバケットURL: $bucketUrl" -ForegroundColor DarkYellow
+
+    Write-Host "🧹 バケットの中身を削除中: $bucket" -ForegroundColor Cyan
+    & gcloud storage rm -r $bucketUrl --quiet
+    
     Write-Host "🗑️ バケット削除中: $bucket" -ForegroundColor DarkCyan
-    gcloud storage buckets delete "gs://$bucket" --quiet
+    $deleteResult = & gcloud storage buckets delete "$bucketUrl" --quiet 2>&1
+    if ($LASTEXITCODE -ne 0 -and $deleteResult -match "not found") {
+      Write-Host "⚠️ バケット $bucket は既に削除済みです（404）" -ForegroundColor DarkYellow
+    } elseif ($LASTEXITCODE -ne 0) {
+      Write-Host "❌ バケット $bucket の削除に失敗しました:" -ForegroundColor Red
+      Write-Host $deleteResult
+    } else {
+      Write-Host "✅ バケット $bucket を削除しました。" -ForegroundColor Green
+    }
   }
   Write-Host "`n✅ バケットのクリーンアップ完了！" -ForegroundColor Green
 }
@@ -299,6 +313,24 @@ $subs = gcloud pubsub subscriptions list --project=$projectId --format="value(na
 foreach ($sub in $subs) {
   Write-Host "🧨 サブスクリプション削除: $sub" -ForegroundColor Yellow
   gcloud pubsub subscriptions delete $sub --project=$projectId --quiet
+}
+
+# 🔧 Cloud Logging 保持期間の短縮（課金防止：デフォルト30日 → 1日）
+# 確認方法：gcloud logging buckets describe _Default --location=global --project=inuichiba-ff*
+#  "retentionDays": 1 が確認できればおけ
+Write-Host "`n🔍 [$projectId] Cloud Logging 保持期間を 1日に設定中..." -ForegroundColor Cyan
+try {
+  gcloud logging buckets update _Default `
+    --location=global `
+    --retention-days=1 `
+    --project=$projectId `
+    --quiet
+  Write-Host "✅ Cloud Logging 保持期間を 1日に短縮しました。" -ForegroundColor Green
+  Write-Host "`n🔍 確認方法→確認方法：gcloud logging buckets describe _Default --location=global --project=[$projectId]" -ForegroundColor Cyan
+  Write-Host "🔍 これで "retentionDays": 1 が確認できればOK" -ForegroundColor Cyan
+} catch {
+  Write-Host "❌ Cloud Logging 保持期間の設定中にエラーが発生しました：" -ForegroundColor Red
+  Write-Host $_
 }
 
 Write-Host "`n✅ [$projectId] の課金源削除スクリプトが完了しました。" -ForegroundColor Green

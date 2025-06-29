@@ -86,4 +86,20 @@ Mac/Linux 開発老E��増えたら .sh 版も作�E予宁E
 .README.md は自刁E��か読まなくてもちめE��と書く（未来の自刁E�Eため�E�E
 
 
+🌟PROD/DEVをFFPROD/FFDEVへ統一する
+# ✅ 目的：Secretsの接尾辞を FFPROD / FFDEV に統一し、過去の DEV / PROD を廃止する
+# ✅ 修正対象：
+# - .env.secrets.ffprod.txt / .env.secrets.ffdev.txt（修正済）
+# - .env.set_firebase_config.ps1（以下に修正内容あり）
+# - deploy-and-cleanup.ps1（Firebase Config登録部分に1行修正）
+# - env.js（envSuffixを isProd ? 'ffprod' : 'ffdev' に固定）
+# 🔹 deploy.yml は起動後に対応
 
+✅ 修正対象（対応完了 or 修正予定）
+ファイル名	対応内容	状態
+.env.secrets.ff*.txt            FFPROD / FFDEV に統一済	                ✅ 完了
+.env.set_firebase_config.ps1	$envSuffix = "FFDEV" に修正	            🔧 対応中
+deploy-and-cleanup.ps1	        Firebase Config 登録処理の接尾辞を統一	    🔧 対応中
+env.js	                        envSuffix = isProd ? "ffprod" : "ffdev" で読み出し	🔧 対応中
+.env.set_secrets-gh.ps1	        対象外（GitHub向け）	                    🚫 保留
+deploy.yml	                    GitHub Actionsにて後日対応	            ⏳ 後回し

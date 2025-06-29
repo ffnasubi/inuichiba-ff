@@ -30,26 +30,7 @@ const isPreview = false;                            // ← Firebase には previ
 
 
 // =======================================
-// 🔹 ステップ 2：全Secrets読み込み箇所に BOM & trim()など安全処理を施す
-// ---------------------------------------
-// スクリプト側で BOM を除去しても「完全には防げない」ため
-// .ps1 などでSecrets登録前に改行やBOMを除去していても、
-// gcloud CLIやローカルエディタのクセで BOM が入るケースは完全には防げません。
-// そのため、「アプリ側で安全処理」を入れておくのは
-// 実運用における二重セーフティとしてとても優れた設計です。
-// ステップ 3 で使います。
-// =======================================
-
-function sanitizeEnvVar(value) {
-  if (typeof value !== "string") return value;
-  let v = value;
-  if (v.charAt(0) === "\uFEFF") v = v.slice(1); // BOM削除
-  return v.trim();
-}
-
-
-// =======================================
-// 🔹 ステップ 3：GitHub Secretsから読み込む値（Firebase Config経由）
+// 🔹 ステップ 2：GitHub Secretsから読み込む値（Firebase Config経由）
 // ---------------------------------------
 // ※ GitHub の Settings > Secrets and variables > Actions に登録された値は、
 //    GitHub Actions 内で firebase functions:config:set により
@@ -60,31 +41,24 @@ function sanitizeEnvVar(value) {
 //    取得した値はログ出力前に .trim() や BOM 除去などのサニタイズを推奨します。
 // =======================================
 
-const { config } = require("firebase-functions/v2");
 
-let cfg = {};
-try {
-  cfg = config(); // 👈 必ず定義する！
-} catch (e) {
-  console.warn("⚠️ config() 初期化前（Cloud Runなど）");
-  cfg = {};
-}
+let rawToken = "";
+let rawSecret = "";
+let rawSupabaseKey = "";
 
-let accessToken =  
-  isProd ? cfg?.line?.token?.ffprod || "" : cfg?.line?.token?.ffdev || "";
-const channelAccessToken = sanitizeEnvVar(accessToken);
+rawToken  = isProd  ? process.env.CHANNEL_ACCESS_TOKEN_PROD || "" 
+                    : process.env.CHANNEL_ACCESS_TOKEN_DEV  || "";
+rawSecret = isProd  ? process.env.CHANNEL_SECRET_PROD       || "" 
+                    : process.env.CHANNEL_SECRET_DEV        || "";
+rawSupabaseKey      = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-let secret =
-  isProd ? cfg?.line?.secret?.ffprod || "" : cfg?.line?.secret?.ffdev || "";
-const channelSecret = sanitizeEnvVar(secret);
-
-// 本番/開発共通の Supabase サービスキー
-let key = cfg?.supabase?.roll?.key || ""; 
-const supabaseKey = sanitizeEnvVar(key);
+const channelAccessToken = sanitizeEnvVar(rawToken);
+const channelSecret = sanitizeEnvVar(rawSecret);
+const supabaseKey = sanitizeEnvVar(rawSupabaseKey);
 
 
 // =======================================
-// 🔹 ステップ 4：Secretsではなく定数でよい値（URL, テーブル名）
+// 🔹 ステップ 3：Secretsではなく定数でよい値（URL, テーブル名）
 // ---------------------------------------
 // Supabase の URL や テーブル名は Secrets にしなくても安全です。
 // なぜなら URL は公開前提であり、テーブル名はセキュリティとは無関係な定義情報だからです。
@@ -95,7 +69,7 @@ const usersTable = isProd ? "users_ffprod" : "users_ffdev";
 
 
 // =======================================
-// 🔹 ステップ 5：LINE画像・カルーセルメッセージ用の共通URLやパス
+// 🔹 ステップ 4：LINE画像・カルーセルメッセージ用の共通URLやパス
 // ---------------------------------------
 // Cloudflare Pages にアップした画像を参照するURLです。
 // 現在はどちらの環境でも共通で問題ない設計です。
@@ -129,6 +103,26 @@ const imageDir = path.resolve(__dirname, "../richmenu-manager/data/");
     ];
 */
 
+
+// =======================================
+// 🔹 ステップ 5：全Secrets読み込み箇所に BOM & trim()など安全処理を施す
+// ---------------------------------------
+// スクリプト側で BOM を除去しても「完全には防げない」ため
+// .ps1 などでSecrets登録前に改行やBOMを除去していても、
+// gcloud CLIやローカルエディタのクセで BOM が入るケースは完全には防げません。
+// そのため、「アプリ側で安全処理」を入れておくのは
+// 実運用における二重セーフティとしてとても優れた設計です。
+// ステップ 3 で使います。
+// =======================================
+
+function sanitizeEnvVar(value) {
+  if (typeof value !== "string") return value;
+  let v = value;
+  if (v.charAt(0) === "\uFEFF") v = v.slice(1); // BOM削除
+  return v.trim();
+}
+
+
 // =======================================
 // 🔹 ステップ 6：安全なログ出力（console.logで機密を出さない工夫）
 // ---------------------------------------
@@ -149,13 +143,10 @@ function logSecretSafe(label, value) {
   }
 }
 
-// テスト中のみ！終わったら削除！！
-logSecretSafe("channelSecret", channelSecret);
-logSecretSafe("channelAccessToken", channelAccessToken);
-
 
 // ローカルテスト時やffdev環境時にだけログを出す
 if (!isProd) {
+  console.log("🔍 [env.js] チェック開始");
   console.log("🐾 環境判定された projectId(GCLOUD_PROJECT):", projectId || "(未定義)");
   console.log("🐾 isProd:", isProd);
   logSecretSafe("channelSecret", channelSecret);
@@ -183,5 +174,6 @@ module.exports = {
   supabaseUrl,
   usersTable,
   baseDir,
-  imageDir
+  imageDir,
+  logSecretSafe
 };

@@ -3,15 +3,16 @@
 
 const { saveUserProfileAndWrite } = require("../lib/saveUserInfo.js");
 const { sendReplyMessage, getUserProfile } = require("../lib/lineApiHelpers.js");
-const { keywordMap, textMessages, mediaMessages, lineQRMessages, textTemplates, emojiMap } = require("../richmenu-manager/data/messages.js");
+// const { keywordMap, textMessages, mediaMessages, lineQRMessages, textTemplates, emojiMap } = require("../richmenu-manager/data/messages.js");
 const messages = require("../richmenu-manager/data/messages.js");
+const getEnv = require("../lib/env.js");
 
 
 // ///////////////////////////////////////////
 // eventタイプで処理を振り分ける
 async function handleEvent(event, ACCESS_TOKEN) {
   
-  const { isProd } = require("../lib/env.js");
+  const { isProd } = getEnv();
 
   switch (event.type) {
     case 'message':
@@ -64,13 +65,12 @@ async function handleFollowEvent(event, ACCESS_TOKEN) {
     null;
   const sourceType = event.source?.type ?? null;  // 'user' | 'group' | 'room'
   const eventType = "follow";
-  
-  const { isProd } = require("../lib/env.js");
+  const { isProd } = getEnv();
 
   // --- メッセージ生成＆返信
   const profile = await getUserProfile(userId, ACCESS_TOKEN);
   const displayName = profile?.displayName || null;
-  const followText = textTemplates["msgFollow"];
+  const followText = messages.textTemplates["msgFollow"];
   
   let mBody = (displayName == null || displayName.includes("$"))
     ? followText
@@ -115,7 +115,7 @@ async function handleMessageEvent(event, ACCESS_TOKEN) {
 	
 	// LINE公式アカウントの「自動応答対象ワード」はBotが代わりに返信
 	if (data === "QRコード" || data === "友だち追加") {
-    message = lineQRMessages;
+    message = messages.lineQRMessages;
     await sendReplyMessage(event.replyToken, message, ACCESS_TOKEN);
   } 
 	// グループ or ルームからのメッセージは、LINE自動応答メッセージのみBotの代わりに返信
@@ -129,8 +129,8 @@ async function handleMessageEvent(event, ACCESS_TOKEN) {
     await sendReplyMessage(event.replyToken, message, ACCESS_TOKEN);
   }
   // keywordMap に一致するかどうかで分岐
-  else if (keywordMap[data]) {
-    const key = keywordMap[data];  // 例: "tap_richMenuA1"
+  else if (messages.keywordMap[data]) {
+    const key = messages.keywordMap[data];  // 例: "tap_richMenuA1"
     await handleRichMenuTap(key, event.replyToken, ACCESS_TOKEN);  // ✅ postbackと共通処理に流す
   } 
   // 上記すべてに該当しない場合
@@ -140,7 +140,7 @@ async function handleMessageEvent(event, ACCESS_TOKEN) {
   }
 	
   // --- Supabase書き込みはメッセージ送信後、後回しに実行（非同期）
-  const { isProd } = require("../lib/env.js");
+  const { isProd } = getEnv();
 
   if (userId) {
     try {
@@ -159,10 +159,10 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
   let messages = [];
   let carouselFlg = false;
 
-  if (mediaMessages[data]) {
-    messages = mediaMessages[data];
-  } else if (textMessages[data]) {
-    messages = textMessages[data];
+  if (messages.mediaMessages[data]) {
+    messages = messages.mediaMessages[data];
+  } else if (messages.textMessages[data]) {
+    messages = messages.textMessages[data];
   } 
   // フレックスメッセージはテキストとフレックスが配列じゃなく展開されてくるので、
   // そのままま全部受け取る
@@ -188,10 +188,10 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
   }
 
   
-  const { isProd } = require("../lib/env.js");
+  const { isProd } = getEnv();
 
   try {
-    if (textTemplates[data]) {
+    if (messages.textTemplates[data]) {
       const emojiTextMessage = buildEmojiMessage(data, "");
       messages.push(emojiTextMessage);
     }
@@ -231,7 +231,7 @@ async function handleRichMenuTap(data, replyToken, ACCESS_TOKEN) {
 async function handlePostbackEvent(event) {
   const data = event.postback.data;
 
-  const { isProd } = require("../lib/env.js");
+  const { isProd } = getEnv();
     
   // タブ切り替え。ログだけ出す(安定したらログ不要になるかな？)
   if (data === "change to A" || data === "change to B") {
@@ -255,7 +255,7 @@ async function handleJoinEvent(event, ACCESS_TOKEN) {
   const sourceType = event.source?.type ?? null;  // 'user' | 'group' | 'room'
   const eventType = "join";
   
-  const { isProd } = require("../lib/env.js");
+  const { isProd } = getEnv();
     
   const welcomeMessage = { type: "text", text: messages.msgJoin };
   await sendReplyMessage(event.replyToken, [welcomeMessage], ACCESS_TOKEN);
@@ -274,8 +274,8 @@ async function handleJoinEvent(event, ACCESS_TOKEN) {
 // /////////////////////////////////////////
 // 絵文字入りメッセージを組み立てる
 function buildEmojiMessage(templateKey, mBody) {
-  let rawText = textTemplates[templateKey];
-  const emojiList = emojiMap[templateKey];
+  let rawText = messages.textTemplates[templateKey];
+  const emojiList = messages.emojiMap[templateKey];
 
   if (templateKey === "msgFollow") {
     rawText = mBody;
@@ -286,8 +286,8 @@ function buildEmojiMessage(templateKey, mBody) {
   }
 
   const placeholderCount = (rawText.match(/\$/g) || []).length;
-  const { isProd } = require("../lib/env.js");
-  
+  const { isProd } = getEnv();
+    
   if (!isProd) {
     console.log("💡 placeholderCount ($の数):", placeholderCount);
     console.log("🔢 emojiList.length:", emojiList ? emojiList.length : 0);
@@ -340,11 +340,11 @@ function setMannerCarouselMessage() {
   //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
   // 
   // ✅ 正しい書き方：messages.msgA61
-  const textMessage = [
+  messages.textMessage = [
     { type: "text", text: messages.msgA20 }
   ];
   
-  const { baseDir } = require("../lib/env.js");
+  const { baseDir } = getEnv();
 
   const flex_message1 = { 
     type: "bubble",
@@ -481,7 +481,7 @@ function setMannerCarouselMessage() {
   
   // ✅ テキストの配列を展開して、
   // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
-  return [...textMessage, flexMessage];
+  return [...messages.textMessage, flexMessage];
 
 }
 
@@ -496,11 +496,11 @@ function setDogRunCarouselMessage() {
   //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
   // 
   // ✅ 正しい書き方：messages.msgA61
-  const textMessage = [
+  messages.textMessage = [
     { type: "text", text: messages.msgA50 }
   ];
 
-  const { baseDir } = require("../lib/env.js");
+  const { baseDir } = getEnv();
 
   const flex_message1 = {
     type: "bubble",
@@ -955,7 +955,7 @@ function setDogRunCarouselMessage() {
   
   // ✅ テキストの配列を展開して、
   // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
-  return [...textMessage, flexMessage];
+  return [...messages.textMessage, flexMessage];
 
 }
   
@@ -970,13 +970,13 @@ function setParkingCarouselMessage() {
   //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
   // 
   // ✅ 正しい書き方：messages.msgA61
-  const textMessage =  [
+  messages.textMessage =  [
     { type: "text", text: messages.msgA70 },
     { type: "text", text: messages.msgA71 },
     { type: "text", text: messages.msgA72 }
   ];
   
-  const { baseDir } = require("../lib/env.js");
+  const { baseDir } = getEnv();
 
   const flex_message1 = {
     type: "bubble",
@@ -1043,7 +1043,7 @@ function setParkingCarouselMessage() {
   
   // ✅ テキストの配列を展開して、
   // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
-  return [...textMessage, flexMessage];
+  return [...messages.textMessage, flexMessage];
 
 }
 
@@ -1058,11 +1058,11 @@ function setPandRCarouselMessage() {
   //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
   // 
   // ✅ 正しい書き方：messages.msgA61
-  const textMessage = [
+  messages.textMessage = [
     { type: "text", text: messages.msgA3 }
   ];
 
-  const { baseDir } = require("../lib/env.js");
+  const { baseDir } = getEnv();
 
   const flex_message1 = {
     type: "bubble",
@@ -1222,7 +1222,7 @@ function setPandRCarouselMessage() {
   
   // ✅ テキストの配列を展開して、
   // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
-  return [...textMessage, flexMessage];
+  return [...messages.textMessage, flexMessage];
 
 }
 
@@ -1237,11 +1237,11 @@ function setMapCarouselMessage() {
   //   → コピペ時に必ず確認！名前違ったら即エラー直撃！
   // 
   // ✅ 正しい書き方：messages.msgA61
-  const textMessage = [
+  messages.textMessage = [
     { type: "text", text: messages.msgA6 }
   ];
 
-  const { baseDir } = require("../lib/env.js");
+  const { baseDir } = getEnv();
 
   const flex_message1 = {
     type: "bubble",
@@ -1341,7 +1341,7 @@ function setMapCarouselMessage() {
   
   // ✅ テキストの配列を展開して、
   // 最終的に [ text, text, ～, flex ] (全体を配列にする)形式にまとめて返す
-  return [...textMessage, flexMessage];
+  return [...messages.textMessage, flexMessage];
 
 }
 
